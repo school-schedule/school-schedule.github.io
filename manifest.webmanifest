@@ -1,0 +1,25 @@
+{
+  "name": "המערכת שלי",
+  "short_name": "המערכת שלי",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#EDF1F6",
+  "theme_color": "#2246C8",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
