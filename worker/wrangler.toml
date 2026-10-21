@@ -1,0 +1,45 @@
+# Cloudflare Worker «hamaarechet» — сервер расписания (адрес в ../config.js).
+# Скачано из аккаунта Cloudflare командой `wrangler init --from-dash hamaarechet`.
+#
+# Секретов здесь нет и быть не должно. Они хранятся в Cloudflare Secrets:
+#   EDITOR_CODE — код редактора (wrangler secret put EDITOR_CODE)
+# Для локального запуска (wrangler dev) секреты кладутся в worker/.dev.vars — он в .gitignore.
+# Необязательные переменные: CONTACT (mailto:…), SHAHAF_URL — сейчас не заданы.
+
+name = "hamaarechet"
+main = "src/worker.js"
+compatibility_date = "2026-10-05"
+workers_dev = true
+preview_urls = false
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[[kv_namespaces]]
+binding = "DB"
+id = "f3a6798ded224574b51316a4f046d17e"
+
+[[queues.producers]]
+binding = "PUSHQ"
+queue = "hamaarechet-push"
+
+# Этот же Worker забирает задачи из очереди (по одной — см. комментарий в src/worker.js)
+[[queues.consumers]]
+queue = "hamaarechet-push"
+max_batch_size = 1
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+redact_query_string = false
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
