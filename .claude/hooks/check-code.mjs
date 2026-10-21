@@ -112,8 +112,9 @@ const text = fs.readFileSync(file, 'utf8');
 const errors = [];
 
 if (base === 'index.html') checkIndex(text, errors);
+// код Cloudflare Worker (worker/) — тоже модуль
+else if (ext === '.mjs' || (ext === '.js' && /(^|[\\/])worker[\\/]/.test(file))) checkModule(file, base, errors);
 else if (ext === '.js') checkJs(text, base, errors);
-else if (ext === '.mjs') checkModule(file, base, errors);
 else if (ext === '.json' || ext === '.webmanifest') {
   try { JSON.parse(text); } catch (e) { errors.push(`${base}: JSON не читается — ${e.message}`); }
 } else process.exit(0);
