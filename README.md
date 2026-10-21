@@ -15,6 +15,7 @@ Hebrew (default, right-to-left), English and Russian.
 - **GitHub Pages** serves the app: a single `index.html` (HTML, CSS and plain JavaScript, no build step, no frameworks), plus `sw.js` for push notifications and a PWA manifest.
 - **Cloudflare Worker** (URL in `config.js`) stores the timetable, checks the editor code, publishes changes, keeps backups and sends push notifications. Its code is not in this repository.
 - A student's choices are kept only in their own browser (`localStorage`). No accounts, no personal data.
+- To know how many students use the app, the browser sends the server, at most once a day, a random device id (made once and kept in `localStorage`) and the chosen class. No names, no IP addresses are stored. Only editors see the totals.
 - Editors log in with a code checked by the server and publish changes that every student sees right away.
 
 ## Making changes
