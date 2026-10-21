@@ -17,8 +17,10 @@
  *  - (для бесплатного тарифа) Queue с именем переменной  PUSHQ,
  *    и этот же Worker как consumer этой очереди (Batch size = 1).
  *    Без очереди уведомления отправляются сразу (подходит для платного тарифа).
- *  - Durable Object  LIMITER  (класс Limiter, SQLite) — счётчики попыток входа
- *    и подписок по адресам; описан в wrangler.toml.
+ *  - Durable Object  LIMITER  (класс Limiter, SQLite) — счётчики попыток входа,
+ *    подписок и отметок счётчика по адресам; описан в wrangler.toml.
+ *  - Durable Object  STATS  (класс Stats, SQLite) — анонимный счётчик устройств
+ *    (POST /ping от сайта, GET /stats — для редактора).
  */
 
 import { DurableObject } from "cloudflare:workers";
@@ -88,6 +90,12 @@ export default {
       if (path === "/vapid") return json({ key: (await getVapid(env)).publicKey });
       if (path === "/subscribe" && req.method === "POST") return await subscribe(req, env);
       if (path === "/unsubscribe" && req.method === "POST") return await unsubscribe(req, env);
+      if (path === "/ping" && req.method === "POST") return await ping(req, env);
+      if (path === "/stats") {
+        const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+        if (auth.status !== 200) return json(auth.body, auth.status);
+        return json(await statsObj(env).summary(israelDate(0)));
+      }
       if (path === "/shahaf") return json((await env.DB.get("shahaf:last", "json")) || { status: "never" });
       if (path === "/shahaf/run" && req.method === "POST") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
@@ -298,6 +306,81 @@ async function unsubscribe(req, env) {
   const b = await req.json().catch(() => ({}));
   if (b && typeof b.endpoint === "string" && b.endpoint.length <= 800) await env.DB.delete("sub:" + (await sha256(b.endpoint)));
   return json({ ok: true });
+}
+
+/* ---------------- счётчик пользователей ---------------- */
+// Сайт раз в день присылает случайный id устройства и выбранный класс — больше ничего:
+// ни имён, ни адресов. IP нужен только лимиту ниже (объект Limiter "ping:<ip>"
+// сам стирается через час) и в счётчиках не хранится.
+// Счётчики — в Durable Object (Stats), а не в KV: у KV мало записей на бесплатном тарифе.
+// Не больше 300 отметок с одного адреса в час: в школе у многих общий Wi-Fi,
+// но один адрес не накрутит тысячи «устройств».
+const PING_MAX = 300, PING_WINDOW_SEC = 3600;
+async function ping(req, env) {
+  let lim;
+  // счётчик лимитов недоступен — не считаем: иначе накрутка была бы без ограничений
+  try { lim = await limiter(env, "ping", req).hit(PING_MAX, PING_WINDOW_SEC); }
+  catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many_pings", retryAfter: lim.retryAfter }, 429);
+  const raw = await req.text();
+  if (raw.length > 300) return json({ error: "too_big" }, 413);
+  let b;
+  try { b = JSON.parse(raw); } catch (e) { return json({ error: "bad_json" }, 400); }
+  const dev = b && b.id;
+  if (typeof dev !== "string" || !/^[0-9a-f]{32}$/.test(dev)) return json({ error: "bad_id" }, 400);
+  const cls = b.classId ? String(b.classId) : "";
+  if (cls && !/^c\d{1,2}$/.test(cls)) return json({ error: "bad_class" }, 400);
+  // день считает сервер (по времени Израиля), дате с телефона не доверяем
+  await statsObj(env).ping(israelDate(0), dev, cls);
+  return json({ ok: true });
+}
+function statsObj(env) {
+  return env.STATS.get(env.STATS.idFromName("all"));
+}
+function shiftDay(day, n) {
+  const d = new Date(day + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+// Один объект на всё приложение. Таблицы:
+//  seen    — кто открывал приложение в какой день (хранится 30 дней);
+//  devices — все устройства за всё время и их последний класс (для «всего»).
+// Повторная отметка за тот же день ничего не записывает, если класс не менялся.
+export class Stats extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.sql = ctx.storage.sql;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS seen (day TEXT NOT NULL, dev TEXT NOT NULL, cls TEXT NOT NULL, PRIMARY KEY (day, dev)) WITHOUT ROWID");
+    this.sql.exec("CREATE TABLE IF NOT EXISTS devices (dev TEXT PRIMARY KEY, cls TEXT NOT NULL) WITHOUT ROWID");
+  }
+  ping(day, dev, cls) {
+    this.sql.exec("INSERT INTO seen (day, dev, cls) VALUES (?, ?, ?) ON CONFLICT (day, dev) DO UPDATE SET cls = excluded.cls WHERE cls <> excluded.cls", day, dev, cls);
+    this.sql.exec("INSERT INTO devices (dev, cls) VALUES (?, ?) ON CONFLICT (dev) DO UPDATE SET cls = excluded.cls WHERE cls <> excluded.cls", dev, cls);
+    // старые дни стираем раз в сутки (пока объект в памяти)
+    if (this.cleaned !== day) {
+      this.cleaned = day;
+      this.sql.exec("DELETE FROM seen WHERE day < ?", shiftDay(day, -29));
+    }
+    return { ok: true };
+  }
+  summary(day) {
+    // за период каждое устройство считается один раз — по классу в последний его день
+    const since = (from) => this.sql.exec("SELECT cls, COUNT(*) AS n FROM (SELECT dev, cls, MAX(day) FROM seen WHERE day >= ? GROUP BY dev) GROUP BY cls", from).toArray();
+    const pack = (rows) => {
+      const byClass = {};
+      let total = 0;
+      for (const r of rows) { byClass[r.cls] = r.n; total += r.n; }
+      return { total, byClass };
+    };
+    return {
+      day,
+      today: pack(since(day)),
+      week: pack(since(shiftDay(day, -6))),
+      month: pack(since(shiftDay(day, -29))),
+      all: pack(this.sql.exec("SELECT cls, COUNT(*) AS n FROM devices GROUP BY cls").toArray()),
+    };
+  }
 }
 
 async function* allSubs(env) {
