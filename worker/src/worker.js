@@ -17,7 +17,11 @@
  *  - (для бесплатного тарифа) Queue с именем переменной  PUSHQ,
  *    и этот же Worker как consumer этой очереди (Batch size = 1).
  *    Без очереди уведомления отправляются сразу (подходит для платного тарифа).
+ *  - Durable Object  LIMITER  (класс Limiter, SQLite) — счётчики попыток входа
+ *    и подписок по адресам; описан в wrangler.toml.
  */
+
+import { DurableObject } from "cloudflare:workers";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -100,25 +104,73 @@ export default {
 
 /* ---------------- защита кода редактора ---------------- */
 // После 5 неверных попыток с одного адреса — блокировка на 15 минут.
+// Счётчики живут в Durable Object (Limiter), а не в KV: KV на бесплатном тарифе даёт
+// всего 1000 записей в день (их можно «выжечь» неверными попытками и сломать публикацию)
+// и обновляется с задержкой до минуты (параллельные попытки обходили бы счётчик).
 const MAX_TRIES = 5, LOCK_SEC = 900;
+// /subscribe: не больше 10 запросов с одного адреса в час
+const SUB_MAX = 10, SUB_WINDOW_SEC = 3600;
 function clientIp(req) {
-  return req.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = req.headers.get("CF-Connecting-IP") || "unknown";
+  // IPv6: у одного устройства обычно целая сеть /64 — считаем её одним адресом
+  if (!ip.includes(":")) return ip;
+  const [head, tail = ""] = ip.split("::");
+  const a = head ? head.split(":") : [], b = tail ? tail.split(":") : [];
+  const full = [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill("0"), ...b];
+  return full.slice(0, 4).map((x) => parseInt(x || "0", 16).toString(16)).join(":") + "::/64";
+}
+function limiter(env, kind, req) {
+  return env.LIMITER.get(env.LIMITER.idFromName(kind + ":" + clientIp(req)));
 }
 async function checkCode(req, env, code) {
   if (!env.EDITOR_CODE) return { status: 500, body: { error: "no_code_configured" } };
-  const key = "rl:" + clientIp(req);
-  const rec = (await env.DB.get(key, "json")) || { n: 0, until: 0 };
-  const now = Date.now();
-  if (rec.until > now) return { status: 429, body: { error: "locked", retryAfter: Math.ceil((rec.until - now) / 1000) } };
-  if (typeof code === "string" && code.length > 0 && safeEqual(code, env.EDITOR_CODE)) {
-    if (rec.n) await env.DB.delete(key);
-    return { status: 200 };
+  const ok = typeof code === "string" && code.length > 0 && safeEqual(code, env.EDITOR_CODE);
+  let r;
+  // если счётчик недоступен — не пускаем: иначе подбор кода был бы без ограничений
+  try { r = await limiter(env, "login", req).login(ok); }
+  catch (e) { return { status: 503, body: { error: "try_later" } }; }
+  if (r.locked) return { status: 429, body: { error: "locked", retryAfter: r.retryAfter } };
+  if (ok) return { status: 200 };
+  return { status: 401, body: { error: "bad_code", left: r.left } };
+}
+
+// Один объект на каждый адрес и вид проверки ("login:<ip>", "sub:<ip>").
+// Когда окно закончилось, будильник (alarm) стирает запись, чтобы не копились данные.
+export class Limiter extends DurableObject {
+  async login(ok) {
+    const now = Date.now();
+    const rec = (await this.ctx.storage.get("r")) || { n: 0, until: 0 };
+    if (rec.until > now) return { locked: true, retryAfter: Math.ceil((rec.until - now) / 1000) };
+    if (ok) {
+      // верный код сбрасывает счётчик (запись тратится, только если он был)
+      if (rec.n) await this.ctx.storage.deleteAll();
+      return { locked: false };
+    }
+    rec.n += 1;
+    if (rec.n >= MAX_TRIES) { rec.until = now + LOCK_SEC * 1000; rec.n = 0; }
+    await this.ctx.storage.put("r", rec);
+    // неверные попытки забываются через 15 минут после последней
+    await this.ctx.storage.setAlarm(rec.until || now + LOCK_SEC * 1000);
+    if (rec.until) return { locked: true, retryAfter: LOCK_SEC };
+    return { locked: false, left: MAX_TRIES - rec.n };
   }
-  rec.n += 1;
-  if (rec.n >= MAX_TRIES) { rec.until = now + LOCK_SEC * 1000; rec.n = 0; }
-  await env.DB.put(key, JSON.stringify(rec), { expirationTtl: LOCK_SEC + 60 });
-  if (rec.until > now) return { status: 429, body: { error: "locked", retryAfter: LOCK_SEC } };
-  return { status: 401, body: { error: "bad_code", left: MAX_TRIES - rec.n } };
+  async hit(max, windowSec) {
+    const now = Date.now();
+    const rec = await this.ctx.storage.get("r");
+    if (!rec || rec.start + windowSec * 1000 <= now) {
+      await this.ctx.storage.put("r", { n: 1, start: now });
+      await this.ctx.storage.setAlarm(now + windowSec * 1000);
+      return { ok: true };
+    }
+    // отклонённые запросы ничего не записывают
+    if (rec.n >= max) return { ok: false, retryAfter: Math.ceil((rec.start + windowSec * 1000 - now) / 1000) };
+    rec.n += 1;
+    await this.ctx.storage.put("r", rec);
+    return { ok: true };
+  }
+  async alarm() {
+    await this.ctx.storage.deleteAll();
+  }
 }
 // сравнение без «подсказок» по времени ответа
 function safeEqual(a, b) {
@@ -212,6 +264,10 @@ function validSubscription(s) {
   } catch (e) { return false; }
 }
 async function subscribe(req, env) {
+  let lim;
+  // счётчик недоступен — пропускаем: подписка важнее, а запись в KV и так только при изменениях
+  try { lim = await limiter(env, "sub", req).hit(SUB_MAX, SUB_WINDOW_SEC); } catch (e) { lim = { ok: true }; }
+  if (!lim.ok) return json({ error: "too_many_subscribes", message: "Too many subscribe requests from this address. Try again later.", retryAfter: lim.retryAfter }, 429);
   const raw = await req.text();
   if (raw.length > 4000) return json({ error: "too_big" }, 413);
   let b;

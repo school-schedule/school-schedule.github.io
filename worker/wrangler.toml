@@ -43,3 +43,13 @@ invocation_logs = true
 enabled = false
 persist = true
 head_sampling_rate = 1
+
+# Счётчики попыток входа и подписок по IP (класс Limiter в src/worker.js).
+# SQLite-хранилище — единственное доступное на бесплатном тарифе.
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "Limiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Limiter"]
