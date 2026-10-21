@@ -76,7 +76,7 @@ updatedAt, version, gradeName, migrations
 
 Тестов нет. После каждого `Edit`/`Write` автоматически срабатывает хук `.claude/hooks/check-code.mjs`:
 - `index.html` — синтаксис JS в `app-js` (с номером строки), JSON в `app-state`, целостность данных (уникальные id, существующие предметы/группы/классы/уроки, день 0–4, номер урока есть в `periods`, тип и дата изменения), наличие `config.js` и манифеста в `<head>`;
-- `*.js` — синтаксис; `*.json`, `*.webmanifest` — корректный JSON.
+- `*.js` — синтаксис (`.mjs` — как модуль, через `node --check`, без запуска); `*.json`, `*.webmanifest` — корректный JSON.
 
 Если хук нашёл ошибку, исправь её до продолжения работы. Ручной запуск: `node .claude/hooks/check-code.mjs index.html`.
 

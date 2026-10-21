@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { spawnSync } from 'node:child_process';
 
 function readInput() {
   if (process.argv[2]) return process.argv[2];
@@ -22,6 +23,16 @@ function checkJs(code, label, errors) {
     const where = (e.stack || '').split('\n')[0];
     errors.push(`${label}: синтаксическая ошибка JS — ${e.message}${where.includes(':') ? ' (' + where + ')' : ''}`);
   }
+}
+
+// .mjs — это модуль (import/export): vm.Script его не разбирает, поэтому проверяем через node --check
+function checkModule(file, label, errors) {
+  const r = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
+  if (r.status === 0) return;
+  const lines = (r.stderr || '').split('\n');
+  const where = (lines.find(l => l.startsWith(file + ':')) || '').slice(file.length + 1);
+  const msg = lines.find(l => /Error\b/.test(l)) || 'не удалось проверить';
+  errors.push(`${label}: синтаксическая ошибка JS — ${msg.trim().replace(/^SyntaxError: /, '')}${where ? ' (' + label + ':' + where + ')' : ''}`);
 }
 
 function lineOf(text, idx) { return text.slice(0, idx).split('\n').length; }
@@ -101,7 +112,8 @@ const text = fs.readFileSync(file, 'utf8');
 const errors = [];
 
 if (base === 'index.html') checkIndex(text, errors);
-else if (ext === '.js' || ext === '.mjs') checkJs(text, base, errors);
+else if (ext === '.js') checkJs(text, base, errors);
+else if (ext === '.mjs') checkModule(file, base, errors);
 else if (ext === '.json' || ext === '.webmanifest') {
   try { JSON.parse(text); } catch (e) { errors.push(`${base}: JSON не читается — ${e.message}`); }
 } else process.exit(0);
