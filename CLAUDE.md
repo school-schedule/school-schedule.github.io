@@ -22,6 +22,7 @@
 | `worker/` | Код Cloudflare Worker и `wrangler.toml` без секретов. |
 | `.gitignore` | Исключает `.DS_Store`, `.dev.vars`, `.wrangler`, `node_modules`. |
 | `.claude/settings.json`, `.claude/hooks/check-code.mjs` | Хук проверки кода (см. «Проверка»). |
+| `.claude/skills/`, `skills-lock.json` | Навыки `code-review-and-quality` и `security-and-hardening` из `addyosmani/agent-skills` (поставлены через `npx skills add … -a claude-code --copy`). |
 
 ### Устройство `index.html`
 
@@ -72,6 +73,7 @@ updatedAt, version, gradeName, migrations
 8. **Не трогать без запроса:** адрес API в `config.js`, токен Cloudflare Analytics, хеши кода редактора, логику 409-конфликта при публикации.
 9. **Мобильные первым делом:** крупные кнопки (≥44px), `env(safe-area-inset-*)`, тёмная тема.
 10. Коммиты маленькие и с понятным описанием. Пуш в ветку по умолчанию = публикация для всех учеников.
+11. **Перед каждым Pull Request** проверяй изменения по навыку `code-review-and-quality`, а изменения в `worker/` ещё и по `security-and-hardening`.
 
 ## Проверка
 
