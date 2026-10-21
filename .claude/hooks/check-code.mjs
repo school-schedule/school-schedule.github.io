@@ -84,12 +84,11 @@ function checkIndex(html, errors) {
     const code = html.slice(ji + jOpen.length, je);
     // добавляем пустые строки, чтобы номера строк в ошибке совпадали с index.html
     checkJs('\n'.repeat(lineOf(html, ji) - 1) + code, 'index.html', errors);
-    // HEAD — копия <head> для пересборки страницы при публикации; без config.js сайт потеряет сервер
-    const m = code.match(/var HEAD = '([^\n]*)';/);
-    if (!m) errors.push('index.html: не найдена переменная HEAD (шапка для buildDocument)');
-    else for (const must of ['config.js', 'manifest.webmanifest'])
-      if (!m[1].includes(must)) errors.push(`index.html: в HEAD нет "${must}" — опубликованная страница сломается`);
   }
+  // без config.js сайт потеряет сервер, без манифеста — установку на телефон
+  const head = (html.match(/<head>([\s\S]*?)<\/head>/) || [])[1] || '';
+  for (const must of ['config.js', 'manifest.webmanifest'])
+    if (!head.includes(must)) errors.push(`index.html: в <head> нет "${must}"`);
   // 3) стили на месте
   if (!/<style id="app-css">[\s\S]*?<\/style>/.test(html)) errors.push('index.html: не найден <style id="app-css">');
 }
