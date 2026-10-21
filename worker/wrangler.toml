@@ -23,10 +23,15 @@ id = "f3a6798ded224574b51316a4f046d17e"
 binding = "PUSHQ"
 queue = "hamaarechet-push"
 
-# Этот же Worker забирает задачи из очереди (по одной — см. комментарий в src/worker.js)
+# Этот же Worker забирает задачи из очереди (по одной — см. комментарий в src/worker.js).
+# Значения совпадают с текущими в Cloudflare (wrangler queues consumer list hamaarechet-push,
+# 2026-10-21), чтобы deploy их не менял. max_concurrency не задан = автоматически, как сейчас.
 [[queues.consumers]]
 queue = "hamaarechet-push"
 max_batch_size = 1
+max_batch_timeout = 5
+max_retries = 3
+retry_delay = 0
 
 [observability]
 enabled = true

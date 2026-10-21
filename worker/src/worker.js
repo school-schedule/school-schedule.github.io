@@ -108,8 +108,8 @@ export default {
 // всего 1000 записей в день (их можно «выжечь» неверными попытками и сломать публикацию)
 // и обновляется с задержкой до минуты (параллельные попытки обходили бы счётчик).
 const MAX_TRIES = 5, LOCK_SEC = 900;
-// /subscribe: не больше 10 запросов с одного адреса в час
-const SUB_MAX = 10, SUB_WINDOW_SEC = 3600;
+// /subscribe: не больше 60 запросов с одного адреса в час (в школе у всех общий Wi-Fi)
+const SUB_MAX = 60, SUB_WINDOW_SEC = 3600;
 function clientIp(req) {
   const ip = req.headers.get("CF-Connecting-IP") || "unknown";
   // IPv6: у одного устройства обычно целая сеть /64 — считаем её одним адресом
