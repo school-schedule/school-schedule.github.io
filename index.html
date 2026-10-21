@@ -312,7 +312,6 @@ html[data-look="p2"] .pill{background:#292929;color:var(--P-card-ink);border-rad
 <script id="app-js">(function(){
 'use strict';
 document.documentElement.setAttribute('data-look','p2');
-var HEAD = '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<meta name="color-scheme" content="dark">\n<meta name="apple-mobile-web-app-status-bar-style" content="black">\n<title>המערכת שלי</title>\n<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20512%20512%27%3E%3Crect%20width%3D%27512%27%20height%3D%27512%27%20rx%3D%27112%27%20fill%3D%27%23171717%27%2F%3E%3Cg%20fill%3D%27%23404040%27%3E%3Crect%20x%3D%27121%27%20y%3D%27147%27%20width%3D%27232%27%20height%3D%2750%27%20rx%3D%2725%27%2F%3E%3Crect%20x%3D%27238%27%20y%3D%27299%27%20width%3D%27175%27%20height%3D%2750%27%20rx%3D%2725%27%2F%3E%3Crect%20x%3D%27183%27%20y%3D%27375%27%20width%3D%27210%27%20height%3D%2750%27%20rx%3D%2725%27%2F%3E%3Ccircle%20cx%3D%27391%27%20cy%3D%27172%27%20r%3D%2726%27%2F%3E%3Ccircle%20cx%3D%27391%27%20cy%3D%27324%27%20r%3D%2726%27%2F%3E%3Ccircle%20cx%3D%27391%27%20cy%3D%27400%27%20r%3D%2726%27%2F%3E%3C%2Fg%3E%3Crect%20x%3D%27121%27%20y%3D%27223%27%20width%3D%27232%27%20height%3D%2750%27%20rx%3D%2725%27%20fill%3D%27%23606060%27%2F%3E%3Crect%20x%3D%27101%27%20y%3D%27237%27%20width%3D%27267%27%20height%3D%2722%27%20rx%3D%2711%27%20fill%3D%27%23C6FF00%27%2F%3E%3Ccircle%20cx%3D%27391%27%20cy%3D%27248%27%20r%3D%2726%27%20fill%3D%27%23C6FF00%27%2F%3E%3C%2Fsvg%3E">\n<link rel="apple-touch-icon" href="data:image/png;base64,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">\n<link rel="manifest" href="manifest.webmanifest">\n<script src="config.js"><\/script>\n<meta name="theme-color" content="#171717">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="המערכת שלי">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Secular+One&display=swap" rel="stylesheet">\n';
 var root = document.getElementById('root');
 var STATE = JSON.parse(document.getElementById('app-state').textContent);
 
@@ -341,12 +340,11 @@ he:{app:'המערכת שלי',noSubject:'אין לי את המקצוע הזה',n
  addClass:'הוספת כיתה',addSubject:'הוספת מקצוע',addGroup:'הוספת קבוצה',nameHe:'שם בעברית',nameEn:'שם באנגלית',nameRu:'שם ברוסית',grade:'שכבה',classNum:'מספר כיתה',classExists:'הכיתה הזאת כבר קיימת.',
  editClass:'כיתה',editSubject:'מקצוע',editGroup:'קבוצה',subjectsTitle:'מקצועות והקבצות',subjectsHint:'מקצוע עם קבוצות הוא מגמה או הקבצה: כל תלמיד בוחר קבוצה אחת בו.',
  gradeName:'שם השכבה',periods:'שעות השיעורים',addPeriod:'הוספת שיעור ביום',removePeriod:'הסרת השיעור האחרון',saveTimes:'שמירת השעות',
- newCode:'קוד חדש',changeCode:'החלפת קוד',codeChanged:'הקוד יוחלף אחרי הפרסום.',
+ changeCode:'החלפת קוד',
  unpublished:'יש שינויים שעוד לא פורסמו',publish:'פרסום',discard:'ביטול השינויים',published:'פורסם. כל התלמידים רואים את זה עכשיו.',
  conflict:'מישהו אחר פרסם שינוי ברגע זה. השינויים שלך לא נשמרו, צריך להזין אותם שוב.',
- notWriter:'לחשבון הזה אין הרשאת עריכה. בקשו מבעל האפליקציה לתת לכם "Can edit".',noPublish:'אפשר לפרסם רק מתוך הקישור של האפליקציה.',
- rateLimited:'יותר מדי פרסומים ברצף. חכו דקה ונסו שוב.',tooLarge:'הנתונים גדולים מדי לפרסום.',publishFailed:'הפרסום נכשל. נסו שוב.',
- publishing:'מפרסם…',readOnly:'מצב צפייה בלבד',empty:'ריק',shabbatEd:'שבת. אין שיעורים.',needName:'צריך לכתוב שם.'},
+ publishFailed:'הפרסום נכשל. נסו שוב.',
+ publishing:'מפרסם…',empty:'ריק',shabbatEd:'שבת. אין שיעורים.',needName:'צריך לכתוב שם.'},
 en:{app:'My schedule',noSubject:'I don’t take this subject',noSubjectSub:'These periods will show as free',backups:'Backups',backupsHint:'The server keeps the last 10 versions. If something breaks, you can go back.',showBackups:'Show backups',noBackups:'No backups yet.',restore:'Restore',restoreConfirm:'Go back to this version? The current one will be saved as a backup.',restored:'Version restored.',by_editor:'Editor save',by_shahaf:'Update from Shahaf',by_restore:'Before restore',locked:'Too many attempts. Try again in {m} minutes.',attemptsLeft:'({n} attempts left)',codeOnServer:'The code is stored on the server (Cloudflare, EDITOR_CODE). Change it there.',pushBtn:'Get cancellation alerts',pushActive:'Alerts are on (tap to turn off)',pushOn:'Great! You will get an alert when your lessons change.',pushOff:'Alerts are off.',pushDenied:'Alerts were not allowed. You can turn them on in your phone settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone, alerts work only after adding the app to the Home Screen.',badServerCode:'The server did not accept the code. Exit and log in again.',server:'Server',serverHint:'Data is saved on the server, and everyone sees it right away.',syncAll:'Save all data to the server',searchPh:'Search by subject or teacher',noMatch:'Nothing found. Try another word.',groupFor:'For which class',wholeGrade:'Whole grade',install:'Install on phone',insIntro:'Two minutes, and your schedule opens from a home-screen icon like any app.',insComputer:'Computer',insTipTitle:'Important:',insTipIos:'If the link opened inside WhatsApp or Instagram, first tap ⋯ and choose "Open in Safari".',insTipAnd:'If the link opened inside WhatsApp or Instagram, first tap ⋮ and choose "Open in browser".',insIos1:'Open the link in Safari.',insIos2:'Tap the Share button at the bottom (square with an up arrow).',insIos3:'Scroll down and choose "Add to Home Screen".',insIos4:'Tap "Add" in the top corner. Done, the icon is on your home screen.',insAnd1:'Open the link in Chrome.',insAnd2:'Tap the three dots in the top corner.',insAnd3:'Choose "Add to Home screen" or "Install app".',insAnd4:'Confirm with "Add". Done, the icon is on your home screen.',insDesk1:'Easiest on a phone: open the same link there and pick iPhone or Android here.',insDesk2:'On a computer: in the browser menu choose "Install" or "Create shortcut".',gotIt:'Got it',changeGroups:'Change groups',multiSub:'Tick all your groups. If none of them is yours, tap Next.',multiLabel:'Students can pick several groups',free:'Free period',nextWeek:'Next week',lastWeek:'Last week',inWeeks:'In # weeks',weeksAgo:'# weeks ago',backToday:'Back to today',langBtn:'עב',today:'Today',prevDay:'Previous day',nextDay:'Next day',
  shabbat:'Shabbat, no school',noLessons:'No lessons on this day',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  room:'Room',changeMine:'Change class and groups',editorLogin:'Editor login',updated:'Updated',
@@ -362,12 +360,11 @@ en:{app:'My schedule',noSubject:'I don’t take this subject',noSubjectSub:'Thes
  addClass:'Add class',addSubject:'Add subject',addGroup:'Add group',nameHe:'Name in Hebrew',nameEn:'Name in English',nameRu:'Name in Russian',grade:'Grade',classNum:'Class number',classExists:'This class already exists.',
  editClass:'Class',editSubject:'Subject',editGroup:'Group',subjectsTitle:'Subjects and level groups',subjectsHint:'A subject with groups is a megama or level group: each student picks one group in it.',
  gradeName:'Grade name',periods:'Lesson times',addPeriod:'Add a period',removePeriod:'Remove last period',saveTimes:'Save times',
- newCode:'New code',changeCode:'Change code',codeChanged:'The code will change after you publish.',
+ changeCode:'Change code',
  unpublished:'You have unpublished changes',publish:'Publish',discard:'Discard changes',published:'Published. Every student sees it now.',
  conflict:'Someone else published a change just now. Your changes were not saved; please enter them again.',
- notWriter:'This account can’t edit. Ask the app owner to give you "Can edit" access.',noPublish:'Publishing works only from the app’s link.',
- rateLimited:'Too many publishes in a row. Wait a minute and try again.',tooLarge:'The data is too large to publish.',publishFailed:'Publishing failed. Try again.',
- publishing:'Publishing…',readOnly:'View only',empty:'Empty',shabbatEd:'Shabbat. No lessons.',needName:'Please enter a name.'},
+ publishFailed:'Publishing failed. Try again.',
+ publishing:'Publishing…',empty:'Empty',shabbatEd:'Shabbat. No lessons.',needName:'Please enter a name.'},
 ru:{app:'Моё расписание',noSubject:'У меня нет этого предмета',noSubjectSub:'Эти уроки будут показаны как свободные',backups:'Резервные копии',backupsHint:'Сервер хранит 10 последних версий расписания. Если что-то сломалось, можно вернуться к прошлой.',showBackups:'Показать копии',noBackups:'Копий пока нет.',restore:'Вернуть',restoreConfirm:'Вернуться к этой версии? Текущая сохранится как копия.',restored:'Версия восстановлена.',by_editor:'Сохранение редактора',by_shahaf:'Обновление из שחף',by_restore:'Перед восстановлением',locked:'Слишком много попыток. Попробуй через {m} мин.',attemptsLeft:'(осталось попыток: {n})',codeOnServer:'Код хранится на сервере (Cloudflare, EDITOR_CODE). Менять его нужно там.',pushBtn:'Получать уведомления об отменах',pushActive:'Уведомления включены (нажми, чтобы выключить)',pushOn:'Отлично! Придёт уведомление, когда что-то поменяется в твоих уроках.',pushOff:'Уведомления выключены.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках телефона.',pushFailed:'Не получилось включить уведомления. Попробуй ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone уведомления работают только после добавления на экран «Домой».',badServerCode:'Сервер не принял код. Выйди из редактора и войди снова.',server:'Сервер',serverHint:'Данные сохраняются на сервере, и все видят их сразу.',syncAll:'Сохранить все данные на сервер',searchPh:'Поиск по предмету или учителю',noMatch:'Ничего не найдено. Попробуй другое слово.',groupFor:'Для какого класса',wholeGrade:'Вся параллель',install:'Установить на телефон',insIntro:'Пара минут, и расписание будет открываться с иконки на главном экране, как обычное приложение.',insComputer:'Компьютер',insTipTitle:'Важно:',insTipIos:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋯ и выбери «Открыть в Safari».',insTipAnd:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋮ и выбери «Открыть в браузере».',insIos1:'Открой ссылку в Safari.',insIos2:'Нажми кнопку «Поделиться» внизу экрана (квадрат со стрелкой вверх).',insIos3:'Прокрути вниз и выбери «На экран „Домой“».',insIos4:'Нажми «Добавить» в верхнем углу. Готово, иконка на главном экране.',insAnd1:'Открой ссылку в Chrome.',insAnd2:'Нажми на три точки в верхнем углу.',insAnd3:'Выбери «Добавить на главный экран» или «Установить приложение».',insAnd4:'Подтверди кнопкой «Добавить». Готово, иконка на главном экране.',insDesk1:'Удобнее всего на телефоне: открой эту же ссылку там и выбери здесь iPhone или Android.',insDesk2:'На компьютере: в меню браузера выбери «Установить» или «Создать ярлык».',gotIt:'Понятно',changeGroups:'Сменить группы',multiSub:'Отметь все свои группы. Если здесь нет ни одной твоей, нажми «Дальше».',multiLabel:'Можно выбрать несколько групп',free:'Свободный урок',nextWeek:'Следующая неделя',lastWeek:'Прошлая неделя',inWeeks:'Через # нед.',weeksAgo:'# нед. назад',backToday:'Вернуться к сегодня',langBtn:'RU',today:'Сегодня',prevDay:'Предыдущий день',nextDay:'Следующий день',
  shabbat:'Шаббат, уроков нет',noLessons:'В этот день уроков нет',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  room:'Каб.',changeMine:'Сменить класс и группы',editorLogin:'Вход для редакторов',updated:'Обновлено',
@@ -383,12 +380,11 @@ ru:{app:'Моё расписание',noSubject:'У меня нет этого �
  addClass:'Добавить класс',addSubject:'Добавить предмет',addGroup:'Добавить группу',nameHe:'Название на иврите',nameEn:'Название на английском',nameRu:'Название на русском',grade:'Параллель',classNum:'Номер класса',classExists:'Такой класс уже есть.',
  editClass:'Класс',editSubject:'Предмет',editGroup:'Группа',subjectsTitle:'Предметы и группы',subjectsHint:'Предмет с группами — это мегама или группа по уровню: каждый ученик выбирает в нём одну группу.',
  gradeName:'Название параллели',periods:'Время уроков',addPeriod:'Добавить урок в день',removePeriod:'Убрать последний урок',saveTimes:'Сохранить время',
- newCode:'Новый код',changeCode:'Сменить код',codeChanged:'Код сменится после публикации.',
+ changeCode:'Сменить код',
  unpublished:'Есть неопубликованные изменения',publish:'Опубликовать',discard:'Отменить изменения',published:'Опубликовано. Все ученики уже видят это.',
  conflict:'Кто-то другой только что опубликовал изменения. Твои правки не сохранились, введи их ещё раз.',
- notWriter:'У этого аккаунта нет права редактировать. Попроси владельца приложения дать тебе доступ "Can edit".',noPublish:'Публиковать можно только по ссылке приложения.',
- rateLimited:'Слишком много публикаций подряд. Подожди минуту и попробуй снова.',tooLarge:'Данных слишком много для публикации.',publishFailed:'Не удалось опубликовать. Попробуй ещё раз.',
- publishing:'Публикую…',readOnly:'Только просмотр',empty:'Пусто',shabbatEd:'Шаббат. Уроков нет.',needName:'Нужно написать название.'}
+ publishFailed:'Не удалось опубликовать. Попробуй ещё раз.',
+ publishing:'Публикую…',empty:'Пусто',shabbatEd:'Шаббат. Уроков нет.',needName:'Нужно написать название.'}
 };
 var DAYS = {he:['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],ru:['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']};
 var DAYS_S = {he:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ru:['Вс','Пн','Вт','Ср','Чт','Пт','Сб']};
@@ -400,7 +396,7 @@ var LOC={he:'he-IL',en:'en-GB',ru:'ru-RU'};
 var ed = sGet('sessionStorage','sched.editor');
 var ui = {screen:'day',date:schoolDay(todayISO()),setupStep:0,tmpClass:null,tmpGroups:{},
   etab:(ed&&ed.etab)||'changes',eDate:schoolDay((ed&&ed.eDate)||todayISO()),eAud:(ed&&ed.eAud)||'all',wDay:(ed&&ed.wDay!=null&&ed.wDay<5)?ed.wDay:0,wAud:(ed&&ed.wAud)||null,
-  sheet:null,toast:null,busy:false,readOnly:false,delArm:false};
+  sheet:null,toast:null,busy:false,delArm:false};
 var draft = null, dirty = false;
 
 function t(k){return T[prefs.lang][k]||T.he[k]||k;}
@@ -628,7 +624,6 @@ function renderLogin(){
 function renderEditor(){
   var st=draft,h='';
   h+='<div class="topbar"><div class="brand">'+LOGO+'<span>'+esc(t('editor'))+'</span></div>'+langSwitch()+'<button class="pill" data-act="exitEditor">'+esc(t('exit'))+'</button></div>';
-  if(ui.readOnly)h+='<div class="notice" style="color:var(--cancel)"><b>'+esc(t('readOnly'))+'.</b> '+esc(t('notWriter'))+'</div>';
   h+='<div class="tabs">';
   [['changes','tabChanges'],['week','tabWeek'],['setup','tabSetup'],['settings','tabSettings']].forEach(function(x){h+='<button class="tab'+(ui.etab===x[0]?' on':'')+'" data-act="etab" data-tab="'+x[0]+'">'+esc(t(x[1]))+'</button>';});
   h+='</div>';
@@ -636,7 +631,7 @@ function renderEditor(){
   else if(ui.etab==='week')h+=edWeek(st);
   else if(ui.etab==='setup')h+=edSetup(st);
   else h+=edSettings(st);
-  if(dirty)h+='<div class="pubbar"><div class="in"><div class="msg">'+esc(ui.busy?t('publishing'):t('unpublished'))+'</div><button class="secondary" data-act="discard"'+(ui.busy?' disabled':'')+'>'+esc(t('discard'))+'</button><button class="primary" data-act="publish"'+(ui.busy||ui.readOnly?' disabled':'')+'>'+esc(t('publish'))+'</button></div></div>';
+  if(dirty)h+='<div class="pubbar"><div class="in"><div class="msg">'+esc(ui.busy?t('publishing'):t('unpublished'))+'</div><button class="secondary" data-act="discard"'+(ui.busy?' disabled':'')+'>'+esc(t('discard'))+'</button><button class="primary" data-act="publish"'+(ui.busy?' disabled':'')+'>'+esc(t('publish'))+'</button></div></div>';
   return h;
 }
 function audOptions(st,sel,withAll){
@@ -708,17 +703,14 @@ function edSettings(st){
   h+='<h3>'+esc(t('periods'))+'</h3><div class="stack">';
   st.periods.forEach(function(p,i){h+='<div class="row"><b style="min-width:26px">'+esc(p.n)+'</b><input class="input grow" type="time" id="ps'+i+'" value="'+esc(p.start)+'"><input class="input grow" type="time" id="pe'+i+'" value="'+esc(p.end)+'"></div>';});
   h+='</div><div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="secondary" data-act="saveTimes">'+esc(t('saveTimes'))+'</button><button class="secondary" data-act="addPeriod">+ '+esc(t('addPeriod'))+'</button><button class="secondary" data-act="rmPeriod">'+esc(t('removePeriod'))+'</button></div>';
-  if(API)h+='<h3>'+esc(t('server'))+'</h3><p class="muted small">'+esc(t('serverHint'))+'</p><button class="secondary" data-act="syncAll">'+esc(t('syncAll'))+'</button>';
-  if(API){
-    h+='<h3>'+esc(t('backups'))+'</h3><p class="muted small">'+esc(t('backupsHint'))+'</p>';
-    if(!ui.backups)h+='<button class="secondary" data-act="loadBackups">'+esc(t('showBackups'))+'</button>';
-    else if(!ui.backups.length)h+='<p class="muted">'+esc(t('noBackups'))+'</p>';
-    else{h+='<div class="elist">';ui.backups.forEach(function(b){var d=new Date(b.at);
-      h+='<div class="card row"><div class="grow"><b>'+esc(new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(d))+'</b><div class="muted small">'+esc(t('by_'+b.by)||b.by)+'</div></div><button class="secondary" data-act="restoreBak" data-id="'+esc(b.id)+'">'+esc(t('restore'))+'</button></div>';});
-      h+='</div>';}
-  }
-  if(API)h+='<h3>'+esc(t('changeCode'))+'</h3><p class="muted small">'+esc(t('codeOnServer'))+'</p>';
-  else h+='<h3>'+esc(t('changeCode'))+'</h3><div class="field"><label for="newCode">'+esc(t('newCode'))+'</label><input class="input" id="newCode" type="password" autocomplete="new-password"></div><button class="secondary" data-act="changeCode">'+esc(t('changeCode'))+'</button>';
+  h+='<h3>'+esc(t('server'))+'</h3><p class="muted small">'+esc(t('serverHint'))+'</p><button class="secondary" data-act="syncAll">'+esc(t('syncAll'))+'</button>';
+  h+='<h3>'+esc(t('backups'))+'</h3><p class="muted small">'+esc(t('backupsHint'))+'</p>';
+  if(!ui.backups)h+='<button class="secondary" data-act="loadBackups">'+esc(t('showBackups'))+'</button>';
+  else if(!ui.backups.length)h+='<p class="muted">'+esc(t('noBackups'))+'</p>';
+  else{h+='<div class="elist">';ui.backups.forEach(function(b){var d=new Date(b.at);
+    h+='<div class="card row"><div class="grow"><b>'+esc(new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(d))+'</b><div class="muted small">'+esc(t('by_'+b.by)||b.by)+'</div></div><button class="secondary" data-act="restoreBak" data-id="'+esc(b.id)+'">'+esc(t('restore'))+'</button></div>';});
+    h+='</div>';}
+  h+='<h3>'+esc(t('changeCode'))+'</h3><p class="muted small">'+esc(t('codeOnServer'))+'</p>';
   return h;
 }
 
@@ -811,13 +803,6 @@ function sheetDel(){
 }
 
 /* ---------- publish ---------- */
-function buildDocument(state){
-  var css=document.getElementById('app-css').textContent,js=document.getElementById('app-js').textContent,S='script';
-  var json=JSON.stringify(state).replace(/</g,'\\u003c');
-  return '<!doctype html>\n<html lang="he" dir="rtl">\n<head>\n'+HEAD+'<style id="app-css">'+css+'</'+'style>\n</head>\n<body>\n<div id="root"></div>\n<'+S+' type="application/json" id="app-state">'+json+'</'+S+'>\n<'+S+' id="app-js">'+js+'</'+S+'>\n</body>\n</html>\n';
-}
-var artifactP=null;
-function getArtifact(){if(!artifactP){try{artifactP=(window.claude&&window.claude.use)?window.claude.use('artifact'):Promise.resolve(null);}catch(e){artifactP=Promise.resolve(null);}}return artifactP;}
 var API=(function(){var u=String(window.SCHEDULE_API||'').trim();return /^(https:\/\/|http:\/\/localhost)/.test(u)?u.replace(/\/+$/,''):'';})();
 function b64uBytes(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var r=atob(s),a=new Uint8Array(r.length);for(var i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}
 function loadRemote(){
@@ -895,31 +880,7 @@ function syncPush(){
   if(!API||!pushOn()||!('serviceWorker' in navigator))return;
   navigator.serviceWorker.getRegistration().then(function(reg){return reg&&reg.pushManager.getSubscription();}).then(function(s){if(s)return sendSub(s);}).catch(function(){});
 }
-function publish(){
-  if(API){publishRemote();return;}
-  if(ui.busy)return;ui.busy=true;render();
-  getArtifact().then(function(art){
-    if(!art){ui.busy=false;toast(t('noPublish'),true);return;}
-    draft.updatedAt=new Date().toISOString();
-    saveEd();sSet('sessionStorage','sched.pending',draft.updatedAt);
-    return art.publish(buildDocument(draft)).then(function(){
-      /* the page reloads to the new version */
-    },function(err){
-      var code=err&&err.code;ui.busy=false;
-      if(code==='conflict'){return;}
-      sDel('sessionStorage','sched.pending');
-      if(['not_writer','not_granted','consent_required','capability_disabled','capability_removed','not_declared'].indexOf(code)>=0){ui.readOnly=true;toast(t('notWriter'),true);}
-      else if(code==='rate_limited')toast(t('rateLimited'),true);
-      else if(code==='too_large')toast(t('tooLarge'),true);
-      else toast(t('publishFailed'),true);
-    });
-  });
-}
 function saveEd(){sSet('sessionStorage','sched.editor',{etab:ui.etab,eDate:ui.eDate,eAud:ui.eAud,wDay:ui.wDay,wAud:ui.wAud});}
-function sha(s){
-  try{return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0');}).join('');});}
-  catch(e){return Promise.resolve('');}
-}
 function toast(text,bad){ui.toast={text:text,bad:!!bad};render();clearTimeout(toast.tm);toast.tm=setTimeout(function(){ui.toast=null;render();},bad?6000:3500);}
 
 /* ---------- render ---------- */
@@ -1011,9 +972,8 @@ root.addEventListener('click',function(e){
     case 'saveTimes':draft.periods.forEach(function(p,i){p.start=val('ps'+i)||p.start;p.end=val('pe'+i)||p.end;});dirty=true;render();break;
     case 'addPeriod':var last=draft.periods[draft.periods.length-1];draft.periods.push({n:last?last.n+1:1,start:last?last.end:'08:00',end:last?last.end:'08:45'});dirty=true;render();break;
     case 'rmPeriod':if(draft.periods.length>1){var n=draft.periods.pop().n;var gone=draft.lessons.filter(function(l){return l.period===n;}).map(function(l){return l.id;});draft.lessons=draft.lessons.filter(function(l){return l.period!==n;});draft.changes=draft.changes.filter(function(c){return gone.indexOf(c.lessonId)<0;});dirty=true;render();}break;
-    case 'changeCode':var nc=val('newCode');if(nc.length<4){document.getElementById('newCode').focus();return;}sha(nc).then(function(hh){if(!hh)return;draft.codeHash=hh;dirty=true;toast(t('codeChanged'));});break;
     case 'discard':draft=clone(STATE);dirty=false;render();break;
-    case 'publish':publish();break;
+    case 'publish':if(!ui.busy)publishRemote();break;
   }
 });
 root.addEventListener('change',function(e){
@@ -1030,18 +990,14 @@ function loginFail(msg){ui.loginErr=msg||t('wrongCode');render();var c=document.
 function doLogin(){
   var v=val('code');
   if(!v)return;
-  // на своём сайте код проверяет только сервер (отпечатка кода в открытых данных больше нет)
-  if(API){
-    fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:v})})
-    .then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {s:r.status,j:j};});})
-    .then(function(x){
-      if(x.s===200)loginOk(v);
-      else if(x.s===429)loginFail(t('locked').replace('{m}',Math.ceil((x.j.retryAfter||900)/60)));
-      else loginFail(t('wrongCode')+(x.j.left!=null?' '+t('attemptsLeft').replace('{n}',x.j.left):''));
-    }).catch(function(){loginFail(t('publishFailed'));});
-    return;
-  }
-  sha(v).then(function(h){if(h&&h===STATE.codeHash)loginOk(v);else loginFail();});
+  // код проверяет только сервер
+  fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:v})})
+  .then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {s:r.status,j:j};});})
+  .then(function(x){
+    if(x.s===200)loginOk(v);
+    else if(x.s===429)loginFail(t('locked').replace('{m}',Math.ceil((x.j.retryAfter||900)/60)));
+    else loginFail(t('wrongCode')+(x.j.left!=null?' '+t('attemptsLeft').replace('{n}',x.j.left):''));
+  }).catch(function(){loginFail(t('publishFailed'));});
 }
 /* swipe between days */
 var tx=null,ty=null;
@@ -1053,11 +1009,9 @@ root.addEventListener('touchend',function(e){
 },{passive:true});
 
 /* ---------- start ---------- */
-var pend=sGet('sessionStorage','sched.pending');
 if(ed){ui.screen='editor';draft=clone(STATE);}
 else if(prefsValid()){ui.screen='day';}
 else startSetup();
-if(pend){sDel('sessionStorage','sched.pending');ui.toast=null;setTimeout(function(){toast(pend===STATE.updatedAt?t('published'):t('conflict'),pend!==STATE.updatedAt);},50);}
 render();
 // статистика посещений (Cloudflare Web Analytics, без cookies), только на нашем сайте
 (function(){
