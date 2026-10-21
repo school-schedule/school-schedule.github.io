@@ -496,14 +496,14 @@ function renderSetup(){
     var G=gradeOf(ui.tmpLetter);
     if(G){
       var selNum=(selC&&selC.letter===G.k)?selC.num:null;
-      h+='<div class="classname" dir="rtl"><span>'+esc(gradeLabel(G))+'</span><span class="'+(selNum?'':'ph')+'">'+(selNum||'?')+'</span></div>';
+      h+='<div class="classname" dir="rtl"><span>'+esc(gradeLabel(G))+'</span><span class="'+(selNum?'':'ph')+'">'+esc(selNum||'?')+'</span></div>';
       h+='<div class="field"><label>'+esc(t('classNum'))+'</label><div class="grid4">';
       for(var n=1;n<=12;n++){var c=findClass(st,G.k,n);
-        h+='<button class="choice'+(c&&ui.tmpClass===c.id?' on':'')+'"'+(c?' data-act="pickClass" data-id="'+c.id+'"':' disabled')+'>'+n+'</button>';}
+        h+='<button class="choice'+(c&&ui.tmpClass===c.id?' on':'')+'"'+(c?' data-act="pickClass" data-id="'+esc(c.id)+'"':' disabled')+'>'+n+'</button>';}
       h+='</div></div>';
     }
     var other=st.classes.filter(function(c){return !gradeOf(c.letter)||!c.num;});
-    if(other.length){h+='<div class="grid3" style="margin-top:10px">';other.forEach(function(c){h+='<button class="choice'+(ui.tmpClass===c.id?' on':'')+'" data-act="pickClass" data-id="'+c.id+'">'+esc(nm(c))+'</button>';});h+='</div>';}
+    if(other.length){h+='<div class="grid3" style="margin-top:10px">';other.forEach(function(c){h+='<button class="choice'+(ui.tmpClass===c.id?' on':'')+'" data-act="pickClass" data-id="'+esc(c.id)+'">'+esc(nm(c))+'</button>';});h+='</div>';}
   } else {
     var s=subs[ui.setupStep-1];
     h+='<h2>'+esc(t('chooseGroup')+nm(s))+'</h2><p class="sub">'+esc(t(s.multi?'multiSub':'chooseGroupSub'))+'</p>';
@@ -515,10 +515,10 @@ function renderSetup(){
       var key=normQ([g.he,g.en,g.ru,g.teacher].concat(groupSubjects(st,g)).join(' '));
       var hide=q&&key.indexOf(normQ(q))<0;if(!hide)shown++;
       var on=s.multi?(Array.isArray(picked)&&picked.indexOf(g.id)>=0):picked===g.id;
-      h+='<button class="choice'+(on?' on':'')+(s.multi?' multi':'')+'" data-act="pickGroup" data-sub="'+s.id+'" data-id="'+g.id+'" data-key="'+esc(key)+'" aria-pressed="'+on+'"'+(hide?' hidden':'')+'>'+esc(nm(g))+(g.teacher?'<small>'+esc(g.teacher)+'</small>':'')+'</button>';
+      h+='<button class="choice'+(on?' on':'')+(s.multi?' multi':'')+'" data-act="pickGroup" data-sub="'+esc(s.id)+'" data-id="'+esc(g.id)+'" data-key="'+esc(key)+'" aria-pressed="'+on+'"'+(hide?' hidden':'')+'>'+esc(nm(g))+(g.teacher?'<small>'+esc(g.teacher)+'</small>':'')+'</button>';
     });
     if(canSkip(s)){var none=picked==='__none';
-      h+='<button class="choice'+(none?' on':'')+'" style="margin-top:0" data-act="pickGroup" data-sub="'+s.id+'" data-id="__none" aria-pressed="'+none+'">'+esc(t('noSubject'))+'<small>'+esc(t('noSubjectSub'))+'</small></button>';}
+      h+='<button class="choice'+(none?' on':'')+'" style="margin-top:0" data-act="pickGroup" data-sub="'+esc(s.id)+'" data-id="__none" aria-pressed="'+none+'">'+esc(t('noSubject'))+'<small>'+esc(t('noSubjectSub'))+'</small></button>';}
     h+='<p class="muted" id="gnone"'+(shown?' hidden':'')+'>'+esc(t('noMatch'))+'</p></div>';
   }
   var curS=ui.setupStep>0?subs[ui.setupStep-1]:null;var cur=ui.setupStep===0?ui.tmpClass:(curS.multi?true:ui.tmpGroups[curS.id]);
@@ -553,7 +553,7 @@ function renderDay(){
       for(var p=1;p<=lastP;p++){
         var here=items.filter(function(x){return x.l.period===p;});
         if(here.length)here.forEach(function(x){h+=lessonCard(x.l,x.ch);});
-        else h+='<li class="lesson free"><div class="num">'+p+'</div><div class="body"><div class="r1"><span class="subj">'+esc(t('free'))+'</span><span class="time">'+esc(periodTime(STATE,p))+'</span></div></div></li>';
+        else h+='<li class="lesson free"><div class="num">'+esc(p)+'</div><div class="body"><div class="r1"><span class="subj">'+esc(t('free'))+'</span><span class="time">'+esc(periodTime(STATE,p))+'</span></div></div></li>';
       }
       h+='</ul>';
     }
@@ -570,10 +570,10 @@ function lessonCard(l,ch){
   ch.forEach(function(c){
     cls.push('is-'+c.type);
     if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag room">'+esc(t('roomChanged'))+(c.note?': '+esc(c.note):'')+'</span>';}
-    else tags+='<span class="tag '+c.type+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': '+esc(c.note):'')+'</span>';
+    else tags+='<span class="tag '+esc(c.type)+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': '+esc(c.note):'')+'</span>';
   });
   var hue=0,hn=String(s?s.he:'');for(var hi=0;hi<hn.length;hi++)hue=(hue*31+hn.charCodeAt(hi))%997;hue=Math.round((hue*137.508)%360);
-  return '<li class="lesson '+cls.join(' ')+'" style="--hue:'+hue+'"><div class="num">'+l.period+'</div><div class="body">'+
+  return '<li class="lesson '+esc(cls.join(' '))+'" style="--hue:'+hue+'"><div class="num">'+esc(l.period)+'</div><div class="body">'+
     '<div class="r1"><span class="subj">'+esc(nm(s))+'</span><span class="time">'+esc(periodTime(STATE,l.period))+'</span></div>'+
     '<div class="r2">'+(l.teacher?'<span>'+esc(l.teacher)+'</span>':'')+(l.room||ch.some(function(c){return c.type==='room';})?'<span class="room">'+(/^חדר/.test(l.room||'')?'':esc(t('room'))+' ')+roomHtml+'</span>':'')+'</div>'+
     (tags?'<div class="tags">'+tags+'</div>':'')+'</div></li>';
@@ -641,14 +641,14 @@ function renderEditor(){
 }
 function audOptions(st,sel,withAll){
   var h='';if(withAll)h+='<option value="all"'+(sel==='all'?' selected':'')+'>'+esc(t('all'))+'</option>';
-  h+='<optgroup label="'+esc(t('classes'))+'">';st.classes.forEach(function(c){var k='class:'+c.id;h+='<option value="'+k+'"'+(sel===k?' selected':'')+'>'+esc(nm(c))+'</option>';});h+='</optgroup>';
-  h+='<optgroup label="'+esc(t('groups'))+'">';st.groups.forEach(function(g){var k='group:'+g.id;h+='<option value="'+k+'"'+(sel===k?' selected':'')+'>'+esc(audLabel(st,{type:'group',id:g.id}))+'</option>';});h+='</optgroup>';
+  h+='<optgroup label="'+esc(t('classes'))+'">';st.classes.forEach(function(c){var k='class:'+c.id;h+='<option value="'+esc(k)+'"'+(sel===k?' selected':'')+'>'+esc(nm(c))+'</option>';});h+='</optgroup>';
+  h+='<optgroup label="'+esc(t('groups'))+'">';st.groups.forEach(function(g){var k='group:'+g.id;h+='<option value="'+esc(k)+'"'+(sel===k?' selected':'')+'>'+esc(audLabel(st,{type:'group',id:g.id}))+'</option>';});h+='</optgroup>';
   return h;
 }
 function edChanges(st){
   var d=ui.eDate,wd=wday(d),h='';
   h+='<div class="field"><label for="edate">'+esc(t('date'))+'</label><div class="row"><button class="icon-btn" data-act="eday" data-n="-1" aria-label="'+esc(t('prevDay'))+'">'+chev(-1)+'</button>'+
-     '<input class="input grow" type="date" id="edate" data-change="edate" value="'+d+'"><button class="icon-btn" data-act="eday" data-n="1" aria-label="'+esc(t('nextDay'))+'">'+chev(1)+'</button></div>'+
+     '<input class="input grow" type="date" id="edate" data-change="edate" value="'+esc(d)+'"><button class="icon-btn" data-act="eday" data-n="1" aria-label="'+esc(t('nextDay'))+'">'+chev(1)+'</button></div>'+
      '<div class="muted small">'+esc(DAYS[prefs.lang][wd]+', '+fmtDate(d))+'</div></div>';
   h+='<div class="field"><label for="eaud">'+esc(t('show'))+'</label><select class="input" id="eaud" data-change="eaud">'+audOptions(st,ui.eAud,true)+'</select></div>';
   if(wd===6)return h+'<div class="empty">'+esc(t('shabbatEd'))+'</div>';
@@ -659,13 +659,13 @@ function edChanges(st){
   ls.forEach(function(l){
     var ch=changesFor(st,d,l.id),s=byId(st.subjects,l.subjectId),tags='';
     ch.forEach(function(c){var label=c.type==='room'?t('roomChanged')+': '+(c.room||''):t(c.type==='cancel'?'cancelled':c.type);
-      tags+='<span class="tag '+c.type+'">'+esc(label)+(c.note?' ('+esc(c.note)+')':'')+'<button class="x" data-act="rmChange" data-id="'+c.id+'" aria-label="'+esc(t('del'))+'">✕</button></span>';});
-    h+='<div class="card eitem"><div class="head"><b>'+l.period+'. '+esc(nm(s))+'</b><span class="meta">'+esc(audLabel(st,l.aud))+(l.room?', '+esc(t('room'))+' '+esc(l.room):'')+'</span></div>'+
+      tags+='<span class="tag '+esc(c.type)+'">'+esc(label)+(c.note?' ('+esc(c.note)+')':'')+'<button class="x" data-act="rmChange" data-id="'+esc(c.id)+'" aria-label="'+esc(t('del'))+'">✕</button></span>';});
+    h+='<div class="card eitem"><div class="head"><b>'+esc(l.period)+'. '+esc(nm(s))+'</b><span class="meta">'+esc(audLabel(st,l.aud))+(l.room?', '+esc(t('room'))+' '+esc(l.room):'')+'</span></div>'+
       (tags?'<div class="tags">'+tags+'</div>':'')+
-      '<div class="acts"><button class="a-cancel" data-act="addChange" data-type="cancel" data-id="'+l.id+'">'+esc(t('aCancel'))+'</button>'+
-      '<button class="a-room" data-act="addChange" data-type="room" data-id="'+l.id+'">'+esc(t('aRoom'))+'</button>'+
-      '<button class="a-test" data-act="addChange" data-type="test" data-id="'+l.id+'">'+esc(t('aTest'))+'</button>'+
-      '<button class="a-exam" data-act="addChange" data-type="exam" data-id="'+l.id+'">'+esc(t('aExam'))+'</button></div></div>';
+      '<div class="acts"><button class="a-cancel" data-act="addChange" data-type="cancel" data-id="'+esc(l.id)+'">'+esc(t('aCancel'))+'</button>'+
+      '<button class="a-room" data-act="addChange" data-type="room" data-id="'+esc(l.id)+'">'+esc(t('aRoom'))+'</button>'+
+      '<button class="a-test" data-act="addChange" data-type="test" data-id="'+esc(l.id)+'">'+esc(t('aTest'))+'</button>'+
+      '<button class="a-exam" data-act="addChange" data-type="exam" data-id="'+esc(l.id)+'">'+esc(t('aExam'))+'</button></div></div>';
   });
   return h+'</div>';
 }
@@ -680,8 +680,8 @@ function edWeek(st){
   st.periods.forEach(function(pp){
     var here=ls.filter(function(l){return l.period===pp.n;});
     here.forEach(function(l){var s=byId(st.subjects,l.subjectId);
-      h+='<button class="rowbtn" data-act="editLesson" data-id="'+l.id+'"><span class="n">'+l.period+'</span><span class="grow">'+esc(nm(s))+'<small>'+esc([l.teacher,l.room?t('room')+' '+l.room:''].filter(Boolean).join(', '))+'</small></span></button>';});
-    if(!here.length)h+='<button class="rowbtn freebtn" data-act="newLesson" data-p="'+pp.n+'"><span class="n">'+pp.n+'</span><span class="grow">'+esc(t('free'))+'<small><span dir="ltr">'+esc(pp.start+'–'+pp.end)+'</span></small></span><span class="plus">+</span></button>';
+      h+='<button class="rowbtn" data-act="editLesson" data-id="'+esc(l.id)+'"><span class="n">'+esc(l.period)+'</span><span class="grow">'+esc(nm(s))+'<small>'+esc([l.teacher,l.room?t('room')+' '+l.room:''].filter(Boolean).join(', '))+'</small></span></button>';});
+    if(!here.length)h+='<button class="rowbtn freebtn" data-act="newLesson" data-p="'+esc(pp.n)+'"><span class="n">'+esc(pp.n)+'</span><span class="grow">'+esc(t('free'))+'<small><span dir="ltr">'+esc(pp.start+'–'+pp.end)+'</span></small></span><span class="plus">+</span></button>';
   });
   h+='</div>';
   return h;
@@ -689,13 +689,13 @@ function edWeek(st){
 function validAud(st,a){return a.type==='class'?!!byId(st.classes,a.id):!!byId(st.groups,a.id);}
 function edSetup(st){
   var h='<h3>'+esc(t('classes'))+'</h3><div class="stack">';
-  st.classes.forEach(function(c){h+='<button class="rowbtn" data-act="editClass" data-id="'+c.id+'"><span class="grow">'+esc(c.he)+'<small>'+''+'</small></span></button>';});
+  st.classes.forEach(function(c){h+='<button class="rowbtn" data-act="editClass" data-id="'+esc(c.id)+'"><span class="grow">'+esc(c.he)+'<small>'+''+'</small></span></button>';});
   h+='<button class="secondary" data-act="editClass" data-id="">+ '+esc(t('addClass'))+'</button></div>';
   h+='<h3>'+esc(t('subjectsTitle'))+'</h3><p class="muted small" style="margin-top:-4px">'+esc(t('subjectsHint'))+'</p>';
   st.subjects.forEach(function(s){
-    h+='<div class="subjblock"><button class="rowbtn" data-act="editSubject" data-id="'+s.id+'"><span class="grow"><b>'+esc(s.he)+'</b><small>'+esc([s.en,s.ru].filter(Boolean).join(', '))+'</small></span></button><div class="indent">';
-    st.groups.filter(function(g){return g.subjectId===s.id;}).forEach(function(g){h+='<button class="rowbtn" data-act="editGroup" data-id="'+g.id+'"><span class="grow">'+esc(g.he)+'<small>'+esc([g.en,g.ru,g.teacher,g.classId?nm(byId(st.classes,g.classId)):''].filter(Boolean).join(', '))+'</small></span></button>';});
-    h+='<button class="link" style="align-self:flex-start" data-act="editGroup" data-id="" data-sub="'+s.id+'">+ '+esc(t('addGroup'))+'</button></div></div>';
+    h+='<div class="subjblock"><button class="rowbtn" data-act="editSubject" data-id="'+esc(s.id)+'"><span class="grow"><b>'+esc(s.he)+'</b><small>'+esc([s.en,s.ru].filter(Boolean).join(', '))+'</small></span></button><div class="indent">';
+    st.groups.filter(function(g){return g.subjectId===s.id;}).forEach(function(g){h+='<button class="rowbtn" data-act="editGroup" data-id="'+esc(g.id)+'"><span class="grow">'+esc(g.he)+'<small>'+esc([g.en,g.ru,g.teacher,g.classId?nm(byId(st.classes,g.classId)):''].filter(Boolean).join(', '))+'</small></span></button>';});
+    h+='<button class="link" style="align-self:flex-start" data-act="editGroup" data-id="" data-sub="'+esc(s.id)+'">+ '+esc(t('addGroup'))+'</button></div></div>';
   });
   h+='<button class="secondary" style="width:100%" data-act="editSubject" data-id="">+ '+esc(t('addSubject'))+'</button>';
   return h;
@@ -706,7 +706,7 @@ function edSettings(st){
     '<div class="field"><label for="gnRu">'+esc(t('nameRu'))+'</label><input class="input" id="gnRu" value="'+esc(st.gradeName.ru||'')+'"></div>'+
     '<button class="secondary" data-act="saveGrade">'+esc(t('save'))+'</button>';
   h+='<h3>'+esc(t('periods'))+'</h3><div class="stack">';
-  st.periods.forEach(function(p,i){h+='<div class="row"><b style="min-width:26px">'+p.n+'</b><input class="input grow" type="time" id="ps'+i+'" value="'+esc(p.start)+'"><input class="input grow" type="time" id="pe'+i+'" value="'+esc(p.end)+'"></div>';});
+  st.periods.forEach(function(p,i){h+='<div class="row"><b style="min-width:26px">'+esc(p.n)+'</b><input class="input grow" type="time" id="ps'+i+'" value="'+esc(p.start)+'"><input class="input grow" type="time" id="pe'+i+'" value="'+esc(p.end)+'"></div>';});
   h+='</div><div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="secondary" data-act="saveTimes">'+esc(t('saveTimes'))+'</button><button class="secondary" data-act="addPeriod">+ '+esc(t('addPeriod'))+'</button><button class="secondary" data-act="rmPeriod">'+esc(t('removePeriod'))+'</button></div>';
   if(API)h+='<h3>'+esc(t('server'))+'</h3><p class="muted small">'+esc(t('serverHint'))+'</p><button class="secondary" data-act="syncAll">'+esc(t('syncAll'))+'</button>';
   if(API){
@@ -729,7 +729,7 @@ function renderSheet(){
   var sh=ui.sheet,st=draft,h='';if(!sh)return '';
   if(sh.kind==='change'){
     var l=byId(st.lessons,sh.lessonId),s=byId(st.subjects,l.subjectId);
-    h+='<h3>'+esc(t(sh.type==='room'?'aRoom':sh.type==='test'?'aTest':sh.type==='exam'?'aExam':'aCancel'))+': '+l.period+'. '+esc(nm(s))+'</h3><p class="muted" style="margin-top:-6px">'+esc(audLabel(st,l.aud)+', '+fmtDate(ui.eDate))+'</p>';
+    h+='<h3>'+esc(t(sh.type==='room'?'aRoom':sh.type==='test'?'aTest':sh.type==='exam'?'aExam':'aCancel'))+': '+esc(l.period)+'. '+esc(nm(s))+'</h3><p class="muted" style="margin-top:-6px">'+esc(audLabel(st,l.aud)+', '+fmtDate(ui.eDate))+'</p>';
     if(sh.type==='room')h+=fld('shRoom',t('newRoom'),'',' autofocus');
     h+=fld('shNote',t('note'),'',' placeholder="'+esc(t('notePh'))+'"');
     h+=sheetBtns(false);
@@ -737,9 +737,9 @@ function renderSheet(){
     var L=sh.id?byId(st.lessons,sh.id):{period:sh.defP||1,subjectId:sh.defSub||(st.subjects[0]&&st.subjects[0].id),teacher:'',room:''};
     h+='<h3>'+esc(sh.id?t('editLesson'):t('addLesson'))+'</h3><p class="muted" style="margin-top:-6px">'+esc(DAYS[prefs.lang][ui.wDay]+', '+audLabel(st,keyAud(ui.wAud)))+'</p>';
     h+='<div class="field"><label for="shPer">'+esc(t('period'))+'</label><select class="input" id="shPer">';
-    st.periods.forEach(function(p){h+='<option value="'+p.n+'"'+(p.n===L.period?' selected':'')+'>'+p.n+' ('+esc(p.start+'–'+p.end)+')</option>';});
+    st.periods.forEach(function(p){h+='<option value="'+esc(p.n)+'"'+(p.n===L.period?' selected':'')+'>'+esc(p.n)+' ('+esc(p.start+'–'+p.end)+')</option>';});
     h+='</select></div><div class="field"><label for="shSub">'+esc(t('subject'))+'</label><select class="input" id="shSub">';
-    st.subjects.forEach(function(s){h+='<option value="'+s.id+'"'+(s.id===L.subjectId?' selected':'')+'>'+esc(nm(s))+'</option>';});
+    st.subjects.forEach(function(s){h+='<option value="'+esc(s.id)+'"'+(s.id===L.subjectId?' selected':'')+'>'+esc(nm(s))+'</option>';});
     h+='</select></div>'+fld('shTeacher',t('teacher'),L.teacher)+fld('shRoom',t('room'),L.room);
     h+=sheetBtns(!!sh.id);
   } else if(sh.kind==='class'){
@@ -760,7 +760,7 @@ function renderSheet(){
     h+=fld('shHe',t('nameHe'),o.he,' dir="rtl"')+fld('shEn',t('nameEn'),o.en,' dir="ltr"')+fld('shRu',t('nameRu'),o.ru,' dir="ltr"');
     if(sh.kind==='group'){h+=fld('shTeacher',t('teacher'),o.teacher);
       h+='<div class="field"><label for="shCls">'+esc(t('groupFor'))+'</label><select class="input" id="shCls"><option value="">'+esc(t('wholeGrade'))+'</option>';
-      st.classes.forEach(function(c){h+='<option value="'+c.id+'"'+(o.classId===c.id?' selected':'')+'>'+esc(nm(c))+'</option>';});
+      st.classes.forEach(function(c){h+='<option value="'+esc(c.id)+'"'+(o.classId===c.id?' selected':'')+'>'+esc(nm(c))+'</option>';});
       h+='</select></div>';}
     if(sh.kind==='subject')h+='<label class="check"><input type="checkbox" id="shMulti"'+(o.multi?' checked':'')+'> '+esc(t('multiLabel'))+'</label>';
     if(sh.err)h+='<p style="color:var(--cancel);font-weight:600">'+esc(t('needName'))+'</p>';
