@@ -198,6 +198,14 @@ h3{font-size:13px;font-weight:400;color:var(--muted);margin:24px 16px 7px}
 .subjblock{margin-bottom:12px}
 .subjblock .rowbtn{margin-bottom:6px}
 .indent{padding-inline-start:18px;display:flex;flex-direction:column;gap:6px}
+/* Статистика в редакторе */
+.statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stat b{display:block;font-size:30px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.stattab{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(4,minmax(0,1fr));gap:10px 6px;align-items:baseline;font-variant-numeric:tabular-nums}
+.stattab span{text-align:center}
+.stattab .th{font-size:12px;color:var(--muted)}
+.stattab .th:first-child{text-align:start}
 .check{display:flex;gap:10px;align-items:center;min-height:44px;margin-bottom:10px}
 .check input{width:22px;height:22px;accent-color:var(--brand)}
 
@@ -332,7 +340,7 @@ he:{app:'המערכת שלי',noSubject:'אין לי את המקצוע הזה',n
  step:'שלב',of:'מתוך',next:'המשך',back:'חזרה',showMine:'הצג את המערכת שלי',noSetup:'עוד אין כיתות במערכת. העורכים צריכים להוסיף אותן.',
  changesToday:'שינויים היום',
  editor:'עריכה',exit:'יציאה',code:'קוד עורכים',enter:'כניסה',wrongCode:'הקוד לא נכון. נסו שוב.',
- tabChanges:'שינויים לפי תאריך',tabWeek:'מערכת שבועית',tabSetup:'כיתות וקבוצות',tabSettings:'הגדרות',
+ tabChanges:'שינויים לפי תאריך',tabWeek:'מערכת שבועית',tabSetup:'כיתות וקבוצות',tabSettings:'הגדרות',tabStats:'סטטיסטיקה',statsHint:'כמה מכשירים פתחו את האפליקציה. כל מכשיר נספר פעם אחת ביום, בלי שמות ובלי פרטים אישיים.',statToday:'היום',stat7:'ב־7 הימים האחרונים',stat30:'ב־30 הימים האחרונים',statAll:'מאז שהתחלנו לספור',statsByClass:'לפי כיתות',thClass:'כיתה',thToday:'היום',th7:'7 ימים',th30:'30 יום',thAll:'הכול',statNoClass:'בלי כיתה',statsLoading:'טוען…',statsFailed:'לא הצלחנו לטעון את הנתונים. נסו שוב.',statsRefresh:'רענון',
  date:'תאריך',show:'הצג',all:'כולם',classes:'כיתות',groups:'קבוצות',noLessonsEd:'אין שיעורים ביום הזה עבור הבחירה.',
  aCancel:'ביטול',aRoom:'חדר',aTest:'מבחן',aExam:'בחינה',newRoom:'חדר חדש',note:'הערה (לא חובה)',notePh:'למשל: פרקים 1–3',
  save:'שמירה',close:'סגירה',del:'מחיקה',delSure:'ללחוץ שוב כדי למחוק',addLesson:'הוספת שיעור',editLesson:'עריכת שיעור',
@@ -352,7 +360,7 @@ en:{app:'My schedule',noSubject:'I don’t take this subject',noSubjectSub:'Thes
  step:'Step',of:'of',next:'Next',back:'Back',showMine:'Show my schedule',noSetup:'No classes yet. Editors need to add them.',
  changesToday:'Changes today',
  editor:'Editor',exit:'Exit',code:'Editor code',enter:'Enter',wrongCode:'Wrong code. Try again.',
- tabChanges:'Changes by date',tabWeek:'Weekly schedule',tabSetup:'Classes and groups',tabSettings:'Settings',
+ tabChanges:'Changes by date',tabWeek:'Weekly schedule',tabSetup:'Classes and groups',tabSettings:'Settings',tabStats:'Stats',statsHint:'How many devices opened the app. Each device is counted once a day, with no names or personal details.',statToday:'Today',stat7:'Last 7 days',stat30:'Last 30 days',statAll:'Since counting began',statsByClass:'By class',thClass:'Class',thToday:'Today',th7:'7 days',th30:'30 days',thAll:'All',statNoClass:'No class',statsLoading:'Loading…',statsFailed:'Could not load the numbers. Try again.',statsRefresh:'Refresh',
  date:'Date',show:'Show',all:'Everyone',classes:'Classes',groups:'Groups',noLessonsEd:'No lessons on this day for this selection.',
  aCancel:'Cancel',aRoom:'Room',aTest:'Test',aExam:'Exam',newRoom:'New room',note:'Note (optional)',notePh:'e.g. chapters 1–3',
  save:'Save',close:'Close',del:'Delete',delSure:'Tap again to delete',addLesson:'Add lesson',editLesson:'Edit lesson',
@@ -372,7 +380,7 @@ ru:{app:'Моё расписание',noSubject:'У меня нет этого �
  step:'Шаг',of:'из',next:'Дальше',back:'Назад',showMine:'Показать моё расписание',noSetup:'Классов пока нет. Редакторам нужно их добавить.',
  changesToday:'Изменения сегодня',
  editor:'Редактор',exit:'Выйти',code:'Код редактора',enter:'Войти',wrongCode:'Неверный код. Попробуй ещё раз.',
- tabChanges:'Изменения по датам',tabWeek:'Недельное расписание',tabSetup:'Классы и группы',tabSettings:'Настройки',
+ tabChanges:'Изменения по датам',tabWeek:'Недельное расписание',tabSetup:'Классы и группы',tabSettings:'Настройки',tabStats:'Статистика',statsHint:'Сколько устройств открывали приложение. Каждое устройство считается раз в день, без имён и личных данных.',statToday:'Сегодня',stat7:'За 7 дней',stat30:'За 30 дней',statAll:'С начала подсчёта',statsByClass:'По классам',thClass:'Класс',thToday:'Сегодня',th7:'7 дней',th30:'30 дней',thAll:'Всего',statNoClass:'Без класса',statsLoading:'Загрузка…',statsFailed:'Не удалось загрузить данные. Попробуйте ещё раз.',statsRefresh:'Обновить',
  date:'Дата',show:'Показать',all:'Все',classes:'Классы',groups:'Группы',noLessonsEd:'В этот день уроков нет для этого выбора.',
  aCancel:'Отмена',aRoom:'Кабинет',aTest:'Контрольная',aExam:'Экзамен',newRoom:'Новый кабинет',note:'Заметка (необязательно)',notePh:'например: главы 1–3',
  save:'Сохранить',close:'Закрыть',del:'Удалить',delSure:'Нажми ещё раз, чтобы удалить',addLesson:'Добавить урок',editLesson:'Изменить урок',
@@ -625,11 +633,12 @@ function renderEditor(){
   var st=draft,h='';
   h+='<div class="topbar"><div class="brand">'+LOGO+'<span>'+esc(t('editor'))+'</span></div>'+langSwitch()+'<button class="pill" data-act="exitEditor">'+esc(t('exit'))+'</button></div>';
   h+='<div class="tabs">';
-  [['changes','tabChanges'],['week','tabWeek'],['setup','tabSetup'],['settings','tabSettings']].forEach(function(x){h+='<button class="tab'+(ui.etab===x[0]?' on':'')+'" data-act="etab" data-tab="'+x[0]+'">'+esc(t(x[1]))+'</button>';});
+  [['changes','tabChanges'],['week','tabWeek'],['setup','tabSetup'],['settings','tabSettings'],['stats','tabStats']].forEach(function(x){h+='<button class="tab'+(ui.etab===x[0]?' on':'')+'" data-act="etab" data-tab="'+x[0]+'">'+esc(t(x[1]))+'</button>';});
   h+='</div>';
   if(ui.etab==='changes')h+=edChanges(st);
   else if(ui.etab==='week')h+=edWeek(st);
   else if(ui.etab==='setup')h+=edSetup(st);
+  else if(ui.etab==='stats')h+=edStats(st);
   else h+=edSettings(st);
   if(dirty)h+='<div class="pubbar"><div class="in"><div class="msg">'+esc(ui.busy?t('publishing'):t('unpublished'))+'</div><button class="secondary" data-act="discard"'+(ui.busy?' disabled':'')+'>'+esc(t('discard'))+'</button><button class="primary" data-act="publish"'+(ui.busy?' disabled':'')+'>'+esc(t('publish'))+'</button></div></div>';
   return h;
@@ -711,6 +720,25 @@ function edSettings(st){
     h+='<div class="card row"><div class="grow"><b>'+esc(new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(d))+'</b><div class="muted small">'+esc(t('by_'+b.by)||b.by)+'</div></div><button class="secondary" data-act="restoreBak" data-id="'+esc(b.id)+'">'+esc(t('restore'))+'</button></div>';});
     h+='</div>';}
   h+='<h3>'+esc(t('changeCode'))+'</h3><p class="muted small">'+esc(t('codeOnServer'))+'</p>';
+  return h;
+}
+function edStats(st){
+  var s=ui.stats,h='<p class="muted small">'+esc(t('statsHint'))+'</p>';
+  if(!s){s=ui.stats={loading:true};setTimeout(loadStats,0);}
+  if(s.loading)return h+'<div class="empty">'+esc(t('statsLoading'))+'</div>';
+  if(s.err)return h+'<div class="empty">'+esc(s.err)+'</div><button class="secondary" data-act="loadStats">'+esc(t('statsRefresh'))+'</button>';
+  var P=[['today','statToday','thToday'],['week','stat7','th7'],['month','stat30','th30'],['all','statAll','thAll']];
+  var num=function(p,cid){var v=(s[p]&&s[p].byClass||{})[cid];return +v||0;};
+  var tot=function(p){return +(s[p]&&s[p].total)||0;};
+  h+='<div class="statgrid">';
+  P.forEach(function(p){h+='<div class="card stat"><b>'+esc(tot(p[0]))+'</b><small>'+esc(t(p[1]))+'</small></div>';});
+  h+='</div><h3>'+esc(t('statsByClass'))+'</h3><div class="card stattab"><span class="th">'+esc(t('thClass'))+'</span>';
+  P.forEach(function(p){h+='<span class="th">'+esc(t(p[2]))+'</span>';});
+  st.classes.forEach(function(c){h+='<b><bdi>'+esc(nm(c))+'</bdi></b>';P.forEach(function(p){h+='<span>'+esc(num(p[0],c.id))+'</span>';});});
+  // устройства без класса или с классом, которого больше нет
+  var rest=P.map(function(p){var n=tot(p[0]);st.classes.forEach(function(c){n-=num(p[0],c.id);});return n;});
+  if(rest.some(function(n){return n>0;})){h+='<b>'+esc(t('statNoClass'))+'</b>';rest.forEach(function(n){h+='<span>'+esc(n)+'</span>';});}
+  h+='</div><button class="secondary" style="margin-top:14px" data-act="loadStats">'+esc(t('statsRefresh'))+'</button>';
   return h;
 }
 
@@ -880,6 +908,39 @@ function syncPush(){
   if(!API||!pushOn()||!('serviceWorker' in navigator))return;
   navigator.serviceWorker.getRegistration().then(function(reg){return reg&&reg.pushManager.getSubscription();}).then(function(s){if(s)return sendSub(s);}).catch(function(){});
 }
+// анонимный счётчик: случайный id устройства (создаётся один раз) и класс, раз в день
+function deviceId(){
+  var id=sGet('localStorage','sched.device');
+  if(typeof id==='string'&&/^[0-9a-f]{32}$/.test(id))return id;
+  var a=new Uint8Array(16),i;
+  try{crypto.getRandomValues(a);}catch(e){for(i=0;i<16;i++)a[i]=Math.floor(Math.random()*256);}
+  id='';for(i=0;i<16;i++)id+=(a[i]<16?'0':'')+a[i].toString(16);
+  sSet('localStorage','sched.device',id);
+  // хранилище недоступно (частный режим) — не считаем, иначе каждое открытие было бы «новым» устройством
+  return sGet('localStorage','sched.device')===id?id:null;
+}
+function pingStats(){
+  try{
+    if(!API||pingStats.busy||!prefsValid())return;
+    // только с нашего сайта (или с локального wrangler dev при проверке)
+    if(location.hostname!=='school-schedule.github.io'&&!/^http:\/\/localhost/.test(API))return;
+    var day=todayISO(),id;
+    if(sGet('localStorage','sched.ping')===day||!(id=deviceId()))return;
+    pingStats.busy=true;
+    fetch(API+'/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,classId:prefs.classId||''})})
+    // сервер ответил (даже отказом) — сегодня больше не отправляем; нет сети — попробуем при следующем открытии
+    .then(function(){sSet('localStorage','sched.ping',day);},function(){})
+    .then(function(){pingStats.busy=false;});
+  }catch(e){pingStats.busy=false;}
+}
+function loadStats(){
+  ui.stats={loading:true};render();
+  backupsCall('/stats','GET').then(function(x){
+    if(ui.etab!=='stats')return;
+    ui.stats=x.s===200&&x.j&&x.j.all?x.j:{err:x.s===429?t('locked').replace('{m}',15):x.s===401?t('badServerCode'):t('statsFailed')};
+    render();
+  });
+}
 function saveEd(){sSet('sessionStorage','sched.editor',{etab:ui.etab,eDate:ui.eDate,eAud:ui.eAud,wDay:ui.wDay,wAud:ui.wAud});}
 function toast(text,bad){ui.toast={text:text,bad:!!bad};render();clearTimeout(toast.tm);toast.tm=setTimeout(function(){ui.toast=null;render();},bad?6000:3500);}
 
@@ -929,7 +990,7 @@ root.addEventListener('click',function(e){
     case 'setupNext':
       var total=1+subjectsFor(STATE,ui.tmpClass).length;
       if(ui.setupStep<total-1){ui.setupStep++;ui.gq='';render();window.scrollTo(0,0);}
-      else{prefs.classId=ui.tmpClass;prefs.groups=ui.tmpGroups;sSet('localStorage','sched.prefs',prefs);syncPush();ui.screen='day';ui.date=schoolDay(todayISO());render();window.scrollTo(0,0);}
+      else{prefs.classId=ui.tmpClass;prefs.groups=ui.tmpGroups;sSet('localStorage','sched.prefs',prefs);syncPush();pingStats();ui.screen='day';ui.date=schoolDay(todayISO());render();window.scrollTo(0,0);}
       break;
     case 'install':
       if(installEvt){var ev=installEvt;installEvt=null;try{ev.prompt();}catch(er){ui.installOpen=true;render();}}
@@ -938,6 +999,7 @@ root.addEventListener('click',function(e){
     case 'pushOn':enablePush();break;
     case 'pushOff':disablePush();break;
     case 'syncAll':dirty=true;publish();break;
+    case 'loadStats':loadStats();break;
     case 'loadBackups':backupsCall('/backups','GET').then(function(x){if(x.s===200){ui.backups=x.j.backups||[];render();}else backupErr(x);});break;
     case 'restoreBak':if(!window.confirm(t('restoreConfirm')))break;
       backupsCall('/restore','POST',{id:el.getAttribute('data-id')}).then(function(x){
@@ -950,8 +1012,8 @@ root.addEventListener('click',function(e){
     case 'editorLogin':ui.loginErr=false;ui.screen='login';render();var c=document.getElementById('code');if(c)c.focus();break;
     case 'home':ui.screen=prefsValid()?'day':'setup';if(ui.screen==='setup')startSetup();render();break;
     case 'login':doLogin();break;
-    case 'exitEditor':sDel('sessionStorage','sched.editor');sDel('sessionStorage','sched.code');ui.screen=prefsValid()?'day':'setup';if(ui.screen==='setup')startSetup();draft=null;dirty=false;ui.sheet=null;render();break;
-    case 'etab':ui.etab=el.getAttribute('data-tab');saveEd();render();window.scrollTo(0,0);break;
+    case 'exitEditor':ui.stats=null;sDel('sessionStorage','sched.editor');sDel('sessionStorage','sched.code');ui.screen=prefsValid()?'day':'setup';if(ui.screen==='setup')startSetup();draft=null;dirty=false;ui.sheet=null;render();break;
+    case 'etab':ui.etab=el.getAttribute('data-tab');ui.stats=null;saveEd();render();window.scrollTo(0,0);break;
     case 'eday':ui.eDate=stepDay(ui.eDate,+el.getAttribute('data-n'));saveEd();render();break;
     case 'wday':ui.wDay=+el.getAttribute('data-n');saveEd();render();break;
     case 'addChange':
@@ -1021,9 +1083,9 @@ render();
   var s=document.createElement('script');s.type='module';s.src='https://static.cloudflareinsights.com/beacon.min.js';
   s.setAttribute('data-cf-beacon','{"token": "c8cb7b7f66e7416e83e3de3a78ebeeef"}');document.body.appendChild(s);
 })();
-if(API){loadRemote();
+if(API){loadRemote();pingStats();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
-  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')loadRemote();});}
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){loadRemote();pingStats();}});}
 })();
 </script>
 </body>

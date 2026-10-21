@@ -55,6 +55,15 @@ head_sampling_rate = 1
 name = "LIMITER"
 class_name = "Limiter"
 
+# Анонимный счётчик устройств (класс Stats в src/worker.js): POST /ping, GET /stats.
+[[durable_objects.bindings]]
+name = "STATS"
+class_name = "Stats"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Limiter"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Stats"]

@@ -13,7 +13,7 @@
 
 | Файл | За что отвечает |
 |---|---|
-| `index.html` | **Всё приложение** в одном файле: `<head>`, CSS, данные и JS. ~1030 строк, но некоторые строки огромные (см. ниже). |
+| `index.html` | **Всё приложение** в одном файле: `<head>`, CSS, данные и JS. ~1090 строк, но некоторые строки огромные (см. ниже). |
 | `config.js` | Одна строка: `window.SCHEDULE_API` — адрес сервера на Cloudflare. Без него редактор не может войти и публиковать: другого режима нет. |
 | `sw.js` | Service worker: показывает push-уведомления об изменениях и по нажатию открывает приложение. Ничего не кэширует. |
 | `manifest.webmanifest` | Манифест PWA (название, цвета `#171717`, иконки, RTL). |
@@ -28,18 +28,18 @@
 | Строки (примерно) | Что там |
 |---|---|
 | 1–18 | `<head>`: мета-теги, иконки (base64), `config.js`, манифест, шрифт Rubik. |
-| 19–307 | `<style id="app-css">`: базовые стили в духе iOS, затем палитры `data-look="p1…p4"`. Активна **p2** («лайм»: фон `#171717`, акцент `#C6FF00`, шрифт Rubik) — её правила идут последними и перекрывают базовые. |
-| **311** | `<script type="application/json" id="app-state">` — **все данные расписания одной строкой ~120 КБ**. Встроенная копия для первого показа: приложение сразу подгружает свежие данные с `API/data`. |
-| 312–1028 | `<script id="app-js">` — весь код в одной IIFE. |
+| 19–315 | `<style id="app-css">`: базовые стили в духе iOS, затем палитры `data-look="p1…p4"`. Активна **p2** («лайм»: фон `#171717`, акцент `#C6FF00`, шрифт Rubik) — её правила идут последними и перекрывают базовые. |
+| **319** | `<script type="application/json" id="app-state">` — **все данные расписания одной строкой ~120 КБ**. Встроенная копия для первого показа: приложение сразу подгружает свежие данные с `API/data`. |
+| 320–1089 | `<script id="app-js">` — весь код в одной IIFE. |
 
 Разделы JS (ищи по комментариям `/* ---------- … ---------- */`):
 - **storage helpers** — `sGet/sSet/sDel` (обёртки над `localStorage`/`sessionStorage` в try/catch), `esc()` для экранирования HTML.
 - **texts** — словарь `T` с ключами `he`/`en`/`ru`; `t('ключ')` возвращает текст, `nm(obj)` — название объекта на текущем языке.
 - **state** — `prefs` (выбор ученика), `ui` (текущий экран и состояние), `draft`/`dirty` (черновик редактора); функции дат (`iso`, `schoolDay`, `stepDay`), подбор групп (`groupsFor`, `subjectsFor`, `groupFits`), `migratePrefs()`, `studentLessons(date)`.
 - **student screens** — `renderSetup` (выбор класса и групп), `renderDay` (день), `lessonCard`, `footer`, `renderInstall` (инструкция установки PWA).
-- **editor** — `renderLogin`, `renderEditor` и вкладки `edChanges` (изменения по датам), `edWeek` (недельное расписание), `edSetup` (классы и группы), `edSettings` (время звонков, код, резервные копии).
+- **editor** — `renderLogin`, `renderEditor` и вкладки `edChanges` (изменения по датам), `edWeek` (недельное расписание), `edSetup` (классы и группы), `edSettings` (время звонков, код, резервные копии), `edStats` (сколько устройств пользуются приложением: сегодня, 7 и 30 дней, всего, по классам; GET `/stats` с `X-Editor-Code`).
 - **sheets** — нижние листы редактирования: `renderSheet`, `sheetSave`, `sheetDel`.
-- **publish** — `loadRemote` (GET `/data`), `publishRemote` (POST `/data` с заголовком `X-Editor-Code` и `base: updatedAt`; 409 = кто-то опубликовал раньше), резервные копии, push (`/vapid`, `/subscribe`, `/unsubscribe`).
+- **publish** — `loadRemote` (GET `/data`), `publishRemote` (POST `/data` с заголовком `X-Editor-Code` и `base: updatedAt`; 409 = кто-то опубликовал раньше), резервные копии, push (`/vapid`, `/subscribe`, `/unsubscribe`), анонимный счётчик `pingStats` (POST `/ping` раз в день: случайный id устройства из `localStorage["sched.device"]` и класс, дата последней отправки — в `sched.ping`; ошибки молча игнорируются).
 - **render** — `render()` собирает весь HTML строкой и кладёт в `#root.innerHTML`. Обработка кликов — делегирование по атрибуту `data-act="…"` (большой `switch`), плюс свайп для смены дня.
 - **start** — выбор стартового экрана, аналитика Cloudflare (только на `school-schedule.github.io`), регистрация `sw.js`.
 
