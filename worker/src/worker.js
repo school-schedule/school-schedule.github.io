@@ -13,7 +13,10 @@
  *  - (необязательно) Variable  CONTACT  = mailto:твоя@почта
  *  - (необязательно) Variable  SHAHAF_URL = адрес сайта שחף школы
  *    (по умолчанию https://kfaryarok.shahaf.site). Cron Trigger: каждые 15 минут
- *    — сервер сам забирает оттуда отмены, смену кабинетов и контрольные.
+ *    — сервер сам забирает оттуда отмены, смену кабинетов и контрольные,
+ *    а раз в сутки — события (выходные и праздники) с вкладки «אירועים».
+ *  - (необязательно) Variable  SHAHAF_EVENTS_TAB = имя вкладки событий в адресе (?tab=…),
+ *    по умолчанию events.
  *  - (для бесплатного тарифа) Queue с именем переменной  PUSHQ,
  *    и этот же Worker как consumer этой очереди (Batch size = 1).
  *    Без очереди уведомления отправляются сразу (подходит для платного тарифа).
@@ -42,11 +45,13 @@ function json(obj, status = 200) {
 export default {
   // автозапуск по расписанию (Cron Trigger): синхронизация с שחף
   async scheduled(event, env, ctx) {
-    const min = new Date(event.scheduledTime || Date.now()).getUTCMinutes();
-    // раз в час — контрольные, в остальное время — отмены и кабинеты
+    const at = new Date(event.scheduledTime || Date.now());
+    const min = at.getUTCMinutes();
+    // раз в час — контрольные, раз в сутки (в 3:15 UTC) — события, в остальное время — отмены и кабинеты
     // (по отдельности, чтобы уложиться в 10 мс процессора бесплатного тарифа)
+    const opt = min < 15 ? { exams: true } : min < 30 && at.getUTCHours() === 3 ? { events: true } : { changes: true };
     try {
-      await syncShahaf(env, ctx, min < 15 ? { exams: true } : { changes: true });
+      await syncShahaf(env, ctx, opt);
     } catch (e) {
       // ошибку сохраняем, чтобы её было видно по адресу /shahaf
       await env.DB.put("shahaf:last", JSON.stringify({ status: "error", error: String((e && e.message) || e), at: new Date().toISOString() }));
@@ -107,10 +112,11 @@ export default {
         return json(await statsObj(env).summary(israelDate(0)));
       }
       if (path === "/shahaf") return json((await env.DB.get("shahaf:last", "json")) || { status: "never" });
+      if (path === "/shahaf/events") return json((await env.DB.get("shahaf:events", "json")) || { status: "never" });
       if (path === "/shahaf/run" && req.method === "POST") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
         if (auth.status !== 200) return json(auth.body, auth.status);
-        return json(await syncShahaf(env, ctx, { changes: true, exams: true }));
+        return json(await syncShahaf(env, ctx, { changes: true, exams: true, events: true }));
       }
       // проверка без кода: какие привязки подключены в Cloudflare
       if (path === "/") return json({ ok: true, app: "hamaarechet-shelli", db: !!env.DB, limiter: !!env.LIMITER, stats: !!env.STATS, pushq: !!env.PUSHQ });
@@ -850,7 +856,7 @@ function parseClassOptions(html, letter) {
   return map;
 }
 // cache: одинаковые строки повторяются на страницах всех классов — разбираем их один раз
-function listItems(html, cache) {
+function listItems(html, cache, accept = /^\d{2}\.\d{2}\.\d{4},/) {
   const out = [];
   const re = /<li[^>]*>([\s\S]*?)<\/li>/gi;
   let m;
@@ -858,7 +864,7 @@ function listItems(html, cache) {
     let t = cache ? cache.get(m[1]) : undefined;
     if (t === undefined) {
       t = decodeHtml(m[1]);
-      if (!/^\d{2}\.\d{2}\.\d{4},/.test(t)) t = null;
+      if (!accept.test(t)) t = null;
       if (cache) cache.set(m[1], t);
     }
     if (t) out.push(t);
@@ -884,6 +890,26 @@ function parseExam(t) {
   const from = +(m[3] || m[5]), to = +(m[4] || m[5]);
   const title = m[2].trim();
   return { date: isoDate(m[1]), from, to, teacher: m[6].trim(), type: /מבחן/.test(title) ? "exam" : "test", room: (m[7] || "").trim(), note: title };
+}
+// события: «24.12.2026, חופשת חנוכה» или «24.12.2026 - 31.12.2026, חופשת חנוכה»
+// Выходной — только если прямо написано, что учёбы нет; остальное — просто событие дня.
+const EVENT_LINE = /^\d{1,2}[./]\d{1,2}[./]\d{4}/;
+const OFF_WORDS = /חופש|אין לימודים|פגרה|יום חופשי|שבתון/;
+function eventDate(d) {
+  const m = /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/.exec(d);
+  return m ? m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0") : null;
+}
+function parseEvent(t) {
+  // строки в формате вкладок «שינויים» и «מבחנים» — не события (если адрес вкладки неверный)
+  if (/^[\d.]+,\s*שיעור\s*\d+,/.test(t) || /לכיתות:/.test(t)) return null;
+  const m = /^(\d{1,2}[./]\d{1,2}[./]\d{4})(?:\s*[-–]\s*(\d{1,2}[./]\d{1,2}[./]\d{4}))?\s*[,:\-–]?\s*(.+)$/.exec(t);
+  if (!m) return null;
+  const from = eventDate(m[1]), to = m[2] ? eventDate(m[2]) : from;
+  const text = m[3].trim().slice(0, 120);
+  if (!from || !to || to < from || !text) return null;
+  const days = [];
+  for (let d = from; d <= to && days.length < 31; d = shiftDay(d, 1)) days.push(d);
+  return { days, text, off: OFF_WORDS.test(text) };
 }
 function groupFitsClass(g, cid) {
   if (g.exceptClasses && g.exceptClasses.indexOf(cid) >= 0) return false;
@@ -936,13 +962,33 @@ async function syncShahaf(env, ctx, opt) {
   const found = new Map();
   const idx = lessonIndex(st);
   const rawCache = new Map(), parsed = new Map();
-  const tabs = (opt.changes ? ["changes"] : []).concat(opt.exams ? ["exams"] : []);
+  const evTab = env.SHAHAF_EVENTS_TAB || "events";
+  const tabs = (opt.changes ? ["changes"] : []).concat(opt.exams ? ["exams"] : [], opt.events ? [evTab] : []);
+  const events = new Map(); // дата|текст → событие и список классов
+  const evCache = new Map();
+  if (opt.events) { report.events = 0; report.eventSamples = []; }
   for (const c of st.classes) {
     const sid = ids[c.num];
     if (!sid) continue;
     report.classes++;
     for (const tab of tabs) {
       const html = await get("?cls=" + sid + "&tab=" + tab);
+      if (tab === evTab) {
+        for (const t of listItems(html, evCache, EVENT_LINE)) {
+          // примеры строк — в отчёт /shahaf, чтобы было видно, как выглядит вкладка
+          if (report.eventSamples.length < 8 && !report.eventSamples.includes(t)) report.eventSamples.push(t);
+          const ev = parseEvent(t);
+          if (!ev) continue;
+          for (const day of ev.days) {
+            if (day < today) continue;
+            const k = day + "|" + ev.text;
+            if (!events.has(k)) events.set(k, { date: day, text: ev.text, off: ev.off, cls: [] });
+            const e = events.get(k);
+            if (!e.cls.includes(c.id)) e.cls.push(c.id);
+          }
+        }
+        continue;
+      }
       for (const t of listItems(html, rawCache)) {
         let it = parsed.get(tab + t);
         if (it === undefined) { it = tab === "changes" ? parseChange(t) : parseExam(t); parsed.set(tab + t, it); }
@@ -973,10 +1019,22 @@ async function syncShahaf(env, ctx, opt) {
   const next = keep.concat([...found.values()].filter((c) => !keep.some((k) => k.id === c.id)));
   const sigOf = (list) => list.filter((c) => String(c.id).startsWith("sh:")).map((c) => c.id + "|" + (c.room || "") + "|" + (c.note || "")).sort().join("\n");
   report.changed = sigOf(next) !== sigOf(st.changes) || migrated;
+  // события: заменяем целиком (только сегодня и дальше); если у события все классы — список классов не храним
+  let nextEvents = st.events;
+  if (opt.events) {
+    nextEvents = [...events.values()].map((e) => {
+      const ev = { date: e.date, text: e.text, off: e.off };
+      if (e.cls.length < report.classes) ev.cls = e.cls.sort();
+      return ev;
+    }).sort((a, b) => a.date.localeCompare(b.date));
+    report.events = nextEvents.length;
+    if (JSON.stringify(nextEvents) !== JSON.stringify(st.events || [])) report.changed = true;
+  }
   const firstRun = !(await env.DB.get("shahaf:last"));
   if (report.changed) {
     const prev = { changes: st.changes };
     st.changes = next;
+    if (nextEvents) st.events = nextEvents;
     st.updatedAt = new Date().toISOString();
     await backup(env, raw, "shahaf");
     await env.DB.put("state", JSON.stringify(st));
@@ -990,6 +1048,8 @@ async function syncShahaf(env, ctx, opt) {
   report.status = "ok";
   // отчёт сохраняем при изменениях и раз в час (бережём лимит записей KV)
   if (report.changed || firstRun || opt.exams) await env.DB.put("shahaf:last", JSON.stringify(report));
+  // отчёт о событиях — отдельно (раз в сутки), его видно по адресу /shahaf/events
+  if (opt.events) await env.DB.put("shahaf:events", JSON.stringify(report));
   return report;
 }
 
