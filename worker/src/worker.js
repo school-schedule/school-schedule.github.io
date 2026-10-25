@@ -20,7 +20,8 @@
  *  - Durable Object  LIMITER  (класс Limiter, SQLite) — счётчики попыток входа,
  *    подписок и отметок счётчика по адресам; описан в wrangler.toml.
  *  - Durable Object  STATS  (класс Stats, SQLite) — анонимный счётчик устройств
- *    (POST /ping от сайта, GET /stats — для редактора).
+ *    (POST /ping от сайта, GET /stats — для редактора) и сообщения об ошибках
+ *    (POST /report от учеников, GET /reports и POST /reports/delete — для редактора).
  */
 
 import { DurableObject } from "cloudflare:workers";
@@ -91,7 +92,14 @@ export default {
       if (path === "/subscribe" && req.method === "POST") return await subscribe(req, env);
       if (path === "/unsubscribe" && req.method === "POST") return await unsubscribe(req, env);
       // нет привязки STATS в Cloudflare (Settings → Bindings) — говорим об этом прямо
-      if ((path === "/ping" || path === "/stats") && !env.STATS) return json({ error: "no_stats_binding" }, 500);
+      if (["/ping", "/stats", "/report", "/reports", "/reports/delete"].includes(path) && !env.STATS) return json({ error: "no_stats_binding" }, 500);
+      if (path === "/report" && req.method === "POST") return await report(req, env);
+      if (path === "/reports" || path === "/reports/delete") {
+        const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+        if (auth.status !== 200) return json(auth.body, auth.status);
+        if (path === "/reports") return json({ reports: await statsObj(env).reports() });
+        if (req.method === "POST") { const b = await req.json().catch(() => ({})); return json(await statsObj(env).delReport(+b.id || 0)); }
+      }
       if (path === "/ping" && req.method === "POST") return await ping(req, env);
       if (path === "/stats") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
@@ -337,6 +345,31 @@ async function ping(req, env) {
   await statsObj(env).ping(israelDate(0), dev, cls);
   return json({ ok: true });
 }
+/* ---------------- сообщения об ошибках ---------------- */
+// Ученик пишет, что в расписании не так. Сохраняются только текст, класс, дата и урок —
+// ни имени, ни id устройства, ни адреса (IP нужен только лимиту и сам стирается через час).
+// Не больше 10 сообщений с одного адреса в час. Хранятся последние 300 — в том же объекте Stats.
+const REPORT_MAX = 10, REPORT_WINDOW_SEC = 3600;
+async function report(req, env) {
+  const raw = await req.text();
+  if (raw.length > 3000) return json({ error: "too_big" }, 413);
+  let b;
+  try { b = JSON.parse(raw); } catch (e) { return json({ error: "bad_json" }, 400); }
+  if (!b || typeof b !== "object") return json({ error: "bad_json" }, 400);
+  const text = String((b && b.text) || "").trim().slice(0, 500);
+  if (text.length < 3) return json({ error: "too_short" }, 400);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(b.date) ? b.date : "";
+  const period = Number.isInteger(b.period) && b.period >= 0 && b.period <= 20 ? b.period : 0;
+  const lesson = /^[\w-]{1,40}$/.test(b.lessonId || "") ? b.lessonId : "";
+  const cls = /^c\d{1,2}$/.test(b.classId || "") ? b.classId : "";
+  let lim;
+  try { lim = await limiter(env, "report", req).hit(REPORT_MAX, REPORT_WINDOW_SEC); }
+  catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  await statsObj(env).addReport({ at: new Date().toISOString(), date, period, lesson, cls, text });
+  return json({ ok: true });
+}
+
 function statsObj(env) {
   return env.STATS.get(env.STATS.idFromName("all"));
 }
@@ -356,6 +389,19 @@ export class Stats extends DurableObject {
     this.sql = ctx.storage.sql;
     this.sql.exec("CREATE TABLE IF NOT EXISTS seen (day TEXT NOT NULL, dev TEXT NOT NULL, cls TEXT NOT NULL, PRIMARY KEY (day, dev)) WITHOUT ROWID");
     this.sql.exec("CREATE TABLE IF NOT EXISTS devices (dev TEXT PRIMARY KEY, cls TEXT NOT NULL) WITHOUT ROWID");
+    this.sql.exec("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, date TEXT NOT NULL, period INTEGER NOT NULL, lesson TEXT NOT NULL, cls TEXT NOT NULL, text TEXT NOT NULL)");
+  }
+  addReport(r) {
+    this.sql.exec("INSERT INTO reports (at, date, period, lesson, cls, text) VALUES (?, ?, ?, ?, ?, ?)", r.at, r.date, r.period, r.lesson, r.cls, r.text);
+    this.sql.exec("DELETE FROM reports WHERE id <= (SELECT MAX(id) FROM reports) - 300");
+    return { ok: true };
+  }
+  reports() {
+    return this.sql.exec("SELECT * FROM reports ORDER BY id DESC LIMIT 300").toArray();
+  }
+  delReport(id) {
+    this.sql.exec("DELETE FROM reports WHERE id = ?", id);
+    return { ok: true };
   }
   ping(day, dev, cls) {
     this.sql.exec("INSERT INTO seen (day, dev, cls) VALUES (?, ?, ?) ON CONFLICT (day, dev) DO UPDATE SET cls = excluded.cls WHERE cls <> excluded.cls", day, dev, cls);
