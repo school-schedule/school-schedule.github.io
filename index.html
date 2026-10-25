@@ -311,6 +311,9 @@ html[data-look="p2"] .foot{gap:10px}
 html[data-look="p2"] .foot .link,html[data-look="p2"] .foot .installbtn{width:100%;max-width:340px}
 html[data-look="p2"] .icon-btn{background:#292929;color:var(--P-card-ink);width:44px;height:44px;border-radius:14px}
 html[data-look="p2"] .pill{background:#292929;color:var(--P-card-ink);border-radius:12px}
+/* ближайшие контрольные: заголовок дня над карточками */
+.dhead{font-size:15px;font-weight:600;color:var(--muted);margin:18px 4px 8px}
+.dhead:first-of-type{margin-top:4px}
 /* текущий урок — рамка цвета акцента, следующий — подпись «далее» */
 .lesson.is-now{box-shadow:inset 0 0 0 2px var(--today)}
 html[data-look^="p"] .lesson.is-now{box-shadow:inset 0 0 0 2px var(--P-acc)}
@@ -359,7 +362,7 @@ he:{app:'המערכת שלי',noSubject:'אין לי את המקצוע הזה',n
  unpublished:'יש שינויים שעוד לא פורסמו',publish:'פרסום',discard:'ביטול השינויים',published:'פורסם. כל התלמידים רואים את זה עכשיו.',
  conflict:'מישהו אחר פרסם שינוי ברגע זה. השינויים שלך לא נשמרו, צריך להזין אותם שוב.',
  publishFailed:'הפרסום נכשל. נסו שוב.',
- publishing:'מפרסם…',empty:'ריק',shabbatEd:'שבת. אין שיעורים.',needName:'צריך לכתוב שם.',offline:'אין אינטרנט. מוצגת המערכת השמורה האחרונה.',nowTag:'עכשיו',nextTag:'הבא'},
+ publishing:'מפרסם…',empty:'ריק',shabbatEd:'שבת. אין שיעורים.',needName:'צריך לכתוב שם.',testsBtn:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, רק בשיעורים שלכם.',noTests:'אין מבחנים ב־3 השבועות הקרובים.',tomorrow:'מחר',offline:'אין אינטרנט. מוצגת המערכת השמורה האחרונה.',nowTag:'עכשיו',nextTag:'הבא'},
 en:{app:'My schedule',noSubject:'I don’t take this subject',noSubjectSub:'These periods will show as free',backups:'Backups',backupsHint:'The server keeps the last 10 versions. If something breaks, you can go back.',showBackups:'Show backups',noBackups:'No backups yet.',restore:'Restore',restoreConfirm:'Go back to this version? The current one will be saved as a backup.',restored:'Version restored.',by_editor:'Editor save',by_shahaf:'Update from Shahaf',by_restore:'Before restore',locked:'Too many attempts. Try again in {m} minutes.',attemptsLeft:'({n} attempts left)',codeOnServer:'The code is stored on the server (Cloudflare, EDITOR_CODE). Change it there.',pushBtn:'Get cancellation alerts',pushActive:'Alerts are on (tap to turn off)',pushOn:'Great! You will get an alert when your lessons change.',pushOff:'Alerts are off.',pushDenied:'Alerts were not allowed. You can turn them on in your phone settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone, alerts work only after adding the app to the Home Screen.',badServerCode:'The server did not accept the code. Exit and log in again.',server:'Server',serverHint:'Data is saved on the server, and everyone sees it right away.',syncAll:'Save all data to the server',searchPh:'Search by subject or teacher',noMatch:'Nothing found. Try another word.',groupFor:'For which class',wholeGrade:'Whole grade',install:'Install on phone',insIntro:'Two minutes, and your schedule opens from a home-screen icon like any app.',insComputer:'Computer',insTipTitle:'Important:',insTipIos:'If the link opened inside WhatsApp or Instagram, first tap ⋯ and choose "Open in Safari".',insTipAnd:'If the link opened inside WhatsApp or Instagram, first tap ⋮ and choose "Open in browser".',insIos1:'Open the link in Safari.',insIos2:'Tap the Share button at the bottom (square with an up arrow).',insIos3:'Scroll down and choose "Add to Home Screen".',insIos4:'Tap "Add" in the top corner. Done, the icon is on your home screen.',insAnd1:'Open the link in Chrome.',insAnd2:'Tap the three dots in the top corner.',insAnd3:'Choose "Add to Home screen" or "Install app".',insAnd4:'Confirm with "Add". Done, the icon is on your home screen.',insDesk1:'Easiest on a phone: open the same link there and pick iPhone or Android here.',insDesk2:'On a computer: in the browser menu choose "Install" or "Create shortcut".',gotIt:'Got it',changeGroups:'Change groups',multiSub:'Tick all your groups. If none of them is yours, tap Next.',multiLabel:'Students can pick several groups',free:'Free period',nextWeek:'Next week',lastWeek:'Last week',inWeeks:'In # weeks',weeksAgo:'# weeks ago',backToday:'Back to today',langBtn:'עב',today:'Today',prevDay:'Previous day',nextDay:'Next day',
  shabbat:'Shabbat, no school',noLessons:'No lessons on this day',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  room:'Room',changeMine:'Change class and groups',editorLogin:'Editor login',updated:'Updated',
@@ -379,7 +382,7 @@ en:{app:'My schedule',noSubject:'I don’t take this subject',noSubjectSub:'Thes
  unpublished:'You have unpublished changes',publish:'Publish',discard:'Discard changes',published:'Published. Every student sees it now.',
  conflict:'Someone else published a change just now. Your changes were not saved; please enter them again.',
  publishFailed:'Publishing failed. Try again.',
- publishing:'Publishing…',empty:'Empty',shabbatEd:'Shabbat. No lessons.',needName:'Please enter a name.',offline:'No internet. Showing the last saved schedule.',nowTag:'Now',nextTag:'Next'},
+ publishing:'Publishing…',empty:'Empty',shabbatEd:'Shabbat. No lessons.',needName:'Please enter a name.',testsBtn:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, only in your lessons.',noTests:'No tests in the next 3 weeks.',tomorrow:'Tomorrow',offline:'No internet. Showing the last saved schedule.',nowTag:'Now',nextTag:'Next'},
 ru:{app:'Моё расписание',noSubject:'У меня нет этого предмета',noSubjectSub:'Эти уроки будут показаны как свободные',backups:'Резервные копии',backupsHint:'Сервер хранит 10 последних версий расписания. Если что-то сломалось, можно вернуться к прошлой.',showBackups:'Показать копии',noBackups:'Копий пока нет.',restore:'Вернуть',restoreConfirm:'Вернуться к этой версии? Текущая сохранится как копия.',restored:'Версия восстановлена.',by_editor:'Сохранение редактора',by_shahaf:'Обновление из שחף',by_restore:'Перед восстановлением',locked:'Слишком много попыток. Попробуй через {m} мин.',attemptsLeft:'(осталось попыток: {n})',codeOnServer:'Код хранится на сервере (Cloudflare, EDITOR_CODE). Менять его нужно там.',pushBtn:'Получать уведомления об отменах',pushActive:'Уведомления включены (нажми, чтобы выключить)',pushOn:'Отлично! Придёт уведомление, когда что-то поменяется в твоих уроках.',pushOff:'Уведомления выключены.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках телефона.',pushFailed:'Не получилось включить уведомления. Попробуй ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone уведомления работают только после добавления на экран «Домой».',badServerCode:'Сервер не принял код. Выйди из редактора и войди снова.',server:'Сервер',serverHint:'Данные сохраняются на сервере, и все видят их сразу.',syncAll:'Сохранить все данные на сервер',searchPh:'Поиск по предмету или учителю',noMatch:'Ничего не найдено. Попробуй другое слово.',groupFor:'Для какого класса',wholeGrade:'Вся параллель',install:'Установить на телефон',insIntro:'Пара минут, и расписание будет открываться с иконки на главном экране, как обычное приложение.',insComputer:'Компьютер',insTipTitle:'Важно:',insTipIos:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋯ и выбери «Открыть в Safari».',insTipAnd:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋮ и выбери «Открыть в браузере».',insIos1:'Открой ссылку в Safari.',insIos2:'Нажми кнопку «Поделиться» внизу экрана (квадрат со стрелкой вверх).',insIos3:'Прокрути вниз и выбери «На экран „Домой“».',insIos4:'Нажми «Добавить» в верхнем углу. Готово, иконка на главном экране.',insAnd1:'Открой ссылку в Chrome.',insAnd2:'Нажми на три точки в верхнем углу.',insAnd3:'Выбери «Добавить на главный экран» или «Установить приложение».',insAnd4:'Подтверди кнопкой «Добавить». Готово, иконка на главном экране.',insDesk1:'Удобнее всего на телефоне: открой эту же ссылку там и выбери здесь iPhone или Android.',insDesk2:'На компьютере: в меню браузера выбери «Установить» или «Создать ярлык».',gotIt:'Понятно',changeGroups:'Сменить группы',multiSub:'Отметь все свои группы. Если здесь нет ни одной твоей, нажми «Дальше».',multiLabel:'Можно выбрать несколько групп',free:'Свободный урок',nextWeek:'Следующая неделя',lastWeek:'Прошлая неделя',inWeeks:'Через # нед.',weeksAgo:'# нед. назад',backToday:'Вернуться к сегодня',langBtn:'RU',today:'Сегодня',prevDay:'Предыдущий день',nextDay:'Следующий день',
  shabbat:'Шаббат, уроков нет',noLessons:'В этот день уроков нет',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  room:'Каб.',changeMine:'Сменить класс и группы',editorLogin:'Вход для редакторов',updated:'Обновлено',
@@ -399,7 +402,7 @@ ru:{app:'Моё расписание',noSubject:'У меня нет этого �
  unpublished:'Есть неопубликованные изменения',publish:'Опубликовать',discard:'Отменить изменения',published:'Опубликовано. Все ученики уже видят это.',
  conflict:'Кто-то другой только что опубликовал изменения. Твои правки не сохранились, введи их ещё раз.',
  publishFailed:'Не удалось опубликовать. Попробуй ещё раз.',
- publishing:'Публикую…',empty:'Пусто',shabbatEd:'Шаббат. Уроков нет.',needName:'Нужно написать название.',offline:'Нет интернета. Показано последнее сохранённое расписание.',nowTag:'Сейчас',nextTag:'Далее'}
+ publishing:'Публикую…',empty:'Пусто',shabbatEd:'Шаббат. Уроков нет.',needName:'Нужно написать название.',testsBtn:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, только по твоим урокам.',noTests:'В ближайшие 3 недели контрольных нет.',tomorrow:'Завтра',offline:'Нет интернета. Показано последнее сохранённое расписание.',nowTag:'Сейчас',nextTag:'Далее'}
 };
 var DAYS = {he:['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],ru:['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']};
 var DAYS_S = {he:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ru:['Вс','Пн','Вт','Ср','Чт','Пт','Сб']};
@@ -578,6 +581,27 @@ function renderDay(){
   }
   return h+footer(true);
 }
+// контрольные и экзамены ученика на 3 недели вперёд, по дням
+function upcomingTests(){
+  var d=todayISO(),end=addDays(d,21),out=[];
+  for(;d<=end;d=addDays(d,1)){if(wday(d)>=5)continue;
+    var its=studentLessons(d).filter(function(x){return x.ch.some(function(c){return c.type==='test'||c.type==='exam';});});
+    if(its.length)out.push({date:d,items:its});}
+  return out;
+}
+function renderTests(){
+  var h=topbar(),days=upcomingTests(),today=todayISO();
+  h+='<div class="dayhead"><button class="icon-btn" data-act="home" aria-label="'+esc(t('back'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+esc(t('testsBtn'))+'</p></div></div>';
+  h+='<p class="sub">'+esc(t('testsSub'))+'</p>';
+  if(!days.length)return h+'<div class="empty">'+esc(t('noTests'))+'</div>'+footer(false);
+  days.forEach(function(x){
+    var rel=x.date===today?t('today'):x.date===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wday(x.date)];
+    h+='<h3 class="dhead">'+esc(rel+', '+fmtDate(x.date))+'</h3><ul class="lessons">';
+    x.items.forEach(function(y){h+=lessonCard(y.l,y.ch);});
+    h+='</ul>';
+  });
+  return h+footer(false);
+}
 function weekLabel(d,today){
   var w=Math.round((parse(addDays(d,-wday(d)))-parse(addDays(today,-wday(today))))/(7*864e5));
   if(w===0)return '';if(w===1)return t('nextWeek');if(w===-1)return t('lastWeek');
@@ -588,8 +612,8 @@ function lessonCard(l,ch,mark){
   if(mark){cls.push('is-'+mark);tags+='<span class="tag '+esc(mark)+'">'+esc(t(mark+'Tag'))+'</span>';}
   ch.forEach(function(c){
     cls.push('is-'+c.type);
-    if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag room">'+esc(t('roomChanged'))+(c.note?': '+esc(c.note):'')+'</span>';}
-    else tags+='<span class="tag '+esc(c.type)+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': '+esc(c.note):'')+'</span>';
+    if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag room">'+esc(t('roomChanged'))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';}
+    else tags+='<span class="tag '+esc(c.type)+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';
   });
   var hue=0,hn=String(s?s.he:'');for(var hi=0;hi<hn.length;hi++)hue=(hue*31+hn.charCodeAt(hi))%997;hue=Math.round((hue*137.508)%360);
   return '<li class="lesson '+esc(cls.join(' '))+'" style="--hue:'+hue+'"><div class="num">'+esc(l.period)+'</div><div class="body">'+
@@ -600,6 +624,7 @@ function lessonCard(l,ch,mark){
 function footer(showChange){
   var h='<div class="foot">';
   if(showChange&&API)h+=pushOn()?'<button class="secondary installbtn pushbtn on" data-act="pushOff">🔔 '+esc(t('pushActive'))+'</button>':'<button class="primary installbtn pushbtn" data-act="pushOn">🔔 '+esc(t('pushBtn'))+'</button>';
+  if(showChange){var nt=0;upcomingTests().forEach(function(x){nt+=x.items.length;});h+='<button class="secondary installbtn" data-act="tests">📝 '+esc(t('testsBtn'))+(nt?' ('+nt+')':'')+'</button>';}
   if(showChange&&!isStandalone())h+='<button class="secondary installbtn" data-act="install">📲 '+esc(t('install'))+'</button>';
   if(STATE.updatedAt){h+='<div>'+esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'</div>';}
   if(showChange)h+='<button class="link" data-act="resetMine">'+esc(t(firstStep()?'changeGroups':'changeMine'))+'</button>';
@@ -966,6 +991,7 @@ function render(){
   if(ui.screen==='setup')h+=renderSetup();
   else if(ui.screen==='login')h+=renderLogin();
   else if(ui.screen==='editor')h+=renderEditor();
+  else if(ui.screen==='tests')h+=renderTests();
   else h+=renderDay();
   h+='</div>';
   if(ui.screen==='editor')h+=renderSheet();
@@ -1021,6 +1047,7 @@ root.addEventListener('click',function(e){
         if(x.s!==200){backupErr(x);return;}
         return fetch(API+'/data',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){STATE=d;draft=clone(d);dirty=false;ui.backups=null;toast(t('restored'));render();});
       });break;
+    case 'tests':ui.screen='tests';render();window.scrollTo(0,0);break;
     case 'closeInstall':ui.installOpen=false;render();break;
     case 'insPlat':ui.insPlat=el.getAttribute('data-p');render();break;
     case 'resetMine':startSetup();render();window.scrollTo(0,0);break;
