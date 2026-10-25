@@ -120,7 +120,10 @@ export default {
       if (path === "/shahaf/run" && req.method === "POST") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
         if (auth.status !== 200) return json(auth.body, auth.status);
-        return json(await syncShahaf(env, ctx, { changes: true, exams: true, events: true }));
+        // ?only=changes|exams|events — одна вкладка (быстрее, укладывается в лимит процессора)
+        const only = new URL(req.url).searchParams.get("only");
+        const opt = ["changes", "exams", "events"].includes(only) ? { [only]: true } : { changes: true, exams: true, events: true };
+        return json(await syncShahaf(env, ctx, opt));
       }
       // проверка без кода: какие привязки подключены в Cloudflare
       if (path === "/") return json({ ok: true, app: "hamaarechet-shelli", db: !!env.DB, limiter: !!env.LIMITER, stats: !!env.STATS, pushq: !!env.PUSHQ });
