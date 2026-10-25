@@ -42,6 +42,8 @@ function json(obj, status = 200) {
   });
 }
 
+const ALIAS = { "/hi": "/ping", "/devices": "/stats", "/note": "/report", "/notes": "/reports", "/notes/delete": "/reports/delete" };
+
 export default {
   // автозапуск по расписанию (Cron Trigger): синхронизация с שחף
   async scheduled(event, env, ctx) {
@@ -73,7 +75,9 @@ export default {
 
   async fetch(req, env, ctx) {
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
-    const path = new URL(req.url).pathname.replace(/\/+$/, "") || "/";
+    const path0 = new URL(req.url).pathname.replace(/\/+$/, "") || "/";
+    // блокировщики рекламы режут адреса со словами stats/ping/report — сайт ходит по нейтральным именам
+    const path = ALIAS[path0] || path0;
     try {
       if (path === "/data" && req.method === "GET") {
         const s = await env.DB.get("state");
