@@ -575,6 +575,7 @@ function applyMigrations(st) {
   if (!st.migrations.includes(MIGRATION5_ID)) { migration5(st); st.migrations.push(MIGRATION5_ID); changed = true; }
   if (!st.migrations.includes(MIGRATION6_ID)) { migration6(st); st.migrations.push(MIGRATION6_ID); changed = true; }
   if (!st.migrations.includes(MIGRATION7_ID)) { migration7(st); st.migrations.push(MIGRATION7_ID); changed = true; }
+  if (!st.migrations.includes(MIGRATION8_ID)) { migration8(st); st.migrations.push(MIGRATION8_ID); changed = true; }
   return changed;
 }
 function migration1(st) {
@@ -695,6 +696,32 @@ function migration7(st) {
 }
 
 // 6. исправление уровней математики (13.10.2026): זיו לי — 5, שחבר רותם — 4
+// 8. Уровни групп по математике и английскому — по школьной системе (מערכת שעות, 25.10.2026).
+// Группы ищем по предмету и учителю, id не меняются (у учеников сохранится выбор).
+const MIGRATION8_ID = "levels-2026-10-25";
+function migration8(st) {
+  const lv = {
+    3: { he: "3 יח״ל", en: "3 units", ru: "3 единицы" },
+    4: { he: "4 יח״ל", en: "4 units", ru: "4 единицы" },
+    5: { he: "5 יח״ל", en: "5 units", ru: "5 единиц" },
+    native: { he: "דוברי אנגלית", en: "Native speakers", ru: "Носители языка" },
+  };
+  const plan = [
+    ["cat_math", "צרוניצר כורם מיכל", lv[3]],
+    ["cat_math", "יהל שחר", lv[4]],
+    ["cat_math", "אבגיל שרון", lv[5]],
+    ["cat_eng", "ג'קינטו קתרין", lv.native],
+    ["cat_eng", "מיירנץ לינדזי", lv.native],
+  ];
+  for (const [sj, teacher, name] of plan) {
+    const g = st.groups.find((x) => x.subjectId === sj && x.teacher === teacher);
+    if (g) Object.assign(g, name);
+  }
+  // новый кабинет у группы שקולניק בוריס
+  const g = st.groups.find((x) => x.subjectId === "cat_math" && x.teacher === "שקולניק בוריס");
+  if (g) for (const l of st.lessons) if (l.aud.type === "group" && l.aud.id === g.id) l.room = "גפן 23";
+}
+
 const MIGRATION6_ID = "math-levels-2026-10-13";
 function migration6(st) {
   const lv = { 5: { he: "5 יח״ל", en: "5 units", ru: "5 единиц" }, 4: { he: "4 יח״ל", en: "4 units", ru: "4 единицы" } };
