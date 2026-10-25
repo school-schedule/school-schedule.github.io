@@ -90,6 +90,8 @@ export default {
       if (path === "/vapid") return json({ key: (await getVapid(env)).publicKey });
       if (path === "/subscribe" && req.method === "POST") return await subscribe(req, env);
       if (path === "/unsubscribe" && req.method === "POST") return await unsubscribe(req, env);
+      // нет привязки STATS в Cloudflare (Settings → Bindings) — говорим об этом прямо
+      if ((path === "/ping" || path === "/stats") && !env.STATS) return json({ error: "no_stats_binding" }, 500);
       if (path === "/ping" && req.method === "POST") return await ping(req, env);
       if (path === "/stats") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
@@ -102,7 +104,8 @@ export default {
         if (auth.status !== 200) return json(auth.body, auth.status);
         return json(await syncShahaf(env, ctx, { changes: true, exams: true }));
       }
-      if (path === "/") return json({ ok: true, app: "hamaarechet-shelli" });
+      // проверка без кода: какие привязки подключены в Cloudflare
+      if (path === "/") return json({ ok: true, app: "hamaarechet-shelli", db: !!env.DB, limiter: !!env.LIMITER, stats: !!env.STATS, pushq: !!env.PUSHQ });
       return json({ error: "not_found" }, 404);
     } catch (e) {
       return json({ error: "server", message: String((e && e.message) || e) }, 500);

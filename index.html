@@ -726,7 +726,7 @@ function edStats(st){
   var s=ui.stats,h='<p class="muted small">'+esc(t('statsHint'))+'</p>';
   if(!s){s=ui.stats={loading:true};setTimeout(loadStats,0);}
   if(s.loading)return h+'<div class="empty">'+esc(t('statsLoading'))+'</div>';
-  if(s.err)return h+'<div class="empty">'+esc(s.err)+'</div><button class="secondary" data-act="loadStats">'+esc(t('statsRefresh'))+'</button>';
+  if(s.err)return h+'<div class="empty">'+esc(s.err)+(s.why?'<br><small class="muted" dir="ltr">'+esc(s.why)+'</small>':'')+'</div><button class="secondary" data-act="loadStats">'+esc(t('statsRefresh'))+'</button>';
   var P=[['today','statToday','thToday'],['week','stat7','th7'],['month','stat30','th30'],['all','statAll','thAll']];
   var num=function(p,cid){var v=(s[p]&&s[p].byClass||{})[cid];return +v||0;};
   var tot=function(p){return +(s[p]&&s[p].total)||0;};
@@ -937,7 +937,7 @@ function loadStats(){
   ui.stats={loading:true};render();
   backupsCall('/stats','GET').then(function(x){
     if(ui.etab!=='stats')return;
-    ui.stats=x.s===200&&x.j&&x.j.all?x.j:{err:x.s===429?t('locked').replace('{m}',15):x.s===401?t('badServerCode'):t('statsFailed')};
+    ui.stats=x.s===200&&x.j&&x.j.all?x.j:{err:x.s===429?t('locked').replace('{m}',15):x.s===401?t('badServerCode'):t('statsFailed'),why:x.s+(x.j&&x.j.error?' · '+x.j.error:'')+(x.j&&x.j.message?' · '+x.j.message:'')};
     render();
   });
 }
