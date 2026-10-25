@@ -15,7 +15,7 @@
 |---|---|
 | `index.html` | **Всё приложение** в одном файле: `<head>`, CSS, данные и JS. ~1090 строк, но некоторые строки огромные (см. ниже). |
 | `config.js` | Одна строка: `window.SCHEDULE_API` — адрес сервера на Cloudflare. Без него редактор не может войти и публиковать: другого режима нет. |
-| `sw.js` | Service worker: показывает push-уведомления об изменениях и по нажатию открывает приложение. Ничего не кэширует. |
+| `sw.js` | Service worker: push-уведомления (по нажатию открывает приложение) и работа без интернета: файлы сайта берёт из сети, без сети (или если сеть молчит 4 с) — из кэша `app-v1`; шрифты Google — из кэша. Запросы к Worker не кэширует. При изменении списка файлов меняй `CACHE`. |
 | `manifest.webmanifest` | Манифест PWA (название, цвета `#171717`, иконки, RTL). |
 | `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | Иконки приложения. |
 | `README.md` | Короткое описание проекта для людей (на английском). |
@@ -36,10 +36,10 @@
 - **storage helpers** — `sGet/sSet/sDel` (обёртки над `localStorage`/`sessionStorage` в try/catch), `esc()` для экранирования HTML.
 - **texts** — словарь `T` с ключами `he`/`en`/`ru`; `t('ключ')` возвращает текст, `nm(obj)` — название объекта на текущем языке.
 - **state** — `prefs` (выбор ученика), `ui` (текущий экран и состояние), `draft`/`dirty` (черновик редактора); функции дат (`iso`, `schoolDay`, `stepDay`), подбор групп (`groupsFor`, `subjectsFor`, `groupFits`), `migratePrefs()`, `studentLessons(date)`.
-- **student screens** — `renderSetup` (выбор класса и групп), `renderDay` (день), `lessonCard`, `footer`, `renderInstall` (инструкция установки PWA).
-- **editor** — `renderLogin`, `renderEditor` и вкладки `edChanges` (изменения по датам), `edWeek` (недельное расписание), `edSetup` (классы и группы), `edSettings` (время звонков, код, резервные копии), `edStats` (сколько устройств пользуются приложением: сегодня, 7 и 30 дней, всего, по классам; GET `/stats` с `X-Editor-Code`).
+- **student screens** — `renderSetup` (выбор класса и групп), `renderDay` (день: текущий урок `is-now`, следующий `is-next` по времени из `periods`; выходные и события из `STATE.events`), `lessonCard`, `footer`, `renderInstall` (инструкция установки PWA), `renderTests` (ближайшие контрольные на 3 недели, `upcomingTests`), `renderReport`/`sendReport` (сообщение об ошибке, POST `/report`).
+- **editor** — `renderLogin`, `renderEditor` и вкладки `edChanges` (изменения по датам), `edWeek` (недельное расписание), `edSetup` (классы и группы), `edSettings` (время звонков, код, резервные копии), `edStats` (сколько устройств пользуются приложением: сегодня, 7 и 30 дней, всего, по классам; GET `/stats` с `X-Editor-Code`), `edReports` (сообщения учеников об ошибках: GET `/reports`, удаление POST `/reports/delete`).
 - **sheets** — нижние листы редактирования: `renderSheet`, `sheetSave`, `sheetDel`.
-- **publish** — `loadRemote` (GET `/data`), `publishRemote` (POST `/data` с заголовком `X-Editor-Code` и `base: updatedAt`; 409 = кто-то опубликовал раньше), резервные копии, push (`/vapid`, `/subscribe`, `/unsubscribe`), анонимный счётчик `pingStats` (POST `/ping` раз в день: случайный id устройства из `localStorage["sched.device"]` и класс, дата последней отправки — в `sched.ping`; ошибки молча игнорируются).
+- **publish** — `loadRemote` (GET `/data`), `publishRemote` (POST `/data` с заголовком `X-Editor-Code` и `base: updatedAt`; 409 = кто-то опубликовал раньше), резервные копии, push (`/vapid`, `/subscribe`, `/unsubscribe`), анонимный счётчик `pingStats` (POST `/ping` раз в день: случайный id устройства из `localStorage["sched.device"]` и класс, дата последней отправки — в `sched.ping`; ошибки молча игнорируются). Последние данные с сервера хранятся в `localStorage["sched.data"]` и при старте заменяют встроенные, если новее (работа без интернета).
 - **render** — `render()` собирает весь HTML строкой и кладёт в `#root.innerHTML`. Обработка кликов — делегирование по атрибуту `data-act="…"` (большой `switch`), плюс свайп для смены дня.
 - **start** — выбор стартового экрана, аналитика Cloudflare (только на `school-schedule.github.io`), регистрация `sw.js`.
 
@@ -52,6 +52,7 @@ groups   [{id, subjectId, he, en, ru, teacher?, classId?, exceptClasses?}]
 classes  [{id, he, en, ru, letter, num}]           например י׳2: letter "י", num 2
 lessons  [{id, day 0–4 (вс–чт), period, subjectId, aud:{type:"class"|"group", id}, teacher, room}]
 changes  [{id, date "YYYY-MM-DD", lessonId, type:"cancel"|"room"|"test"|"exam", room?, note?}]
+events   [{date, text, off, cls?}]                 события из שחף («אירועים»), пишет только Worker; off = учёбы нет; cls — если не для всех классов
 updatedAt, version, gradeName, migrations
 ```
 
