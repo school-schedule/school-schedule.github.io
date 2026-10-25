@@ -104,7 +104,8 @@ export default {
         if (auth.status !== 200) return json(auth.body, auth.status);
         return json(await syncShahaf(env, ctx, { changes: true, exams: true }));
       }
-      if (path === "/") return json({ ok: true, app: "hamaarechet-shelli" });
+      // проверка без кода: какие привязки подключены в Cloudflare
+      if (path === "/") return json({ ok: true, app: "hamaarechet-shelli", db: !!env.DB, limiter: !!env.LIMITER, stats: !!env.STATS, pushq: !!env.PUSHQ });
       return json({ error: "not_found" }, 404);
     } catch (e) {
       return json({ error: "server", message: String((e && e.message) || e) }, 500);
