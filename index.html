@@ -960,7 +960,7 @@ function publishRemote(){
   var code=sGet('sessionStorage','sched.code');
   if(!code){toast(t('badServerCode'),true);return;}
   ui.busy=true;render();
-  fetch(API+'/data',{method:'POST',headers:{'Content-Type':'application/json','X-Editor-Code':code},body:JSON.stringify({state:draft,base:STATE.updatedAt||null})})
+  fetch(API+'/data',{method:'POST',headers:{'Content-Type':'application/json','X-Editor-Code':encodeURIComponent(code)},body:JSON.stringify({state:draft,base:STATE.updatedAt||null})})
   .then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {s:r.status,j:j};});})
   .then(function(x){
     ui.busy=false;
@@ -971,9 +971,10 @@ function publishRemote(){
     toast(t('publishFailed'),true);
   }).catch(function(){ui.busy=false;toast(t('publishFailed'),true);});
 }
+// код в заголовке кодируем: браузер не отправит заголовок с ивритом или кириллицей (статус 0)
 function backupsCall(path,method,body){
   var code=sGet('sessionStorage','sched.code');
-  return fetch(API+path,{method:method,headers:{'Content-Type':'application/json','X-Editor-Code':code||''},body:body?JSON.stringify(body):undefined})
+  return fetch(API+path,{method:method,headers:{'Content-Type':'application/json','X-Editor-Code':encodeURIComponent(code||'')},body:body?JSON.stringify(body):undefined})
   .then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {s:r.status,j:j};});})
   .catch(function(){return {s:0,j:{}};});
 }

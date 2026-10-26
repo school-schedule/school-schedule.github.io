@@ -156,7 +156,14 @@ function limiter(env, kind, req) {
 }
 async function checkCode(req, env, code) {
   if (!env.EDITOR_CODE) return { status: 500, body: { error: "no_code_configured" } };
-  const ok = typeof code === "string" && code.length > 0 && safeEqual(code, env.EDITOR_CODE);
+  // сайт кодирует код в заголовке (encodeURIComponent): браузеры не пускают в заголовки
+  // буквы не латиницей (иврит, кириллица) — проверяем и как есть, и раскодированным
+  const cands = [];
+  if (typeof code === "string" && code.length > 0) {
+    cands.push(code);
+    try { const d = decodeURIComponent(code); if (d !== code) cands.push(d); } catch (e) {}
+  }
+  const ok = cands.some((c) => safeEqual(c, env.EDITOR_CODE));
   let r;
   // если счётчик недоступен — не пускаем: иначе подбор кода был бы без ограничений
   try { r = await limiter(env, "login", req).login(ok); }
