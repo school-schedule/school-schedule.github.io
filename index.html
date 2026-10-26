@@ -844,6 +844,8 @@ function syncNav(){
   syncNav.last=i;
 }
 /* ---------- friends ---------- */
+// «Кто сейчас свободен» пока скрыт; чтобы вернуть — поставить true (данные копятся и сейчас)
+var SHOW_CROWD=false;
 function pals(){var v=sGet('localStorage','sched.pals');return Array.isArray(v)?v:[];}
 function savePals(v){sSet('localStorage','sched.pals',v);}
 function palMe(){return sGet('localStorage','sched.palMe')||{};}
@@ -867,7 +869,7 @@ function crowdLoad(){
   if(!API||(ui.crowd&&Date.now()-ui.crowd.at<300000))return;
   fetch(API+'/crowd').then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&Array.isArray(j.sel)){ui.crowd={at:Date.now(),sel:j.sel};if(ui.screen==='pals'&&!ui.palAdd)render();}},function(){});
 }
-function palOpen(){palSync();palRefresh();crowdLoad();}
+function palOpen(){palSync();palRefresh();if(SHOW_CROWD)crowdLoad();}
 function palShare(){
   var c=palMe().code;if(!c)return;var url=location.origin+location.pathname.replace(/index\.html$/,'')+'#pal='+c,text=t('shareText')+c;
   try{if(navigator.share){navigator.share({text:text,url:url}).catch(function(){});return;}}catch(e){}
@@ -904,7 +906,7 @@ function renderPals(){
     h+='<button class="card pal" data-act="palView" data-id="'+esc(f.code)+'"><span class="ava">'+esc((f.name||'?').charAt(0).toUpperCase())+'</span><span class="grow"><b><bdi>'+esc(f.name)+'</bdi></b> <span class="muted small"><bdi>'+esc(nm(cls))+'</bdi></span>'+
        (now?'<small><bdi>'+esc(now)+'</bdi></small>':'')+(schoolToday()?'<small class="'+(fr.length?'acc':'')+'">'+esc(fr.length?t('bothFreeToday')+fr.join(', '):t('noneTogether'))+'</small>':'')+'</span>'+chev(1)+'</button>';
   });
-  h+=renderCrowd()+renderTeacher();
+  h+=(SHOW_CROWD?renderCrowd():'')+renderTeacher();
   return h;
 }
 // две колонки по урокам: я и друг
