@@ -25,7 +25,8 @@
  *  - Durable Object  STATS  (класс Stats, SQLite) — анонимный счётчик устройств
  *    (POST /ping от сайта, GET /stats — для редактора) и сообщения об ошибках
  *    (POST /report от учеников, GET /reports и POST /reports/delete — для редактора),
- *    коды друзей (POST /pal, GET /pal/<код>, POST /pal/delete) и «кто сейчас свободен» (GET /crowd).
+ *    коды друзей (POST /pal, GET /pal/<код>, POST /pal/delete), «кто сейчас свободен» (GET /crowd)
+ *    и чат поддержки (POST /chat, POST /chat/get — ученик; GET /chats, POST /chats/open|reply|delete — редактор).
  */
 
 import { DurableObject } from "cloudflare:workers";
@@ -107,6 +108,24 @@ export default {
       if (path === "/pal/delete" && req.method === "POST") return await palDelete(req, env);
       if (path.startsWith("/pal/") && req.method === "GET") return await palGet(req, env, path.slice(5));
       if (path === "/crowd" && req.method === "GET") return json(await statsObj(env).crowd(israelDate(0)));
+      if ((path === "/chat" || path === "/chat/get" || path.startsWith("/chats")) && !env.STATS) return json({ error: "no_stats_binding" }, 500);
+      if (path === "/chat" && req.method === "POST") return await chatPost(req, env);
+      if (path === "/chat/get" && req.method === "POST") return await chatGet(req, env);
+      if (path === "/chats" || path.startsWith("/chats/")) {
+        const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+        if (auth.status !== 200) return json(auth.body, auth.status);
+        if (path === "/chats") return json({ threads: await statsObj(env).chatList() });
+        if (req.method !== "POST") return json({ error: "not_found" }, 404);
+        const b = await req.json().catch(() => ({}));
+        const id = +b.id || 0;
+        if (path === "/chats/open") return json(await statsObj(env).chatOpen(id));
+        if (path === "/chats/delete") return json(await statsObj(env).chatDelete(id));
+        if (path === "/chats/reply") {
+          const text = String(b.text || "").trim().slice(0, 1000);
+          if (!text) return json({ error: "too_short" }, 400);
+          return json(await statsObj(env).chatReply(id, text, new Date().toISOString()));
+        }
+      }
       if (path === "/report" && req.method === "POST") return await report(req, env);
       if (path === "/reports" || path === "/reports/delete") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
@@ -430,6 +449,44 @@ async function report(req, env) {
   return json({ ok: true });
 }
 
+/* ---------------- чат поддержки ---------------- */
+// У каждого телефона свой случайный ключ переписки (хранится только в телефоне), сервер хранит
+// его отпечаток (sha256). Имён нет: редактор видит класс и сообщения. Ученик — 20 сообщений в час.
+const CHAT_MAX = 20, CHAT_WINDOW_SEC = 3600;
+function chatCtx(c) {
+  if (!c || typeof c !== "object") return "";
+  const o = {};
+  if (/^\d{4}-\d{2}-\d{2}$/.test(c.date)) o.date = c.date;
+  if (Number.isInteger(c.period) && c.period > 0 && c.period <= 20) o.period = c.period;
+  if (/^[\w-]{1,40}$/.test(c.lessonId || "")) o.lessonId = c.lessonId;
+  return o.date ? JSON.stringify(o) : "";
+}
+async function chatKeyHash(b) {
+  return b && typeof b.key === "string" && /^[0-9a-f]{32}$/.test(b.key) ? await sha256("chat:" + b.key) : null;
+}
+async function chatPost(req, env) {
+  const raw = await req.text();
+  if (raw.length > 4000) return json({ error: "too_big" }, 413);
+  let b;
+  try { b = JSON.parse(raw); } catch (e) { return json({ error: "bad_json" }, 400); }
+  const tkey = await chatKeyHash(b);
+  if (!tkey) return json({ error: "bad_key" }, 400);
+  const text = String(b.text || "").trim().slice(0, 1000);
+  if (!text) return json({ error: "too_short" }, 400);
+  const cls = /^c\d{1,2}$/.test(b.classId || "") ? b.classId : "";
+  let lim;
+  try { lim = await limiter(env, "chat", req).hit(CHAT_MAX, CHAT_WINDOW_SEC); }
+  catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  return json(await statsObj(env).chatPost(tkey, cls, text, chatCtx(b.ctx), new Date().toISOString()));
+}
+async function chatGet(req, env) {
+  const b = await req.json().catch(() => null);
+  const tkey = await chatKeyHash(b);
+  if (!tkey) return json({ error: "bad_key" }, 400);
+  return json(await statsObj(env).chatGet(tkey, !!b.mark));
+}
+
 function statsObj(env) {
   return env.STATS.get(env.STATS.idFromName("all"));
 }
@@ -472,6 +529,59 @@ export class Stats extends DurableObject {
   palGet(code) {
     const r = this.sql.exec("SELECT cls, grp FROM pals WHERE code = ?", code).toArray()[0];
     return r ? { classId: r.cls, groups: r.grp ? r.grp.split(",") : [] } : null;
+  }
+  // чат: threads — переписки (ue/uu — непрочитанные у редактора/ученика), msgs — сообщения
+  chatInit() {
+    if (this.chatReady) return;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS threads (id INTEGER PRIMARY KEY AUTOINCREMENT, tkey TEXT NOT NULL UNIQUE, cls TEXT NOT NULL, last TEXT NOT NULL, ue INTEGER NOT NULL DEFAULT 0, uu INTEGER NOT NULL DEFAULT 0)");
+    this.sql.exec("CREATE TABLE IF NOT EXISTS msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, tid INTEGER NOT NULL, at TEXT NOT NULL, who TEXT NOT NULL, text TEXT NOT NULL, ctx TEXT NOT NULL DEFAULT '')");
+    this.sql.exec("CREATE INDEX IF NOT EXISTS msgs_tid ON msgs (tid, id)");
+    this.chatReady = true;
+  }
+  chatMsgs(tid) {
+    return this.sql.exec("SELECT id, at, who, text, ctx FROM msgs WHERE tid = ? ORDER BY id", tid).toArray();
+  }
+  chatPost(tkey, cls, text, ctx, at) {
+    this.chatInit();
+    this.sql.exec("INSERT INTO threads (tkey, cls, last, ue) VALUES (?, ?, ?, 1) ON CONFLICT (tkey) DO UPDATE SET cls = excluded.cls, last = excluded.last, ue = ue + 1", tkey, cls, at);
+    const tid = this.sql.exec("SELECT id FROM threads WHERE tkey = ?", tkey).one().id;
+    this.sql.exec("INSERT INTO msgs (tid, at, who, text, ctx) VALUES (?, ?, 'u', ?, ?)", tid, at, text, ctx);
+    // храним последние 100 сообщений переписки и 500 переписок
+    this.sql.exec("DELETE FROM msgs WHERE tid = ? AND id <= (SELECT MAX(id) FROM msgs WHERE tid = ?) - 100", tid, tid);
+    const old = this.sql.exec("SELECT id FROM threads ORDER BY last DESC LIMIT -1 OFFSET 500").toArray();
+    for (const o of old) this.chatDelete(o.id);
+    return { ok: true };
+  }
+  chatGet(tkey, mark) {
+    this.chatInit();
+    const t = this.sql.exec("SELECT id, uu FROM threads WHERE tkey = ?", tkey).toArray()[0];
+    if (!t) return { msgs: [], unread: 0 };
+    if (mark && t.uu) this.sql.exec("UPDATE threads SET uu = 0 WHERE id = ?", t.id);
+    return { msgs: this.chatMsgs(t.id), unread: mark ? 0 : t.uu };
+  }
+  chatList() {
+    this.chatInit();
+    return this.sql.exec("SELECT t.id, t.cls, t.last, t.ue, (SELECT text FROM msgs WHERE tid = t.id ORDER BY id DESC LIMIT 1) AS lt, (SELECT who FROM msgs WHERE tid = t.id ORDER BY id DESC LIMIT 1) AS lw FROM threads t ORDER BY t.last DESC LIMIT 200").toArray();
+  }
+  chatOpen(id) {
+    this.chatInit();
+    const t = this.sql.exec("SELECT id, cls FROM threads WHERE id = ?", id).toArray()[0];
+    if (!t) return { error: "not_found" };
+    this.sql.exec("UPDATE threads SET ue = 0 WHERE id = ?", id);
+    return { id, cls: t.cls, msgs: this.chatMsgs(id) };
+  }
+  chatReply(id, text, at) {
+    this.chatInit();
+    if (!this.sql.exec("SELECT 1 FROM threads WHERE id = ?", id).toArray().length) return { error: "not_found" };
+    this.sql.exec("INSERT INTO msgs (tid, at, who, text) VALUES (?, ?, 'e', ?)", id, at, text);
+    this.sql.exec("UPDATE threads SET last = ?, uu = uu + 1, ue = 0 WHERE id = ?", at, id);
+    return { ok: true };
+  }
+  chatDelete(id) {
+    this.chatInit();
+    this.sql.exec("DELETE FROM msgs WHERE tid = ?", id);
+    this.sql.exec("DELETE FROM threads WHERE id = ?", id);
+    return { ok: true };
   }
   palDelete(dev) {
     this.sql.exec("DELETE FROM pals WHERE dev = ?", dev);
