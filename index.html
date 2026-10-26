@@ -348,6 +348,56 @@ html[data-look^="p"] .lesson.free.is-now{border-radius:18px;padding:8px 16px}
 html[data-look^="p"] .tag.ev{background:var(--P-bg)!important;color:var(--P-card-ink)!important}
 html[data-look^="p"] .tag.next{background:none!important;color:var(--P-card-muted)!important;box-shadow:inset 0 0 0 1px currentColor}
 
+/* ===== Стиль «неон-капсулы» (как нижняя панель): переключатели, выбор, появление ===== */
+[data-slide]{position:relative}
+[data-slide] > :not(.slider){position:relative;z-index:1}
+.slider{position:absolute;left:0;top:0;z-index:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle,rgba(198,255,0,.2),rgba(198,255,0,.04) 75%);box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 14px rgba(198,255,0,.4);transition:transform .5s cubic-bezier(.34,1.3,.64,1),width .5s cubic-bezier(.34,1.3,.64,1),height .5s cubic-bezier(.34,1.3,.64,1)}
+/* капсулы переключателей */
+html[data-look="p2"] .langs,html[data-look="p2"] .tabs,html[data-look="p2"] .segs{background:#0D0D0D;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:4px;gap:4px}
+html[data-look="p2"] .langs{border-radius:999px;padding:3px;gap:2px}
+html[data-look="p2"] .lang,html[data-look="p2"] .tab,html[data-look="p2"] .seg{border-radius:12px;color:#A3A3A3;transition:color .3s}
+html[data-look="p2"] .lang{border-radius:999px;min-width:38px;padding:0 9px}
+html[data-look="p2"] .lang.on,html[data-look="p2"] .tab.on,html[data-look="p2"] .seg.on{background:none;box-shadow:none;color:#C6FF00}
+/* дни недели: одна капсула, выбранный день — в светящемся кольце */
+html[data-look="p2"] .strip{background:#0D0D0D;border:1px solid rgba(255,255,255,.07);border-radius:22px;padding:6px;gap:4px}
+html[data-look="p2"] .strip .slider{border-radius:16px}
+html[data-look="p2"] .chip,html[data-look="p2"] .chip.on,html[data-look="p2"] .chip.on.today{background:none;min-height:58px;border-radius:16px}
+html[data-look="p2"] .chip b{color:#A3A3A3;transition:color .3s}
+html[data-look="p2"] .chip.today b,html[data-look="p2"] .chip.on.today b{color:#C6FF00}
+html[data-look="p2"] .chip.on b{color:#F2F2F2}
+html[data-look="p2"] .chip.on.today b{color:#C6FF00}
+html[data-look="p2"] .chip .dot,html[data-look="p2"] .chip.on .dot{background:#C6FF00;box-shadow:0 0 6px rgba(198,255,0,.8)}
+/* текущий урок и «Сейчас» светятся */
+html[data-look^="p"] .lesson.is-now{box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 18px rgba(198,255,0,.28)}
+html[data-look^="p"] .tag.now{box-shadow:0 0 10px rgba(198,255,0,.55)}
+/* выбор класса и групп: лаймовый контур со свечением вместо заливки */
+html[data-look^="p"] .grid3 .choice.on,html[data-look^="p"] .grid4 .choice.on,html[data-look="p2"] .letters .choice.on{background:radial-gradient(circle,rgba(198,255,0,.18),rgba(198,255,0,.04) 75%);color:#C6FF00;box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 14px rgba(198,255,0,.35)}
+html[data-look="p2"] .stack .choice.on{box-shadow:inset 0 0 0 1.5px #C6FF00;border-radius:14px;background:rgba(198,255,0,.06)}
+html[data-look="p2"] .primary{box-shadow:0 0 18px rgba(198,255,0,.25)}
+/* тосты — капсула */
+html[data-look="p2"] .toast{background:#0D0D0D;border:1px solid rgba(255,255,255,.08);border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+/* анимации: экран, карточки по очереди, листы и тосты с пружинкой */
+@media (prefers-reduced-motion:no-preference){
+.wrap.enter .lessons > li,.wrap.enter .card,.wrap.enter .stack,.wrap.enter .grid4,.wrap.enter .foot > *{animation:cardin .5s cubic-bezier(.34,1.25,.64,1) both}
+.wrap.enter .notice,.wrap.enter .dhead,.wrap.enter h2,.wrap.enter .sub,.wrap.enter .empty{animation:fadein .35s ease both}
+.wrap.enter .lessons > li:nth-child(2),.wrap.enter .foot > :nth-child(2){animation-delay:30ms}
+.wrap.enter .lessons > li:nth-child(3),.wrap.enter .foot > :nth-child(3){animation-delay:60ms}
+.wrap.enter .lessons > li:nth-child(4),.wrap.enter .foot > :nth-child(4){animation-delay:90ms}
+.wrap.enter .lessons > li:nth-child(5),.wrap.enter .foot > :nth-child(5){animation-delay:120ms}
+.wrap.enter .lessons > li:nth-child(6),.wrap.enter .foot > :nth-child(6){animation-delay:150ms}
+.wrap.enter .lessons > li:nth-child(7),.wrap.enter .foot > :nth-child(7){animation-delay:180ms}
+.wrap.enter .lessons > li:nth-child(8){animation-delay:210ms}
+.wrap.enter .lessons > li:nth-child(9){animation-delay:240ms}
+.wrap.enter .lessons > li:nth-child(10){animation-delay:270ms}
+.wrap.enter .lessons > li:nth-child(n+11){animation-delay:300ms}
+.sheet{animation:up .45s cubic-bezier(.34,1.15,.64,1)}
+.overlay{animation:fadein .25s ease}
+.toast{animation:toastin .45s cubic-bezier(.34,1.4,.64,1)}
+}
+@keyframes cardin{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,-16px) scale(.92)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){.slider{transition:none}}
 </style>
 </head>
 <body>
@@ -524,7 +574,7 @@ function topbar(extra){
     langSwitch()+'</div>';
 }
 function langSwitch(){
-  var h='<div class="langs" role="group" aria-label="Language">';
+  var h='<div class="langs" role="group" aria-label="Language" data-slide="lang-'+ui.screen+'"><span class="slider" aria-hidden="true"></span>';
   [['he','עב'],['en','EN'],['ru','RU']].forEach(function(x){h+='<button class="lang'+(prefs.lang===x[0]?' on':'')+'" data-act="setLang" data-l="'+x[0]+'" lang="'+x[0]+'" aria-pressed="'+(prefs.lang===x[0])+'">'+x[1]+'</button>';});
   return h+'</div>';
 }
@@ -590,7 +640,7 @@ function renderDay(){
      '<div class="t"><p class="wd">'+esc(d===today?t('today'):DAYS[prefs.lang][wd])+'</p>'+(weekLabel(d,ref)||d===today?'<div class="dt">'+esc([d===today?DAYS[prefs.lang][wd]:'',weekLabel(d,ref)].filter(Boolean).join(', '))+'</div>':'')+'</div>'+
      '<button class="icon-btn" data-act="day" data-n="1" aria-label="'+esc(t('nextDay'))+'">'+chev(1)+'</button></div>';
   var sun=addDays(d,-wd);
-  h+='<div class="strip">';
+  h+='<div class="strip" data-slide="days"><span class="slider" aria-hidden="true"></span>';
   for(var i=0;i<5;i++){var di=addDays(sun,i),off=dayOff(di);var hasCh=!off&&studentLessons(di).some(function(x){return x.ch.length;});
     h+='<button class="chip'+(di===d?' on':'')+(di===today?' today':'')+(off?' off':'')+'" data-act="goto" data-d="'+di+'">'+(hasCh?'<span class="dot"></span>':'')+'<b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}
   h+='</div>';
@@ -729,7 +779,7 @@ var INS={
 function renderInstall(){
   var p=ui.insPlat||(platform()==='android'?'android':'ios'),h='';
   h+='<h3>'+esc(t('install'))+'</h3><p class="muted" style="margin-top:-6px">'+esc(t('insIntro'))+'</p>';
-  h+='<div class="segs" role="tablist">';
+  h+='<div class="segs" role="tablist" data-slide="ins"><span class="slider" aria-hidden="true"></span>';
   [['ios','iPhone'],['android','Android']].forEach(function(x){
     h+='<button class="seg'+(p===x[0]?' on':'')+'" role="tab" aria-selected="'+(p===x[0])+'" data-act="insPlat" data-p="'+x[0]+'">'+esc(x[1])+'</button>';});
   h+='</div>';
@@ -783,7 +833,7 @@ function renderLogin(){
 function renderEditor(){
   var st=draft,h='';
   h+='<div class="topbar"><div class="brand">'+LOGO+'<span>'+esc(t('editor'))+'</span></div>'+langSwitch()+'<button class="pill" data-act="exitEditor">'+esc(t('exit'))+'</button></div>';
-  h+='<div class="tabs">';
+  h+='<div class="tabs" data-slide="etab"><span class="slider" aria-hidden="true"></span>';
   [['changes','tabChanges'],['week','tabWeek'],['setup','tabSetup'],['settings','tabSettings'],['stats','tabStats'],['reports','tabReports']].forEach(function(x){h+='<button class="tab'+(ui.etab===x[0]?' on':'')+'" data-act="etab" data-tab="'+x[0]+'">'+esc(t(x[1]))+'</button>';});
   h+='</div>';
   if(ui.etab==='changes')h+=edChanges(st);
@@ -829,7 +879,7 @@ function edWeek(st){
   var h='';
   if(!st.classes.length&&!st.groups.length)return '<div class="empty">'+esc(t('noSetup'))+'</div>';
   if(!ui.wAud||!validAud(st,keyAud(ui.wAud)))ui.wAud=st.classes.length?'class:'+st.classes[0].id:'group:'+st.groups[0].id;
-  h+='<div class="strip">';for(var i=0;i<5;i++){h+='<button class="chip'+(ui.wDay===i?' on':'')+'" data-act="wday" data-n="'+i+'"><b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}h+='</div>';
+  h+='<div class="strip" data-slide="wday"><span class="slider" aria-hidden="true"></span>';for(var i=0;i<5;i++){h+='<button class="chip'+(ui.wDay===i?' on':'')+'" data-act="wday" data-n="'+i+'"><b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}h+='</div>';
   h+='<div class="field"><label for="waud">'+esc(t('forWho'))+'</label><select class="input" id="waud" data-change="waud">'+audOptions(st,ui.wAud,false)+'</select></div>';
   var ls=st.lessons.filter(function(l){return l.day===ui.wDay&&audKey(l.aud)===ui.wAud;}).sort(function(a,b){return a.period-b.period;});
   h+='<div class="stack">';
@@ -1136,7 +1186,29 @@ function render(){
   if(ui.toast)h+='<div class="toast'+(ui.toast.bad?' bad':'')+'" role="status">'+esc(ui.toast.text)+'</div>';
   root.innerHTML=h;
   syncNav();
+  slideAll();
+  // новый экран или другой день — карточки появляются по очереди
+  var sk=ui.screen+'|'+(ui.screen==='day'?ui.date:ui.screen==='editor'?ui.etab:'');
+  if(render.last!==sk&&root.firstChild)root.firstChild.classList.add('enter');
+  render.last=sk;
   if(ui.screen==='editor'&&ui.sheet){var f=root.querySelector('.sheet input,.sheet select');if(f&&ui.sheet.kind==='change')f.focus();}
+}
+// светящаяся подсветка в переключателях (дни, языки, вкладки редактора): render() пересоздаёт
+// разметку, поэтому ставим подсветку на старое место и сразу переносим на новое — браузер анимирует
+var SLIDE={};
+function slideAll(){
+  root.querySelectorAll('[data-slide]').forEach(function(c){
+    // при смене направления (иврит ↔ EN/RU) подсветка встаёт сразу, без пролёта через весь ряд
+    var sl=c.querySelector('.slider'),on=c.querySelector('.on'),k=c.getAttribute('data-slide')+'|'+document.documentElement.dir;
+    if(!sl)return;
+    if(!on){sl.style.opacity='0';delete SLIDE[k];return;}
+    var r={x:on.offsetLeft,y:on.offsetTop,w:on.offsetWidth,h:on.offsetHeight},p=SLIDE[k];
+    var put=function(q){sl.style.transform='translate('+q.x+'px,'+q.y+'px)';sl.style.width=q.w+'px';sl.style.height=q.h+'px';};
+    if(p&&(p.x!==r.x||p.y!==r.y||p.w!==r.w)){sl.style.transition='none';put(p);void sl.offsetWidth;sl.style.transition='';}
+    put(r);SLIDE[k]=r;
+    // ряд вкладок редактора прокручивается: выбранная вкладка всегда на виду
+    if(c.scrollWidth>c.clientWidth){var L=on.offsetLeft,R=L+on.offsetWidth;if(L<c.scrollLeft||R>c.scrollLeft+c.clientWidth)c.scrollLeft=L-(c.clientWidth-on.offsetWidth)/2;}
+  });
 }
 function firstStep(){return STATE.classes.length===1?1:0;}
 function startSetup(){ui.screen='setup';ui.setupStep=firstStep();ui.tmpLetter=null;ui.tmpClass=prefs.classId||null;ui.tmpGroups=Object.assign({},prefs.groups||{});
