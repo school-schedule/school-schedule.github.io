@@ -376,7 +376,7 @@ function cleanGroups(g) {
 }
 
 /* ---------------- друзья ---------------- */
-// Код друга — 6 символов, по нему можно узнать только класс и группы (без имени).
+// Код друга — случайное трёхзначное число (100–999), по нему можно узнать только класс и группы (без имени).
 // Имя друга хранит у себя в телефоне тот, кто его добавил. Один код на устройство,
 // при смене групп код остаётся прежним, а данные обновляются.
 const PAL_MAX = 30, PAL_WINDOW_SEC = 3600, PALGET_MAX = 200;
@@ -391,8 +391,8 @@ async function palSave(req, env) {
   return json(await statsObj(env).palSave(b.id, b.classId, cleanGroups(b.groups), new Date().toISOString()));
 }
 async function palGet(req, env, code) {
-  code = String(code || "").toUpperCase();
-  if (!/^[A-Z2-9]{6}$/.test(code)) return json({ error: "bad_code" }, 400);
+  code = String(code || "");
+  if (!/^[1-9]\d{2}$/.test(code)) return json({ error: "bad_code" }, 400);
   let lim;
   try { lim = await limiter(env, "palget", req).hit(PALGET_MAX, PAL_WINDOW_SEC); }
   catch (e) { return json({ error: "try_later" }, 503); }
@@ -461,10 +461,8 @@ export class Stats extends DurableObject {
       this.sql.exec("UPDATE pals SET cls = ?, grp = ?, at = ? WHERE dev = ? AND (cls <> ? OR grp <> ?)", cls, grp, at, dev, cls, grp);
       return { code: old.code };
     }
-    const ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // без похожих 0/O, 1/I/L
-    for (let i = 0; i < 8; i++) {
-      const rnd = crypto.getRandomValues(new Uint8Array(6));
-      const code = Array.from(rnd, (x) => ABC[x % ABC.length]).join("");
+    for (let i = 0; i < 40; i++) {
+      const code = String(100 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900));
       if (this.sql.exec("SELECT 1 FROM pals WHERE code = ?", code).toArray().length) continue;
       this.sql.exec("INSERT INTO pals (code, dev, cls, grp, at) VALUES (?, ?, ?, ?, ?)", code, dev, cls, grp, at);
       return { code };
