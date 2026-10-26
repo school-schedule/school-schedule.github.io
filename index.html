@@ -451,6 +451,25 @@ html[data-look="p2"] .toast{background:#0D0D0D;border:1px solid rgba(255,255,255
 .trow.on .n{color:#C6FF00;box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 8px rgba(198,255,0,.5)}
 .trow.cx{opacity:.45;text-decoration:line-through}
 .code6{letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+/* ===== Чат поддержки ===== */
+.chatlog{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.msg{max-width:82%;padding:9px 13px 7px;border-radius:18px;font-size:15px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:rgba(198,255,0,.08);box-shadow:inset 0 0 0 1.5px #C6FF00;border-end-end-radius:6px}
+.msg.them{align-self:flex-start;background:#101010;border:1px solid rgba(255,255,255,.08);border-end-start-radius:6px}
+.msg .who{font-size:12px;font-weight:600;color:#C6FF00;margin-bottom:2px}
+.msg .ctx{font-size:12px;color:var(--muted);margin-bottom:4px}
+.msg small{display:block;font-size:11px;color:var(--muted);margin-top:3px;text-align:end}
+.chatpad{height:150px}
+.composer{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;max-width:536px;margin:0 auto;background:#0D0D0D;border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:8px;box-shadow:0 12px 32px rgba(0,0,0,.55)}
+.ctxsel{display:block;max-width:100%;background:none;border:none;color:#C6FF00;font-size:13px;font-weight:600;padding:2px 8px 6px}
+.crow{display:flex;gap:8px;align-items:flex-end}
+.crow .input{flex:1;min-height:44px;max-height:140px;padding:11px 14px;resize:none;border-radius:20px;line-height:1.35}
+.sendbtn{flex:none;width:44px;height:44px;border-radius:50%;border:none;background:#C6FF00;color:#171717;display:grid;place-items:center;box-shadow:0 0 14px rgba(198,255,0,.4);transition:transform .35s cubic-bezier(.34,1.5,.64,1)}
+.sendbtn:active{transform:scale(.9);transition-duration:.1s}
+.sendbtn[disabled]{opacity:.5}
+.edreply{margin:12px 0}
+.cbadge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#C6FF00;color:#171717;font-size:12px;font-weight:700;margin-inline-start:6px;box-shadow:0 0 8px rgba(198,255,0,.6)}
+.wd.small2{font-size:24px}
 /* ===== Всё приложение в стиле капсул: тёмные поверхности с тонкой рамкой, лаймовое свечение ===== */
 html[data-look="p2"]{--P-card:#101010;--cap-bd:rgba(255,255,255,.08)}
 html[data-look="p2"] .lesson:not(.free),html[data-look="p2"] .notice,html[data-look="p2"] .card,html[data-look="p2"] .stack,html[data-look="p2"] .rowbtn,html[data-look="p2"] .isteps li{background:#101010;border:1px solid var(--cap-bd);border-radius:20px}
@@ -523,7 +542,7 @@ he:{app:'המערכת שלי',noSubject:'אין לי את המקצוע הזה',n
  unpublished:'יש שינויים שעוד לא פורסמו',publish:'פרסום',discard:'ביטול השינויים',published:'פורסם. כל התלמידים רואים את זה עכשיו.',
  conflict:'מישהו אחר פרסם שינוי ברגע זה. השינויים שלך לא נשמרו, צריך להזין אותם שוב.',
  publishFailed:'הפרסום נכשל. נסו שוב.',
- publishing:'מפרסם…',empty:'ריק',shabbatEd:'שבת. אין שיעורים.',needName:'צריך לכתוב שם.',navPals:'חברים',myCode:'הקוד שלי',myCodeHint:'חבר מזין את הקוד הזה אצלו, ואתם רואים שיעורים חופשיים משותפים. שמות לא נשלחים לשום מקום.',share:'שיתוף',copied:'הקישור הועתק',shareText:'הוסיפו אותי ב"המערכת שלי", הקוד שלי: ',addPal:'הוספת חבר',palCode:'קוד של חבר',palName:'שם לתצוגה',palNamePh:'למשל: נועה',add:'הוספה',palNotFound:'לא מצאנו את הקוד. בדקו שוב.',palSelf:'זה הקוד שלך 🙂',palExists:'החבר כבר ברשימה.',noPals:'עוד אין חברים. שתפו את הקוד שלכם או הוסיפו קוד של חבר.',nowFree:'עכשיו: שיעור חופשי',dayOver:'השיעורים נגמרו',bothFree:'חופשיים ביחד',together:'ביחד בשיעור',bothFreeToday:'חופשיים ביחד היום: שיעורים ',noneTogether:'היום אין שיעורים חופשיים משותפים',me:'אני',removePal:'הסרה מהרשימה',crowdTitle:'מי חופשי עכשיו',crowdLine:'{n} מתוך {m} תלמידים בשיעור חופשי',crowdHint:'לפי מכשירים שפתחו את האפליקציה בשבוע האחרון. בלי שמות.',crowdByPeriod:'היום לפי שיעורים',crowdNoData:'עוד אין מספיק נתונים.',findTeacher:'איפה המורה',teacherPh:'שם המורה',tNoLesson:'עכשיו אין שיעור',tToday:'השיעורים היום',tNoToday:'היום אין שיעורים',codeWait:'יוצר קוד…',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',periodsRange:'שיעורים',netBlocked:'אין חיבור לשרת. אם יש חוסם פרסומות, כבו אותו לאתר הזה.',noSchool:'אין לימודים',reportBtn:'דיווח על טעות במערכת',reportWhat:'באיזה שיעור?',reportWholeDay:'כל היום',reportText:'מה לא נכון?',reportPh:'למשל: השיעור עבר לחדר אחר',reportPrivacy:'בלי שמות ופרטים אישיים. נשלחים רק הכיתה, היום, השיעור והטקסט.',send:'שליחה',reportSent:'תודה! ההודעה נשלחה לעורכים.',reportFailed:'לא הצלחנו לשלוח. נסו שוב.',reportTooMany:'יותר מדי הודעות. נסו שוב בעוד שעה.',reportShort:'כתבו קצת יותר.',tabReports:'דיווחים',reportsHint:'הודעות מתלמידים על טעויות במערכת. בלי שמות ובלי פרטים אישיים.',noReports:'אין דיווחים.',received:'התקבל',testsBtn:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, רק בשיעורים שלכם.',noTests:'אין מבחנים ב־3 השבועות הקרובים.',tomorrow:'מחר',offline:'אין אינטרנט. מוצגת המערכת השמורה האחרונה.',nowTag:'עכשיו',nextTag:'הבא'},
+ publishing:'מפרסם…',empty:'ריק',shabbatEd:'שבת. אין שיעורים.',needName:'צריך לכתוב שם.',supportBtn:'תמיכה',chatHello:'היי! כתבו מה לא נכון במערכת או מה אפשר לשפר. נענה כאן.',chatPh:'הודעה',chatNoCtx:'בלי שיעור',chatPrivacy:'בלי שמות. העורכים רואים רק את הכיתה ואת ההודעות.',chatEditor:'עורכים',chatsHint:'שיחות עם תלמידים. בלי שמות: רק כיתה והודעות.',noChats:'אין שיחות.',replyPh:'תשובה',delChat:'מחיקת השיחה',delChatConfirm:'למחוק את כל השיחה?',oldReports:'הודעות ישנות',chatYou:'אתם',chatStudent:'תלמיד',send2:'שליחה',navPals:'חברים',myCode:'הקוד שלי',myCodeHint:'חבר מזין את הקוד הזה אצלו, ואתם רואים שיעורים חופשיים משותפים. שמות לא נשלחים לשום מקום.',share:'שיתוף',copied:'הקישור הועתק',shareText:'הוסיפו אותי ב"המערכת שלי", הקוד שלי: ',addPal:'הוספת חבר',palCode:'קוד של חבר',palName:'שם לתצוגה',palNamePh:'למשל: נועה',add:'הוספה',palNotFound:'לא מצאנו את הקוד. בדקו שוב.',palSelf:'זה הקוד שלך 🙂',palExists:'החבר כבר ברשימה.',noPals:'עוד אין חברים. שתפו את הקוד שלכם או הוסיפו קוד של חבר.',nowFree:'עכשיו: שיעור חופשי',dayOver:'השיעורים נגמרו',bothFree:'חופשיים ביחד',together:'ביחד בשיעור',bothFreeToday:'חופשיים ביחד היום: שיעורים ',noneTogether:'היום אין שיעורים חופשיים משותפים',me:'אני',removePal:'הסרה מהרשימה',crowdTitle:'מי חופשי עכשיו',crowdLine:'{n} מתוך {m} תלמידים בשיעור חופשי',crowdHint:'לפי מכשירים שפתחו את האפליקציה בשבוע האחרון. בלי שמות.',crowdByPeriod:'היום לפי שיעורים',crowdNoData:'עוד אין מספיק נתונים.',findTeacher:'איפה המורה',teacherPh:'שם המורה',tNoLesson:'עכשיו אין שיעור',tToday:'השיעורים היום',tNoToday:'היום אין שיעורים',codeWait:'יוצר קוד…',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',periodsRange:'שיעורים',netBlocked:'אין חיבור לשרת. אם יש חוסם פרסומות, כבו אותו לאתר הזה.',noSchool:'אין לימודים',reportBtn:'דיווח על טעות במערכת',reportWhat:'באיזה שיעור?',reportWholeDay:'כל היום',reportText:'מה לא נכון?',reportPh:'למשל: השיעור עבר לחדר אחר',reportPrivacy:'בלי שמות ופרטים אישיים. נשלחים רק הכיתה, היום, השיעור והטקסט.',send:'שליחה',reportSent:'תודה! ההודעה נשלחה לעורכים.',reportFailed:'לא הצלחנו לשלוח. נסו שוב.',reportTooMany:'יותר מדי הודעות. נסו שוב בעוד שעה.',reportShort:'כתבו קצת יותר.',tabReports:'דיווחים',reportsHint:'הודעות מתלמידים על טעויות במערכת. בלי שמות ובלי פרטים אישיים.',noReports:'אין דיווחים.',received:'התקבל',testsBtn:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, רק בשיעורים שלכם.',noTests:'אין מבחנים ב־3 השבועות הקרובים.',tomorrow:'מחר',offline:'אין אינטרנט. מוצגת המערכת השמורה האחרונה.',nowTag:'עכשיו',nextTag:'הבא'},
 en:{app:'My schedule',noSubject:'I don’t take this subject',noSubjectSub:'These periods will show as free',backups:'Backups',backupsHint:'The server keeps the last 10 versions. If something breaks, you can go back.',showBackups:'Show backups',noBackups:'No backups yet.',restore:'Restore',restoreConfirm:'Go back to this version? The current one will be saved as a backup.',restored:'Version restored.',by_editor:'Editor save',by_shahaf:'Update from Shahaf',by_restore:'Before restore',locked:'Too many attempts. Try again in {m} minutes.',attemptsLeft:'({n} attempts left)',codeOnServer:'The code is stored on the server (Cloudflare, EDITOR_CODE). Change it there.',pushBtn:'Get cancellation alerts',pushActive:'Alerts are on (tap to turn off)',pushOn:'Great! You will get an alert when your lessons change.',pushOff:'Alerts are off.',pushDenied:'Alerts were not allowed. You can turn them on in your phone settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone, alerts work only after adding the app to the Home Screen.',badServerCode:'The server did not accept the code. Exit and log in again.',server:'Server',serverHint:'Data is saved on the server, and everyone sees it right away.',syncAll:'Save all data to the server',searchPh:'Search by subject or teacher',noMatch:'Nothing found. Try another word.',groupFor:'For which class',wholeGrade:'Whole grade',install:'Install on phone',insIntro:'Two minutes, and your schedule opens from a home-screen icon like any app.',insComputer:'Computer',insTipTitle:'Important:',insTipIos:'If the link opened inside WhatsApp or Instagram, first tap ⋯ and choose "Open in Safari".',insTipAnd:'If the link opened inside WhatsApp or Instagram, first tap ⋮ and choose "Open in browser".',insIos1:'Open the link in Safari.',insIos2:'Tap the Share button at the bottom (square with an up arrow).',insIos3:'Scroll down and choose "Add to Home Screen".',insIos4:'Tap "Add" in the top corner. Done, the icon is on your home screen.',insAnd1:'Open the link in Chrome.',insAnd2:'Tap the three dots in the top corner.',insAnd3:'Choose "Add to Home screen" or "Install app".',insAnd4:'Confirm with "Add". Done, the icon is on your home screen.',insDesk1:'Easiest on a phone: open the same link there and pick iPhone or Android here.',insDesk2:'On a computer: in the browser menu choose "Install" or "Create shortcut".',gotIt:'Got it',changeGroups:'Change groups',multiSub:'Tick all your groups. If none of them is yours, tap Next.',multiLabel:'Students can pick several groups',free:'Free period',nextWeek:'Next week',lastWeek:'Last week',inWeeks:'In # weeks',weeksAgo:'# weeks ago',backToday:'Back to today',langBtn:'עב',today:'Today',prevDay:'Previous day',nextDay:'Next day',
  shabbat:'Shabbat, no school',noLessons:'No lessons on this day',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  room:'Room',changeMine:'Change class and groups',editorLogin:'Editor login',updated:'Updated',
@@ -543,7 +562,7 @@ en:{app:'My schedule',noSubject:'I don’t take this subject',noSubjectSub:'Thes
  unpublished:'You have unpublished changes',publish:'Publish',discard:'Discard changes',published:'Published. Every student sees it now.',
  conflict:'Someone else published a change just now. Your changes were not saved; please enter them again.',
  publishFailed:'Publishing failed. Try again.',
- publishing:'Publishing…',empty:'Empty',shabbatEd:'Shabbat. No lessons.',needName:'Please enter a name.',navPals:'Friends',myCode:'My code',myCodeHint:'A friend enters this code and you both see your shared free periods. Names are never sent anywhere.',share:'Share',copied:'Link copied',shareText:'Add me in My Schedule, my code: ',addPal:'Add a friend',palCode:'Friend\'s code',palName:'Display name',palNamePh:'e.g. Noa',add:'Add',palNotFound:'Code not found. Check it again.',palSelf:'That\'s your own code 🙂',palExists:'Already in your list.',noPals:'No friends yet. Share your code or add a friend’s code.',nowFree:'Now: free period',dayOver:'Lessons are over',bothFree:'Free together',together:'Same lesson',bothFreeToday:'Free together today: periods ',noneTogether:'No shared free periods today',me:'Me',removePal:'Remove from list',crowdTitle:'Who\'s free now',crowdLine:'{n} of {m} students have a free period',crowdHint:'Based on devices that opened the app this week. No names.',crowdByPeriod:'Today by period',crowdNoData:'Not enough data yet.',findTeacher:'Find a teacher',teacherPh:'Teacher\'s name',tNoLesson:'No lesson right now',tToday:'Today\'s lessons',tNoToday:'No lessons today',codeWait:'Creating a code…',navDay:'Schedule',navTests:'Tests',navMore:'More',periodsRange:'periods',netBlocked:'Could not reach the server. If you use an ad blocker, turn it off for this site.',noSchool:'No school',reportBtn:'Report a mistake',reportWhat:'Which lesson?',reportWholeDay:'The whole day',reportText:'What is wrong?',reportPh:'For example: the lesson moved to another room',reportPrivacy:'No names or personal details. Only the class, day, lesson and your text are sent.',send:'Send',reportSent:'Thanks! The message was sent to the editors.',reportFailed:'Could not send. Try again.',reportTooMany:'Too many messages. Try again in an hour.',reportShort:'Please write a bit more.',tabReports:'Reports',reportsHint:'Messages from students about mistakes in the schedule. No names or personal details.',noReports:'No reports.',received:'Received',testsBtn:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, only in your lessons.',noTests:'No tests in the next 3 weeks.',tomorrow:'Tomorrow',offline:'No internet. Showing the last saved schedule.',nowTag:'Now',nextTag:'Next'},
+ publishing:'Publishing…',empty:'Empty',shabbatEd:'Shabbat. No lessons.',needName:'Please enter a name.',supportBtn:'Support',chatHello:'Hi! Tell us what is wrong with the schedule or what could be better. We reply right here.',chatPh:'Message',chatNoCtx:'No lesson',chatPrivacy:'No names. Editors only see your class and messages.',chatEditor:'Editors',chatsHint:'Conversations with students. No names: only class and messages.',noChats:'No conversations.',replyPh:'Reply',delChat:'Delete conversation',delChatConfirm:'Delete the whole conversation?',oldReports:'Old messages',chatYou:'You',chatStudent:'Student',send2:'Send',navPals:'Friends',myCode:'My code',myCodeHint:'A friend enters this code and you both see your shared free periods. Names are never sent anywhere.',share:'Share',copied:'Link copied',shareText:'Add me in My Schedule, my code: ',addPal:'Add a friend',palCode:'Friend\'s code',palName:'Display name',palNamePh:'e.g. Noa',add:'Add',palNotFound:'Code not found. Check it again.',palSelf:'That\'s your own code 🙂',palExists:'Already in your list.',noPals:'No friends yet. Share your code or add a friend’s code.',nowFree:'Now: free period',dayOver:'Lessons are over',bothFree:'Free together',together:'Same lesson',bothFreeToday:'Free together today: periods ',noneTogether:'No shared free periods today',me:'Me',removePal:'Remove from list',crowdTitle:'Who\'s free now',crowdLine:'{n} of {m} students have a free period',crowdHint:'Based on devices that opened the app this week. No names.',crowdByPeriod:'Today by period',crowdNoData:'Not enough data yet.',findTeacher:'Find a teacher',teacherPh:'Teacher\'s name',tNoLesson:'No lesson right now',tToday:'Today\'s lessons',tNoToday:'No lessons today',codeWait:'Creating a code…',navDay:'Schedule',navTests:'Tests',navMore:'More',periodsRange:'periods',netBlocked:'Could not reach the server. If you use an ad blocker, turn it off for this site.',noSchool:'No school',reportBtn:'Report a mistake',reportWhat:'Which lesson?',reportWholeDay:'The whole day',reportText:'What is wrong?',reportPh:'For example: the lesson moved to another room',reportPrivacy:'No names or personal details. Only the class, day, lesson and your text are sent.',send:'Send',reportSent:'Thanks! The message was sent to the editors.',reportFailed:'Could not send. Try again.',reportTooMany:'Too many messages. Try again in an hour.',reportShort:'Please write a bit more.',tabReports:'Reports',reportsHint:'Messages from students about mistakes in the schedule. No names or personal details.',noReports:'No reports.',received:'Received',testsBtn:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, only in your lessons.',noTests:'No tests in the next 3 weeks.',tomorrow:'Tomorrow',offline:'No internet. Showing the last saved schedule.',nowTag:'Now',nextTag:'Next'},
 ru:{app:'Моё расписание',noSubject:'У меня нет этого предмета',noSubjectSub:'Эти уроки будут показаны как свободные',backups:'Резервные копии',backupsHint:'Сервер хранит 10 последних версий расписания. Если что-то сломалось, можно вернуться к прошлой.',showBackups:'Показать копии',noBackups:'Копий пока нет.',restore:'Вернуть',restoreConfirm:'Вернуться к этой версии? Текущая сохранится как копия.',restored:'Версия восстановлена.',by_editor:'Сохранение редактора',by_shahaf:'Обновление из שחף',by_restore:'Перед восстановлением',locked:'Слишком много попыток. Попробуй через {m} мин.',attemptsLeft:'(осталось попыток: {n})',codeOnServer:'Код хранится на сервере (Cloudflare, EDITOR_CODE). Менять его нужно там.',pushBtn:'Получать уведомления об отменах',pushActive:'Уведомления включены (нажми, чтобы выключить)',pushOn:'Отлично! Придёт уведомление, когда что-то поменяется в твоих уроках.',pushOff:'Уведомления выключены.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках телефона.',pushFailed:'Не получилось включить уведомления. Попробуй ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone уведомления работают только после добавления на экран «Домой».',badServerCode:'Сервер не принял код. Выйди из редактора и войди снова.',server:'Сервер',serverHint:'Данные сохраняются на сервере, и все видят их сразу.',syncAll:'Сохранить все данные на сервер',searchPh:'Поиск по предмету или учителю',noMatch:'Ничего не найдено. Попробуй другое слово.',groupFor:'Для какого класса',wholeGrade:'Вся параллель',install:'Установить на телефон',insIntro:'Пара минут, и расписание будет открываться с иконки на главном экране, как обычное приложение.',insComputer:'Компьютер',insTipTitle:'Важно:',insTipIos:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋯ и выбери «Открыть в Safari».',insTipAnd:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋮ и выбери «Открыть в браузере».',insIos1:'Открой ссылку в Safari.',insIos2:'Нажми кнопку «Поделиться» внизу экрана (квадрат со стрелкой вверх).',insIos3:'Прокрути вниз и выбери «На экран „Домой“».',insIos4:'Нажми «Добавить» в верхнем углу. Готово, иконка на главном экране.',insAnd1:'Открой ссылку в Chrome.',insAnd2:'Нажми на три точки в верхнем углу.',insAnd3:'Выбери «Добавить на главный экран» или «Установить приложение».',insAnd4:'Подтверди кнопкой «Добавить». Готово, иконка на главном экране.',insDesk1:'Удобнее всего на телефоне: открой эту же ссылку там и выбери здесь iPhone или Android.',insDesk2:'На компьютере: в меню браузера выбери «Установить» или «Создать ярлык».',gotIt:'Понятно',changeGroups:'Сменить группы',multiSub:'Отметь все свои группы. Если здесь нет ни одной твоей, нажми «Дальше».',multiLabel:'Можно выбрать несколько групп',free:'Свободный урок',nextWeek:'Следующая неделя',lastWeek:'Прошлая неделя',inWeeks:'Через # нед.',weeksAgo:'# нед. назад',backToday:'Вернуться к сегодня',langBtn:'RU',today:'Сегодня',prevDay:'Предыдущий день',nextDay:'Следующий день',
  shabbat:'Шаббат, уроков нет',noLessons:'В этот день уроков нет',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  room:'Каб.',changeMine:'Сменить класс и группы',editorLogin:'Вход для редакторов',updated:'Обновлено',
@@ -563,7 +582,7 @@ ru:{app:'Моё расписание',noSubject:'У меня нет этого �
  unpublished:'Есть неопубликованные изменения',publish:'Опубликовать',discard:'Отменить изменения',published:'Опубликовано. Все ученики уже видят это.',
  conflict:'Кто-то другой только что опубликовал изменения. Твои правки не сохранились, введи их ещё раз.',
  publishFailed:'Не удалось опубликовать. Попробуй ещё раз.',
- publishing:'Публикую…',empty:'Пусто',shabbatEd:'Шаббат. Уроков нет.',needName:'Нужно написать название.',navPals:'Друзья',myCode:'Мой код',myCodeHint:'Друг вводит этот код у себя, и вы видите общие свободные уроки. Имена никуда не отправляются.',share:'Поделиться',copied:'Ссылка скопирована',shareText:'Добавь меня в «Моём расписании», мой код: ',addPal:'Добавить друга',palCode:'Код друга',palName:'Как подписать',palNamePh:'например: Ноа',add:'Добавить',palNotFound:'Код не найден. Проверь ещё раз.',palSelf:'Это твой собственный код 🙂',palExists:'Этот друг уже в списке.',noPals:'Пока нет друзей. Поделись своим кодом или добавь код друга.',nowFree:'Сейчас: свободный урок',dayOver:'Уроки закончились',bothFree:'Вместе свободны',together:'Вместе на уроке',bothFreeToday:'Вместе свободны сегодня: уроки ',noneTogether:'Сегодня общих свободных уроков нет',me:'Я',removePal:'Удалить из списка',crowdTitle:'Кто сейчас свободен',crowdLine:'{n} из {m} учеников на свободном уроке',crowdHint:'По устройствам, которые открывали приложение за неделю. Без имён.',crowdByPeriod:'Сегодня по урокам',crowdNoData:'Пока мало данных.',findTeacher:'Найти учителя',teacherPh:'Имя учителя',tNoLesson:'Сейчас нет урока',tToday:'Уроки сегодня',tNoToday:'Сегодня уроков нет',codeWait:'Создаю код…',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',periodsRange:'уроки',netBlocked:'Нет связи с сервером. Если стоит блокировщик рекламы, выключи его для этого сайта.',noSchool:'Уроков нет',reportBtn:'Сообщить об ошибке',reportWhat:'Какой урок?',reportWholeDay:'Весь день',reportText:'Что не так?',reportPh:'Например: урок перенесли в другой кабинет',reportPrivacy:'Без имён и личных данных. Отправляются только класс, день, урок и твой текст.',send:'Отправить',reportSent:'Спасибо! Сообщение отправлено редакторам.',reportFailed:'Не удалось отправить. Попробуй ещё раз.',reportTooMany:'Слишком много сообщений. Попробуй через час.',reportShort:'Напиши чуть подробнее.',tabReports:'Сообщения',reportsHint:'Сообщения учеников об ошибках в расписании. Без имён и личных данных.',noReports:'Сообщений нет.',received:'Получено',testsBtn:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, только по твоим урокам.',noTests:'В ближайшие 3 недели контрольных нет.',tomorrow:'Завтра',offline:'Нет интернета. Показано последнее сохранённое расписание.',nowTag:'Сейчас',nextTag:'Далее'}
+ publishing:'Публикую…',empty:'Пусто',shabbatEd:'Шаббат. Уроков нет.',needName:'Нужно написать название.',supportBtn:'Поддержка',chatHello:'Привет! Напиши, что не так с расписанием или что можно улучшить. Ответим прямо здесь.',chatPh:'Сообщение',chatNoCtx:'Без урока',chatPrivacy:'Без имён. Редакторы видят только класс и сообщения.',chatEditor:'Редакторы',chatsHint:'Переписка с учениками. Без имён: только класс и сообщения.',noChats:'Переписок нет.',replyPh:'Ответ',delChat:'Удалить переписку',delChatConfirm:'Удалить всю переписку?',oldReports:'Старые сообщения',chatYou:'Вы',chatStudent:'Ученик',send2:'Отправить',navPals:'Друзья',myCode:'Мой код',myCodeHint:'Друг вводит этот код у себя, и вы видите общие свободные уроки. Имена никуда не отправляются.',share:'Поделиться',copied:'Ссылка скопирована',shareText:'Добавь меня в «Моём расписании», мой код: ',addPal:'Добавить друга',palCode:'Код друга',palName:'Как подписать',palNamePh:'например: Ноа',add:'Добавить',palNotFound:'Код не найден. Проверь ещё раз.',palSelf:'Это твой собственный код 🙂',palExists:'Этот друг уже в списке.',noPals:'Пока нет друзей. Поделись своим кодом или добавь код друга.',nowFree:'Сейчас: свободный урок',dayOver:'Уроки закончились',bothFree:'Вместе свободны',together:'Вместе на уроке',bothFreeToday:'Вместе свободны сегодня: уроки ',noneTogether:'Сегодня общих свободных уроков нет',me:'Я',removePal:'Удалить из списка',crowdTitle:'Кто сейчас свободен',crowdLine:'{n} из {m} учеников на свободном уроке',crowdHint:'По устройствам, которые открывали приложение за неделю. Без имён.',crowdByPeriod:'Сегодня по урокам',crowdNoData:'Пока мало данных.',findTeacher:'Найти учителя',teacherPh:'Имя учителя',tNoLesson:'Сейчас нет урока',tToday:'Уроки сегодня',tNoToday:'Сегодня уроков нет',codeWait:'Создаю код…',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',periodsRange:'уроки',netBlocked:'Нет связи с сервером. Если стоит блокировщик рекламы, выключи его для этого сайта.',noSchool:'Уроков нет',reportBtn:'Сообщить об ошибке',reportWhat:'Какой урок?',reportWholeDay:'Весь день',reportText:'Что не так?',reportPh:'Например: урок перенесли в другой кабинет',reportPrivacy:'Без имён и личных данных. Отправляются только класс, день, урок и твой текст.',send:'Отправить',reportSent:'Спасибо! Сообщение отправлено редакторам.',reportFailed:'Не удалось отправить. Попробуй ещё раз.',reportTooMany:'Слишком много сообщений. Попробуй через час.',reportShort:'Напиши чуть подробнее.',tabReports:'Сообщения',reportsHint:'Сообщения учеников об ошибках в расписании. Без имён и личных данных.',noReports:'Сообщений нет.',received:'Получено',testsBtn:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, только по твоим урокам.',noTests:'В ближайшие 3 недели контрольных нет.',tomorrow:'Завтра',offline:'Нет интернета. Показано последнее сохранённое расписание.',nowTag:'Сейчас',nextTag:'Далее'}
 };
 var DAYS = {he:['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],ru:['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']};
 var DAYS_S = {he:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ru:['Вс','Пн','Вт','Ср','Чт','Пт','Сб']};
@@ -838,7 +857,7 @@ function syncNav(){
   var bs=nav.querySelectorAll('button');
   NAV_TABS.forEach(function(x,k){var b=bs[k],on=k===i;
     b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
-    b.querySelector('.lb').textContent=t(x[1]);b.querySelector('.badge').textContent=x[0]==='tests'&&nt?nt:'';});
+    b.querySelector('.lb').textContent=t(x[1]);b.querySelector('.badge').textContent=x[0]==='tests'&&nt?nt:x[0]==='more'&&ui.chatUnread?ui.chatUnread:'';});
   // иконка новой вкладки подпрыгивает
   if(syncNav.last>=0&&syncNav.last!==i){var ic=bs[i].querySelector('.ico');ic.classList.remove('pop');void ic.offsetWidth;ic.classList.add('pop');}
   syncNav.last=i;
@@ -996,7 +1015,7 @@ function renderMore(){
 function footer(showChange){
   var h='<div class="foot">';
   if(showChange&&API)h+=pushOn()?'<button class="secondary installbtn pushbtn on" data-act="pushOff">🔔 '+esc(t('pushActive'))+'</button>':'<button class="primary installbtn pushbtn" data-act="pushOn">🔔 '+esc(t('pushBtn'))+'</button>';
-  if(showChange&&API)h+='<button class="secondary installbtn" data-act="report">⚠️ '+esc(t('reportBtn'))+'</button>';
+  if(showChange&&API)h+='<button class="secondary installbtn" data-act="report">💬 '+esc(t('supportBtn'))+(ui.chatUnread?' <span class="cbadge">'+esc(ui.chatUnread)+'</span>':'')+'</button>';
   if(showChange&&!isStandalone())h+='<button class="secondary installbtn" data-act="install">📲 '+esc(t('install'))+'</button>';
   if(STATE.updatedAt){h+='<div>'+esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'</div>';}
   if(showChange)h+='<button class="link" data-act="resetMine">'+esc(t(firstStep()?'changeGroups':'changeMine'))+'</button>';
@@ -1032,36 +1051,58 @@ function renderInstall(){
   h+='</ol><div class="btns"><button class="primary" data-act="closeInstall">'+esc(t('gotIt'))+'</button></div>';
   return '<div class="overlay" data-act="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(t('install'))+'">'+h+'</div></div>';
 }
-// сообщение об ошибке: день, класс и урок подставляются сами, ученик пишет только текст
-function openReport(){
-  var d=ui.date,items=studentLessons(d),p=0;
-  if(d===todayISO()){var m=nowMins();STATE.periods.forEach(function(x){if(mins(x.start)<=m&&m<mins(x.end)&&items.some(function(y){return y.l.period===x.n;}))p=x.n;});}
-  ui.report={date:d,period:p,text:''};render();
+/* ---------- support chat ---------- */
+// ключ переписки — случайный, хранится только в телефоне; сервер видит класс и сообщения, без имён
+function chatKey(){var k=sGet('localStorage','sched.chat');if(typeof k==='string'&&/^[0-9a-f]{32}$/.test(k))return k;
+  var a=new Uint8Array(16),i;try{crypto.getRandomValues(a);}catch(e){for(i=0;i<16;i++)a[i]=Math.floor(Math.random()*256);}
+  k='';for(i=0;i<16;i++)k+=(a[i]<16?'0':'')+a[i].toString(16);sSet('localStorage','sched.chat',k);return sGet('localStorage','sched.chat')===k?k:null;}
+function chatOn(){return !!sGet('localStorage','sched.chatOn');}
+// загрузить переписку; mark — отметить ответы прочитанными (когда чат открыт)
+function chatLoad(mark){
+  if(!API||!chatOn()){ui.chat={msgs:[],loaded:true};return;}
+  var k=chatKey();if(!k||chatLoad.busy)return;chatLoad.busy=true;
+  fetch(API+'/chat/get',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k,mark:!!mark})})
+  .then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(!j||!Array.isArray(j.msgs))return;
+    var old=ui.chat&&ui.chat.msgs?ui.chat.msgs.length:-1;ui.chat={msgs:j.msgs,loaded:true};ui.chatUnread=j.unread||0;
+    if(ui.screen==='chat'){if(old!==j.msgs.length){render();chatBottom();}}else syncNav();
+  },function(){}).then(function(){chatLoad.busy=false;});
 }
-function reportLessons(){var seen={},out=[];studentLessons(ui.report.date).forEach(function(x){if(!seen[x.l.period]){seen[x.l.period]=1;out.push(x.l);}});return out;}
-function renderReport(){
-  var r=ui.report,cls=byId(STATE.classes,prefs.classId),h='';
-  h+='<h3>'+esc(t('reportBtn'))+'</h3><p class="muted" style="margin-top:-6px"><bdi>'+esc(nm(cls))+'</bdi>, '+esc(DAYS[prefs.lang][wday(r.date)]+', '+fmtDate(r.date))+'</p>';
-  h+='<div class="field"><label for="rPer">'+esc(t('reportWhat'))+'</label><select class="input" id="rPer" data-change="rper"><option value="0">'+esc(t('reportWholeDay'))+'</option>';
-  reportLessons().forEach(function(l){h+='<option value="'+esc(l.period)+'"'+(l.period===r.period?' selected':'')+'>'+esc(l.period+'. '+nm(byId(STATE.subjects,l.subjectId))+' · \u2066'+periodTime(STATE,l.period)+'\u2069')+'</option>';});
-  h+='</select></div>';
-  h+='<div class="field"><label for="rText">'+esc(t('reportText'))+'</label><textarea class="input" id="rText" maxlength="500" placeholder="'+esc(t('reportPh'))+'">'+esc(r.text)+'</textarea></div>';
-  h+='<p class="muted small">'+esc(t('reportPrivacy'))+'</p>';
-  h+='<div class="btns"><button class="secondary" data-act="closeReport">'+esc(t('close'))+'</button><button class="primary" data-act="sendReport"'+(r.busy?' disabled':'')+'>'+esc(t('send'))+'</button></div>';
-  return '<div class="overlay" data-act="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(t('reportBtn'))+'">'+h+'</div></div>';
+function chatBottom(){setTimeout(function(){window.scrollTo(0,document.body.scrollHeight);},0);}
+function openChat(){ui.screen='chat';ui.chatDate=ui.date;if(!ui.chat)ui.chat={msgs:[],loaded:!chatOn()};render();chatBottom();chatLoad(true);var c=document.getElementById('cText');if(c&&!('ontouchstart' in window))c.focus();}
+// подпись «о каком уроке» из сохранённого контекста {date, period, lessonId}
+function ctxLabel(c){if(!c)return '';try{c=typeof c==='string'?JSON.parse(c):c;}catch(e){return '';}if(!c||!c.date)return '';
+  var l=c.lessonId?byId(STATE.lessons,c.lessonId):null,sb=l?byId(STATE.subjects,l.subjectId):null;
+  return DAYS_S[prefs.lang][wday(c.date)]+' '+fmtDate(c.date,{day:'numeric',month:'numeric'})+(c.period?' · '+t('period')+' '+c.period:'')+(sb?' · '+nm(sb):'');}
+function bubble(m,mine,who){
+  return '<div class="msg '+(mine?'me':'them')+'">'+(who?'<div class="who">'+esc(who)+'</div>':'')+(m.ctx?'<div class="ctx">📎 <bdi>'+esc(ctxLabel(m.ctx))+'</bdi></div>':'')+
+    '<div dir="auto">'+esc(m.text)+'</div><small>'+esc(fmtStamp(m.at))+'</small></div>';
 }
-function sendReport(){
-  var r=ui.report;if(!r||r.busy)return;
-  r.text=val('rText');
-  if(r.text.length<3){toast(t('reportShort'),true);return;}
-  var l=null;reportLessons().forEach(function(x){if(x.period===r.period)l=x;});
-  r.busy=true;render();
-  fetch(API+'/note',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:r.text,date:r.date,period:r.period,lessonId:l?l.id:'',classId:prefs.classId||''})})
-  .then(function(x){return x.status;},function(){return 0;})
-  .then(function(s){
-    if(ui.report)ui.report.busy=false;
-    if(s===200){ui.report=null;toast(t('reportSent'));}
-    else toast(t(s===429?'reportTooMany':s===0?'netBlocked':'reportFailed'),true);
+function renderChat(){
+  var h=topbar(),d=ui.chatDate||ui.date;
+  h+='<div class="dayhead"><button class="icon-btn" data-act="chatBack" aria-label="'+esc(t('back'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+esc(t('supportBtn'))+'</p></div></div>';
+  h+='<div class="chatlog">'+bubble({text:t('chatHello'),at:''},false,t('chatEditor')).replace('<small></small>','');
+  (ui.chat&&ui.chat.msgs||[]).forEach(function(m){h+=bubble(m,m.who==='u',m.who==='e'?t('chatEditor'):'');});
+  if(ui.chat&&!ui.chat.loaded)h+='<p class="muted small center">'+esc(t('statsLoading'))+'</p>';
+  h+='<p class="muted small center">'+esc(t('chatPrivacy'))+'</p></div><div class="chatpad"></div>';
+  var opts='<option value="">'+esc(t('chatNoCtx'))+'</option><option value="0"'+(ui.chatCtx==='0'?' selected':'')+'>'+esc(t('reportWholeDay')+' · '+DAYS_S[prefs.lang][wday(d)]+' '+fmtDate(d,{day:'numeric',month:'numeric'}))+'</option>';
+  var seen={};studentLessons(d).forEach(function(x){if(seen[x.l.period])return;seen[x.l.period]=1;opts+='<option value="'+x.l.period+'"'+(ui.chatCtx===String(x.l.period)?' selected':'')+'>'+esc(x.l.period+'. '+nm(byId(STATE.subjects,x.l.subjectId)))+'</option>';});
+  h+='<div class="composer"><select class="ctxsel" id="cCtx" data-change="cctx" aria-label="'+esc(t('reportWhat'))+'">'+opts+'</select>'+
+     '<div class="crow"><textarea class="input" id="cText" rows="1" maxlength="1000" dir="auto" placeholder="'+esc(t('chatPh'))+'">'+esc(ui.chatDraft||'')+'</textarea>'+
+     '<button class="sendbtn" data-act="chatSend" aria-label="'+esc(t('send2'))+'"'+(ui.chatBusy?' disabled':'')+'><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></div>';
+  return h;
+}
+function chatSend(){
+  var text=String(ui.chatDraft||'').trim(),k=chatKey();if(!text||ui.chatBusy||!k)return;
+  var d=ui.chatDate||ui.date,ctx=null;
+  if(ui.chatCtx==='0')ctx={date:d};
+  else if(ui.chatCtx){var p=+ui.chatCtx,l=null;studentLessons(d).forEach(function(x){if(!l&&x.l.period===p)l=x.l;});ctx={date:d,period:p,lessonId:l?l.id:''};}
+  ui.chatBusy=true;render();
+  fetch(API+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k,text:text,classId:prefs.classId||'',ctx:ctx})})
+  .then(function(r){return r.status;},function(){return 0;}).then(function(st){
+    ui.chatBusy=false;
+    if(st===200){sSet('localStorage','sched.chatOn',1);ui.chatDraft='';ui.chatCtx='';ui.chat.msgs.push({who:'u',text:text,at:new Date().toISOString(),ctx:ctx?JSON.stringify(ctx):''});render();chatBottom();chatLoad(true);}
+    else{render();toast(t(st===429?'reportTooMany':st===0?'netBlocked':'reportFailed'),true);}
   });
 }
 function fmtStamp(s){try{return new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(s));}catch(e){return s;}}
@@ -1168,18 +1209,56 @@ function edSettings(st){
   return h;
 }
 function edReports(st){
-  var s=ui.reports,h='<p class="muted small">'+esc(t('reportsHint'))+'</p>';
+  var h='<p class="muted small">'+esc(t('chatsHint'))+'</p>',c=ui.chats;
+  if(!c){c=ui.chats={loading:true};setTimeout(chatsLoad,0);}
+  if(ui.chatOpen){
+    var th=ui.chatThread;
+    h+='<div class="dayhead"><button class="icon-btn" data-act="chatClose" aria-label="'+esc(t('back'))+'">'+chev(-1)+'</button><div class="t"><p class="wd small2"><bdi>'+esc(th&&th.cls?nm(byId(st.classes,th.cls)):t('chatStudent'))+'</bdi></p></div></div>';
+    if(!th)return h+'<div class="empty">'+esc(t('statsLoading'))+'</div>';
+    h+='<div class="chatlog">';th.msgs.forEach(function(m){h+=bubble(m,m.who==='e',m.who==='u'?t('chatStudent'):t('chatYou'));});h+='</div>';
+    h+='<div class="crow edreply"><textarea class="input" id="eReply" rows="2" maxlength="1000" dir="auto" placeholder="'+esc(t('replyPh'))+'">'+esc(ui.eReply||'')+'</textarea>'+
+       '<button class="sendbtn" data-act="chatReply" aria-label="'+esc(t('send2'))+'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>';
+    return h+'<button class="danger wide" data-act="chatDel" data-id="'+esc(ui.chatOpen)+'">'+esc(t('delChat'))+'</button>';
+  }
+  if(c.loading)h+='<div class="empty">'+esc(t('statsLoading'))+'</div>';
+  else if(c.err)h+='<div class="empty">'+esc(c.err)+'</div>';
+  else if(!c.list.length)h+='<div class="empty">'+esc(t('noChats'))+'</div>';
+  else c.list.forEach(function(x){var cl=byId(st.classes,x.cls);
+    h+='<button class="card pal" data-act="chatOpen" data-id="'+esc(x.id)+'"><span class="ava">'+esc(cl?cl.num||'?':'?')+'</span><span class="grow"><b><bdi>'+esc(cl?nm(cl):t('chatStudent'))+'</bdi></b> <span class="muted small">'+esc(fmtStamp(x.last))+'</span><small dir="auto">'+esc((x.lw==='e'?t('chatYou')+': ':'')+String(x.lt||'').slice(0,90))+'</small></span>'+(x.ue?'<span class="cbadge">'+esc(x.ue)+'</span>':'')+chev(1)+'</button>';});
+  return h+edOldReports(st);
+}
+function chatsLoad(quiet){
+  if(!quiet){ui.chats={loading:true};render();}
+  return backupsCall('/chats','GET').then(function(x){
+    if(ui.etab!=='reports')return;
+    var nw=x.s===200&&x.j&&Array.isArray(x.j.threads)?{list:x.j.threads}:{err:x.s===429?t('locked').replace('{m}',15):x.s===401?t('badServerCode'):x.s?t('statsFailed'):t('netBlocked')};
+    if(quiet&&JSON.stringify(nw)===JSON.stringify(ui.chats))return;
+    ui.chats=nw;render();
+  });
+}
+function chatOpenEd(id,quiet){
+  if(!quiet){ui.chatOpen=id;ui.chatThread=null;render();}
+  return backupsCall('/chats/open','POST',{id:+id}).then(function(x){
+    if(ui.chatOpen!==id)return;
+    if(x.s!==200||!x.j||!Array.isArray(x.j.msgs)){if(!quiet)backupErr(x);return;}
+    var old=ui.chatThread?ui.chatThread.msgs.length:-1;ui.chatThread=x.j;
+    if(!quiet||old!==x.j.msgs.length){render();chatBottom();}
+  });
+}
+function chatsPoll(){if(ui.chatOpen)chatOpenEd(ui.chatOpen,true);else if(ui.chats&&!ui.chats.loading)chatsLoad(true);}
+// старые сообщения (кнопка «сообщить об ошибке» до чата) — показываем, только если они есть
+function edOldReports(st){
+  var s=ui.reports,h='';
   if(!s){s=ui.reports={loading:true};setTimeout(loadReports,0);}
-  if(s.loading)return h+'<div class="empty">'+esc(t('statsLoading'))+'</div>';
-  if(s.err)return h+'<div class="empty">'+esc(s.err)+(s.why?'<br><small class="muted" dir="auto">'+esc(s.why)+'</small>':'')+'</div><button class="secondary" data-act="loadReports">'+esc(t('statsRefresh'))+'</button>';
-  if(!s.list.length)h+='<div class="empty">'+esc(t('noReports'))+'</div>';
+  if(s.loading||s.err||!s.list||!s.list.length)return '';
+  h+='<h3 class="sec">'+esc(t('oldReports'))+'</h3>';
   s.list.forEach(function(r){
     var c=byId(st.classes,r.cls),l=r.lesson?byId(st.lessons,r.lesson):null,sb=l?byId(st.subjects,l.subjectId):null;
     var where=[c?nm(c):'',r.date?DAYS[prefs.lang][wday(r.date)]+' '+fmtDate(r.date):'',r.period?t('period')+' '+r.period+(sb?' ('+nm(sb)+')':''):''].filter(Boolean).map(function(x){return '<bdi>'+esc(x)+'</bdi>';}).join(' · ');
     h+='<div class="card report"><div class="meta">'+esc(t('received'))+': '+esc(fmtStamp(r.at))+'</div>'+(where?'<div class="meta">'+where+'</div>':'')+'<p dir="auto">'+esc(r.text)+'</p>'+
       '<button class="danger" data-act="delReport" data-id="'+esc(r.id)+'">'+esc(t('del'))+'</button></div>';
   });
-  return h+'<button class="secondary" style="margin-top:14px" data-act="loadReports">'+esc(t('statsRefresh'))+'</button>';
+  return h;
 }
 function edStats(st){
   var s=ui.stats,h='<p class="muted small">'+esc(t('statsHint'))+'</p>';
@@ -1394,7 +1473,7 @@ function pingStats(){
   }catch(e){pingStats.busy=false;}
 }
 function loadReports(){
-  ui.reports={loading:true};render();
+  ui.reports={loading:true};
   backupsCall('/notes','GET').then(function(x){
     if(ui.etab!=='reports')return;
     ui.reports=x.s===200&&x.j&&Array.isArray(x.j.reports)?{list:x.j.reports}:{err:x.s===429?t('locked').replace('{m}',15):x.s===401?t('badServerCode'):t('statsFailed'),why:x.s?x.s+(x.j&&x.j.error?' · '+x.j.error:''):t('netBlocked')};
@@ -1422,14 +1501,17 @@ function render(){
   else if(ui.screen==='tests')h+=renderTests();
   else if(ui.screen==='more')h+=renderMore();
   else if(ui.screen==='pals')h+=renderPals();
+  else if(ui.screen==='chat')h+=renderChat();
   else h+=renderDay();
   h+='</div>';
   if(ui.screen==='editor')h+=renderSheet();
   if(ui.installOpen)h+=renderInstall();
-  if(ui.report&&(ui.screen==='day'||ui.screen==='more'))h+=renderReport();
   if(ui.palAdd&&ui.screen==='pals')h+=renderPalAdd();
   if(ui.toast)h+='<div class="toast'+(ui.toast.bad?' bad':'')+'" role="status">'+esc(ui.toast.text)+'</div>';
+  var af=document.activeElement&&document.activeElement.id;
   root.innerHTML=h;
+  // поле сообщения не теряет фокус, когда приходят новые сообщения
+  if(af==='cText'||af==='eReply'){var fe=document.getElementById(af);if(fe){fe.focus();try{fe.setSelectionRange(fe.value.length,fe.value.length);}catch(x){}}}
   syncNav();
   slideAll();slideAll.only=null;
   // новый экран или другой день — карточки появляются по очереди
@@ -1472,7 +1554,7 @@ root.addEventListener('click',function(e){
   var a=el.getAttribute('data-act'),id=el.getAttribute('data-id');
   // какой переключатель нажали — только его подсветка переедет; стрелки дня двигают подсветку дней
   var sc=el.closest('[data-slide]');slideAll.only=sc?sc.getAttribute('data-slide'):(a==='day'||a==='goto')?'days':null;
-  if(a==='overlay'){if(e.target===el){ui.sheet=null;ui.delArm=false;ui.installOpen=false;ui.report=null;ui.palAdd=null;render();}return;}
+  if(a==='overlay'){if(e.target===el){ui.sheet=null;ui.delArm=false;ui.installOpen=false;ui.palAdd=null;render();}return;}
   switch(a){
     case 'setLang':prefs.lang=el.getAttribute('data-l');sSet('localStorage','sched.prefs',prefs);render();syncPush();break;
     case 'day':ui.date=stepDay(ui.date,+el.getAttribute('data-n'));render();break;
@@ -1503,6 +1585,12 @@ root.addEventListener('click',function(e){
     case 'syncAll':dirty=true;publish();break;
     case 'loadStats':loadStats();break;
     case 'loadReports':loadReports();break;
+    case 'chatOpen':ui.eReply='';chatOpenEd(id);window.scrollTo(0,0);break;
+    case 'chatClose':ui.chatOpen=null;ui.chatThread=null;chatsLoad(true);render();break;
+    case 'chatReply':var rt=String(ui.eReply||'').trim(),oid=ui.chatOpen;if(!rt||!oid)break;
+      backupsCall('/chats/reply','POST',{id:+oid,text:rt}).then(function(x){if(x.s!==200){backupErr(x);return;}ui.eReply='';chatOpenEd(oid,true).then(function(){render();chatBottom();});});break;
+    case 'chatDel':if(!window.confirm(t('delChatConfirm')))break;var did=id;
+      backupsCall('/chats/delete','POST',{id:+did}).then(function(x){if(x.s!==200){backupErr(x);return;}ui.chatOpen=null;ui.chatThread=null;chatsLoad();});break;
     case 'delReport':backupsCall('/notes/delete','POST',{id:+id}).then(function(x){if(x.s!==200){backupErr(x);return;}if(ui.reports&&ui.reports.list)ui.reports.list=ui.reports.list.filter(function(r){return String(r.id)!==id;});render();});break;
     case 'loadBackups':backupsCall('/backups','GET').then(function(x){if(x.s===200){ui.backups=x.j.backups||[];render();}else backupErr(x);});break;
     case 'restoreBak':if(!window.confirm(t('restoreConfirm')))break;
@@ -1510,7 +1598,9 @@ root.addEventListener('click',function(e){
         if(x.s!==200){backupErr(x);return;}
         return fetch(API+'/data',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){STATE=d;draft=clone(d);dirty=false;ui.backups=null;toast(t('restored'));render();});
       });break;
-    case 'report':openReport();break;
+    case 'report':openChat();break;
+    case 'chatBack':ui.screen='more';render();window.scrollTo(0,0);break;
+    case 'chatSend':chatSend();break;
     case 'palAdd':ui.palAdd={code:'',name:''};render();var pc=document.getElementById('pCode');if(pc)pc.focus();break;
     case 'closePalAdd':ui.palAdd=null;render();break;
     case 'palAddSave':palAddSave();break;
@@ -1520,8 +1610,6 @@ root.addEventListener('click',function(e){
     case 'cmpDay':ui.cmpDate=stepDay(ui.cmpDate||schoolDay(todayISO()),+el.getAttribute('data-n'));render();break;
     case 'palDel':savePals(pals().filter(function(f){return f.code!==id;}));ui.palView=null;render();window.scrollTo(0,0);break;
     case 'teacherPick':ui.teacher=id;ui.tq='';render();var tc=root.querySelector('.tcard');if(tc)tc.scrollIntoView({block:'nearest'});break;
-    case 'closeReport':ui.report=null;render();break;
-    case 'sendReport':sendReport();break;
     case 'tests':ui.screen='tests';render();window.scrollTo(0,0);break;
     case 'closeInstall':ui.installOpen=false;render();break;
     case 'insPlat':ui.insPlat=el.getAttribute('data-p');render();break;
@@ -1529,8 +1617,8 @@ root.addEventListener('click',function(e){
     case 'editorLogin':ui.loginErr=false;ui.screen='login';render();var c=document.getElementById('code');if(c)c.focus();break;
     case 'home':ui.screen=prefsValid()?'day':'setup';if(ui.screen==='setup')startSetup();render();break;
     case 'login':doLogin();break;
-    case 'exitEditor':ui.stats=null;ui.reports=null;sDel('sessionStorage','sched.editor');sDel('sessionStorage','sched.code');ui.screen=prefsValid()?'day':'setup';if(ui.screen==='setup')startSetup();draft=null;dirty=false;ui.sheet=null;render();break;
-    case 'etab':ui.etab=el.getAttribute('data-tab');ui.stats=null;ui.reports=null;saveEd();render();window.scrollTo(0,0);break;
+    case 'exitEditor':ui.stats=null;ui.reports=null;ui.chats=null;ui.chatOpen=null;ui.chatThread=null;sDel('sessionStorage','sched.editor');sDel('sessionStorage','sched.code');ui.screen=prefsValid()?'day':'setup';if(ui.screen==='setup')startSetup();draft=null;dirty=false;ui.sheet=null;render();break;
+    case 'etab':ui.etab=el.getAttribute('data-tab');ui.stats=null;ui.reports=null;ui.chats=null;ui.chatOpen=null;ui.chatThread=null;saveEd();render();window.scrollTo(0,0);break;
     case 'eday':ui.eDate=stepDay(ui.eDate,+el.getAttribute('data-n'));saveEd();render();break;
     case 'wday':ui.wDay=+el.getAttribute('data-n');saveEd();render();break;
     case 'addChange':
@@ -1560,12 +1648,13 @@ root.addEventListener('change',function(e){
   if(k==='edate'&&el.value){ui.eDate=schoolDay(el.value);}
   else if(k==='eaud'){ui.eAud=el.value;}
   else if(k==='waud'){ui.wAud=el.value;}
-  else if(k==='rper'&&ui.report){ui.report.period=+el.value||0;return;}
+  else if(k==='cctx'){ui.chatCtx=el.value;return;}
   saveEd();render();
 });
 root.addEventListener('input',function(e){if(e.target&&e.target.id==='gsearch')filterGroups(e.target.value);
   // текст сообщения храним сразу: экран может перерисоваться (пришли новые данные)
-  if(e.target&&e.target.id==='rText'&&ui.report)ui.report.text=e.target.value;
+  if(e.target&&e.target.id==='cText')ui.chatDraft=e.target.value;
+  if(e.target&&e.target.id==='eReply')ui.eReply=e.target.value;
   if(e.target&&e.target.id==='tq')filterTeachers(e.target.value);});
 root.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='code'){doLogin();}});
 function loginOk(v){sSet('sessionStorage','sched.editor',{etab:ui.etab});sSet('sessionStorage','sched.code',v);ui.loginErr=false;ui.screen='editor';draft=clone(STATE);dirty=false;render();window.scrollTo(0,0);}
@@ -1614,10 +1703,15 @@ render();
 // шрифт догрузился или поменялся размер окна — подсветка тихо встаёт на место
 try{if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){slideAll();});}catch(e){}
 window.addEventListener('resize',function(){slideAll();});
+setInterval(function(){if(document.visibilityState!=='visible')return;
+  if(ui.screen==='chat')chatLoad(true);
+  else if(ui.screen==='editor'&&ui.etab==='reports')chatsPoll();},8000);
+if(API&&chatOn())chatLoad(false);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&API&&chatOn())chatLoad(ui.screen==='chat');});
 // раз в минуту обновляем экран дня, чтобы подсветка урока шла за временем
 window.addEventListener('online',function(){if(ui.screen==='day')render();loadRemote();});
 window.addEventListener('offline',function(){if(ui.screen==='day')render();});
-setInterval(function(){if(ui.screen==='day'&&!ui.installOpen&&!ui.report&&ui.date===todayISO())render();},60000);
+setInterval(function(){if(ui.screen==='day'&&!ui.installOpen&&ui.date===todayISO())render();},60000);
 if(API){loadRemote();pingStats();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){loadRemote();pingStats();}});}
