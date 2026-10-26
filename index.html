@@ -398,6 +398,37 @@ html[data-look="p2"] .toast{background:#0D0D0D;border:1px solid rgba(255,255,255
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 @keyframes toastin{from{opacity:0;transform:translate(-50%,-16px) scale(.92)}to{opacity:1;transform:translate(-50%,0)}}
 @media (prefers-reduced-motion:reduce){.slider{transition:none}}
+
+/* ===== Всё приложение в стиле капсул: тёмные поверхности с тонкой рамкой, лаймовое свечение ===== */
+html[data-look="p2"]{--P-card:#101010;--cap-bd:rgba(255,255,255,.08)}
+html[data-look="p2"] .lesson:not(.free),html[data-look="p2"] .notice,html[data-look="p2"] .card,html[data-look="p2"] .stack,html[data-look="p2"] .rowbtn,html[data-look="p2"] .isteps li{background:#101010;border:1px solid var(--cap-bd);border-radius:20px}
+html[data-look="p2"] .stack{overflow:hidden}
+html[data-look="p2"] .tip{background:#101010;border:1px solid var(--cap-bd);border-inline-start:3px solid #C6FF00;border-radius:16px}
+html[data-look="p2"] .rowbtn.freebtn{background:none;border:1px dashed rgba(255,255,255,.14)}
+/* номера уроков — кольца; текущий урок — лаймовое кольцо со свечением */
+html[data-look="p2"] .lesson .num{background:none;color:#F2F2F2;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3)}
+html[data-look="p2"] .lesson.is-now .num{color:#C6FF00;box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 10px rgba(198,255,0,.5)}
+html[data-look="p2"] .lesson.is-room .num,html[data-look="p2"] .lesson.is-test .num,html[data-look="p2"] .lesson.is-exam .num{background:#C6FF00;color:#171717;box-shadow:0 0 10px rgba(198,255,0,.45)}
+html[data-look="p2"] .lesson.is-cancel .num{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3)}
+/* кнопки — капсулы */
+html[data-look="p2"] .secondary,html[data-look="p2"] .installbtn,html[data-look="p2"] .link,html[data-look="p2"] .pill{background:#101010;border:1px solid var(--cap-bd);color:#F2F2F2;border-radius:999px}
+html[data-look="p2"] .pushbtn.on{color:#C6FF00;border-color:rgba(198,255,0,.4)}
+html[data-look="p2"] .primary{border-radius:999px}
+html[data-look="p2"] .danger{border-radius:999px}
+html[data-look="p2"] .icon-btn{background:#101010;border:1px solid var(--cap-bd);color:#F2F2F2;border-radius:50%;width:44px;height:44px}
+html[data-look="p2"] .acts button{background:#101010;border:1px solid var(--cap-bd);border-radius:999px;color:#F2F2F2}
+html[data-look="p2"] .acts .a-room,html[data-look="p2"] .acts .a-test,html[data-look="p2"] .acts .a-exam{color:#C6FF00;background:#101010}
+html[data-look="p2"] .acts .a-cancel{color:#FF6B6B}
+/* поля ввода — капсулы, при фокусе светятся */
+html[data-look="p2"] .input{background:#101010;border:1px solid var(--cap-bd);border-radius:16px;transition:border-color .2s,box-shadow .2s}
+html[data-look="p2"] .input:focus{outline:none;border-color:#C6FF00;box-shadow:0 0 0 3px rgba(198,255,0,.12),0 0 14px rgba(198,255,0,.22)}
+/* нижние листы */
+html[data-look="p2"] .sheet{background:#0B0B0B;border:1px solid var(--cap-bd);border-bottom:none;border-radius:28px 28px 0 0}
+html[data-look="p2"] .overlay{background:rgba(0,0,0,.55)}
+/* нажатие — с пружинкой */
+.choice,.primary,.secondary,.chip,.icon-btn,.pill,.acts button,.link,.installbtn,.rowbtn,.danger{transition:transform .35s cubic-bezier(.34,1.5,.64,1)}
+.choice:active,.primary:active,.secondary:active,.chip:active,.icon-btn:active,.pill:active,.acts button:active,.link:active,.installbtn:active,.rowbtn:active,.danger:active{transform:scale(.95);transition-duration:.1s}
+@media (prefers-reduced-motion:reduce){.choice:active,.primary:active,.secondary:active,.chip:active,.icon-btn:active,.pill:active,.acts button:active,.link:active,.installbtn:active,.rowbtn:active,.danger:active{transform:none}}
 </style>
 </head>
 <body>
