@@ -759,7 +759,7 @@ function roomOf(x){var r=x.l.room||'';x.ch.forEach(function(c){if(c.type==='room
 var LOGO='<svg class="logo" width="36" height="36" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="116" fill="#292929"/><g fill="#5A5A5A"><rect x="121" y="147" width="232" height="50" rx="25"/><rect x="238" y="299" width="175" height="50" rx="25"/><rect x="183" y="375" width="210" height="50" rx="25"/><circle cx="391" cy="172" r="26"/><circle cx="391" cy="324" r="26"/><circle cx="391" cy="400" r="26"/></g><rect x="121" y="223" width="232" height="50" rx="25" fill="#7A7A7A"/><rect x="101" y="237" width="267" height="22" rx="11" fill="#C6FF00"/><circle cx="391" cy="248" r="26" fill="#C6FF00"/></svg>';
 // справа вверху — стрик; язык — во вкладке «Ещё» (на экране выбора класса и входа язык остаётся здесь)
 /* ---------- logo of the day ---------- */
-// значок на логотипе: праздник (даты учебного года 2026–2027 — поправить здесь) или сезон
+// значок на логотипе: праздник (даты учебного года 2026–2027 — поправить здесь) или первая неделя сезона
 var OCCASIONS=[
  ['2026-12-04','2026-12-12','🕎',{he:'חג חנוכה שמח!',en:'Happy Hanukkah!',ru:'Счастливой Хануки!'}],
  ['2027-01-22','2027-01-23','🌳',{he:'ט״ו בשבט שמח!',en:'Happy Tu BiShvat!',ru:'С Ту би-Шват!'}],
@@ -768,11 +768,11 @@ var OCCASIONS=[
  ['2027-05-11','2027-05-12','🇮🇱',{he:'יום עצמאות שמח!',en:'Happy Independence Day!',ru:'С Днём независимости!'}],
  ['2027-05-24','2027-05-25','🔥',{he:'ל״ג בעומר שמח!',en:'Happy Lag BaOmer!',ru:'С Лаг ба-Омер!'}],
  ['2027-06-10','2027-06-12','🧀',{he:'חג שבועות שמח!',en:'Happy Shavuot!',ru:'Счастливого Шавуота!'}]];
-var SEASONS={12:'❄️',1:'❄️',2:'❄️',3:'🌸',4:'🌸',5:'🌸',6:'☀️',7:'☀️',8:'☀️',9:'🍂',10:'🍂',11:'🍂'};
+var SEASONS={12:'❄️',3:'🌸',6:'☀️',9:'🍂'};
 var SEASON_TXT={'❄️':{he:'חורף נעים ❄️',en:'Cozy winter ❄️',ru:'Уютной зимы ❄️'},'🌸':{he:'אביב שמח 🌸',en:'Happy spring 🌸',ru:'Хорошей весны 🌸'},'☀️':{he:'קיץ! ☀️',en:'Summer! ☀️',ru:'Лето! ☀️'},'🍂':{he:'סתיו נעים 🍂',en:'Cozy autumn 🍂',ru:'Уютной осени 🍂'}};
 function occasion(){var d=todayISO(),o=null;OCCASIONS.forEach(function(x){if(d>=x[0]&&d<=x[1])o={e:x[2],txt:x[3],hol:true};});
-  if(o)return o;var e=SEASONS[+d.slice(5,7)];return {e:e,txt:SEASON_TXT[e]};}
-function logoHtml(){var o=occasion();return '<button class="logo-wrap" data-act="logo" aria-label="'+esc(o.txt[prefs.lang]||'')+'">'+LOGO+'<span class="logo-badge'+(o.hol?' hol':'')+'" aria-hidden="true">'+o.e+'</span></button>';}
+  if(o)return o;var e=SEASONS[+d.slice(5,7)];return e&&+d.slice(8)<=7?{e:e,txt:SEASON_TXT[e]}:null;}
+function logoHtml(){var o=occasion();if(!o)return LOGO;return '<button class="logo-wrap" data-act="logo" aria-label="'+esc(o.txt[prefs.lang]||'')+'">'+LOGO+'<span class="logo-badge'+(o.hol?' hol':'')+'" aria-hidden="true">'+o.e+'</span></button>';}
 /* ---------- achievements ---------- */
 // значки за действия; хранятся только в телефоне (sched.ach = {id: дата})
 var ACH=[
@@ -1881,7 +1881,7 @@ root.addEventListener('click',function(e){
         return fetch(API+'/data',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){STATE=d;draft=clone(d);dirty=false;ui.backups=null;toast(t('restored'));render();});
       });break;
     case 'report':openChat();break;
-    case 'logo':var oc=occasion();toast(oc.e+' '+(oc.txt[prefs.lang]||''));break;
+    case 'logo':var oc=occasion();if(oc)toast(oc.e+' '+(oc.txt[prefs.lang]||''));break;
     case 'search':ui.search={q:''};render();var sqi=document.getElementById('sq');if(sqi)sqi.focus();break;
     case 'searchClose':ui.search=null;render();break;
     case 'searchGo':ui.date=el.getAttribute('data-d');ui.search=null;slideAll.only='days';render();window.scrollTo(0,0);break;
