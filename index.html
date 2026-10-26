@@ -326,22 +326,20 @@ html[data-look^="p"] .report .danger{background:var(--P-bg);border-radius:14px}
 .tabbar{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;max-width:520px;margin:0 auto;height:68px;border-radius:34px;background:#0D0D0D;border:1px solid rgba(255,255,255,.07);box-shadow:0 12px 32px rgba(0,0,0,.55);overflow:hidden}
 .tabbar[hidden]{display:none}
 .tabbar .in{position:relative;display:flex;height:100%;padding:0 6px}
-/* дорожка колокола — с отступами от скруглённых концов капсулы, чтобы он не обрезался */
+/* дорожка круга — совпадает с кнопками (отступы как у .in) */
 .tabbar .track{position:absolute;top:0;bottom:0;left:6px;right:6px;pointer-events:none}
-.tabbar button{flex:1;position:relative;z-index:1;border:none;background:none;color:#A3A3A3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit;font-size:11px;font-weight:600;padding:12px 0 6px;transition:color .3s}
+.tabbar button{flex:1;position:relative;z-index:1;border:none;background:none;color:#A3A3A3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:11px;font-weight:600;padding:12px 0 6px;transition:color .3s}
 .tabbar button.on{color:#C6FF00}
 .tabbar .ico{display:block;height:24px}
 .tabbar .ico svg{display:block}
-.tabbar .dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0;transition:opacity .3s}
-.tabbar button.on .dot{opacity:1}
 .tabbar .badge{position:absolute;top:7px;inset-inline-start:calc(50% + 5px);min-width:18px;height:18px;border-radius:9px;padding:0 5px;background:#C6FF00;color:#171717;font-size:11px;line-height:18px;text-align:center}
 .tabbar .badge:empty{display:none}
-/* светящийся «колокол» под активной вкладкой: переезжает с пружинкой */
-.tabbar .bell{position:absolute;bottom:0;height:100%;width:calc(100% / 3);inset-inline-start:calc(var(--i,0) * 100% / 3);transition:inset-inline-start .55s cubic-bezier(.34,1.35,.64,1);filter:drop-shadow(0 0 6px rgba(198,255,0,.55));pointer-events:none}
-.tabbar .bell svg{display:block;width:100%;height:100%}
+/* светящийся круг под активной иконкой: переезжает с пружинкой */
+.tabbar .orb{position:absolute;top:0;height:100%;width:calc(100% / 3);inset-inline-start:calc(var(--i,0) * 100% / 3);transition:inset-inline-start .55s cubic-bezier(.34,1.35,.64,1);pointer-events:none}
+.tabbar .orb i{position:absolute;top:4px;left:50%;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:radial-gradient(circle,rgba(198,255,0,.28),rgba(198,255,0,.06) 70%);box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 14px rgba(198,255,0,.45)}
 .tabbar .ico.pop{animation:navpop .5s cubic-bezier(.34,1.5,.64,1)}
 @keyframes navpop{0%{transform:none}40%{transform:translateY(-9px) scale(1.15)}100%{transform:none}}
-@media (prefers-reduced-motion:reduce){.tabbar .bell{transition:none}.tabbar .ico.pop{animation:none}}
+@media (prefers-reduced-motion:reduce){.tabbar .orb{transition:none}.tabbar .ico.pop{animation:none}}
 .morehead{margin:14px 0 4px}
 /* текущий урок — рамка цвета акцента, следующий — подпись «далее» */
 .lesson.is-now{box-shadow:inset 0 0 0 2px var(--today)}
@@ -673,18 +671,14 @@ var NAV_ICO={
  tests:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="18" rx="3"/><path d="M9 3.5h6v3H9zM9 12l2 2 4-4"/></svg>',
  more:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 };
-// панель живёт вне #root и не пересоздаётся при render(), поэтому «колокол» может плавно переезжать
+// панель живёт вне #root и не пересоздаётся при render(), поэтому круг может плавно переезжать
 var NAV_TABS=[['day','navDay'],['tests','navTests'],['more','navMore']],nav=null;
-// контур колокола книзу растворяется (bells), поэтому у основания нет резкого обрыва
-var BELL='<svg viewBox="0 0 100 64" preserveAspectRatio="none" aria-hidden="true"><defs><radialGradient id="bellg" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#C6FF00" stop-opacity=".3"/><stop offset="1" stop-color="#C6FF00" stop-opacity="0"/></radialGradient>'+
-  '<linearGradient id="bells" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C6FF00"/><stop offset=".4" stop-color="#C6FF00"/><stop offset=".85" stop-color="#C6FF00" stop-opacity="0"/></linearGradient></defs>'+
-  '<path d="M4 64C26 64 23 5 50 5S77 64 96 64Z" fill="url(#bellg)"/><path d="M4 64C26 64 23 5 50 5S77 64 96 64" fill="none" stroke="url(#bells)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>';
 function syncNav(){
   var i=-1;NAV_TABS.forEach(function(x,k){if(ui.screen===x[0])i=k;});
   if(!nav){
     nav=document.createElement('nav');nav.className='tabbar';
-    var h='<div class="in"><span class="track"><span class="bell">'+BELL+'</span></span>';
-    NAV_TABS.forEach(function(x){h+='<button data-s="'+x[0]+'"><span class="ico">'+NAV_ICO[x[0]]+'</span><i class="dot"></i><span class="lb"></span><span class="badge"></span></button>';});
+    var h='<div class="in"><span class="track"><span class="orb"><i></i></span></span>';
+    NAV_TABS.forEach(function(x){h+='<button data-s="'+x[0]+'"><span class="ico">'+NAV_ICO[x[0]]+'</span><span class="lb"></span><span class="badge"></span></button>';});
     nav.innerHTML=h+'</div>';document.body.appendChild(nav);
     nav.addEventListener('click',function(e){var b=e.target.closest('[data-s]');if(!b)return;var ns=b.getAttribute('data-s');
       // повторное нажатие на «Расписание» возвращает к сегодняшнему дню
