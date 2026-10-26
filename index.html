@@ -848,6 +848,9 @@ function groupSubjects(st,g){var out=[];st.lessons.forEach(function(l){if(l.aud.
 function filterGroups(q){ui.gq=q;var nq=normQ(q),n=0;
   root.querySelectorAll('#glist [data-key]').forEach(function(b){var ok=!nq||b.getAttribute('data-key').indexOf(nq)>=0;b.hidden=!ok;if(ok)n++;});
   var none=document.getElementById('gnone');if(none)none.hidden=n>0;}
+// группы по уровню: 5+ יח״ל, 5, 4, 3…, без уровня — в конце (внутри уровня — как в данных)
+function groupLevel(g){var m=/(\d)\s*(\+?)\s*יח/.exec(g.he||'');return m?+m[1]+(m[2]?.5:0):-1;}
+function byLevel(list){return list.map(function(g,i){return {g:g,i:i,l:groupLevel(g)};}).sort(function(a,b){return b.l-a.l||a.i-b.i;}).map(function(x){return x.g;});}
 function renderSetup(){
   var st=STATE,subs=subjectsFor(st,ui.tmpClass),fs=firstStep(),total=1+subs.length-fs,h='';
   h+=topbar();
@@ -876,7 +879,7 @@ function renderSetup(){
   } else {
     var s=subs[ui.setupStep-1];
     h+='<h2>'+esc(t('chooseGroup')+nm(s))+'</h2><p class="sub">'+esc(t(s.multi?'multiSub':'chooseGroupSub'))+'</p>';
-    var glist=groupsFor(st,s.id,ui.tmpClass),q=ui.gq||'';
+    var glist=byLevel(groupsFor(st,s.id,ui.tmpClass)),q=ui.gq||'';
     if(glist.length>5)h+='<div class="searchbox"><input class="input" id="gsearch" type="search" autocomplete="off" placeholder="🔍 '+esc(t('searchPh'))+'" value="'+esc(q)+'"></div>';
     h+='<div class="stack" id="glist">';
     var picked=ui.tmpGroups[s.id],shown=0;
