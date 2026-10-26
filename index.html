@@ -815,7 +815,7 @@ function renderDay(){
   for(var i=0;i<5;i++){var di=addDays(sun,i),off=dayOff(di);var hasCh=!off&&studentLessons(di).some(function(x){return x.ch.length;});
     h+='<button class="chip'+(di===d?' on':'')+(di===today?' today':'')+(off?' off':'')+'" data-act="goto" data-d="'+di+'">'+(hasCh?'<span class="dot"></span>':'')+'<b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}
   h+='</div>';
-  if(+todayISO().slice(8)<=7&&sGet('localStorage','sched.recapSeen')!==prevMonth())h+='<button class="recapbanner" data-act="recapOpen">✨ '+esc(t('recapReady').replace('{m}',monthName(prevMonth())))+'<span>›</span></button>';
+  if(recapOn()&&+todayISO().slice(8)<=7&&sGet('localStorage','sched.recapSeen')!==prevMonth())h+='<button class="recapbanner" data-act="recapOpen">✨ '+esc(t('recapReady').replace('{m}',monthName(prevMonth())))+'<span>›</span></button>';
   if(navigator.onLine===false)h+='<div class="notice">📴 '+esc(t('offline'))+'</div>';
   if(weekLabel(d,ref)){h+='<div class="notice"><button class="link" data-act="goto" data-d="'+ref+'">'+esc(t('backToday'))+'</button></div>';}
   var dOff=dayOff(d);
@@ -1068,6 +1068,9 @@ function palAddSave(){
 }
 /* ---------- monthly recap ---------- */
 // итоги прошлого месяца — считаются в телефоне по расписанию и изменениям
+// итоги — только с октября 2026 (раньше приложения не было): кнопка и плашка появятся 1 ноября
+var RECAP_FROM='2026-10';
+function recapOn(){return prevMonth()>=RECAP_FROM;}
 function prevMonth(){var d=parse(todayISO());d.setDate(1);d.setMonth(d.getMonth()-1);return iso(d).slice(0,7);}
 function monthName(ym){try{return new Intl.DateTimeFormat(LOC[prefs.lang],{month:'long'}).format(parse(ym+'-01'));}catch(e){return ym;}}
 function recapData(ym){
@@ -1121,7 +1124,7 @@ function renderMore(){
 }
 function footer(showChange){
   var h='<div class="foot">';
-  if(showChange)h+='<button class="secondary installbtn" data-act="recapOpen">✨ '+esc(t('recapBtn'))+'</button>';
+  if(showChange&&recapOn())h+='<button class="secondary installbtn" data-act="recapOpen">✨ '+esc(t('recapBtn'))+'</button>';
   if(showChange&&API)h+=pushOn()?'<button class="secondary installbtn pushbtn on" data-act="pushOff">🔔 '+esc(t('pushActive'))+'</button>':'<button class="primary installbtn pushbtn" data-act="pushOn">🔔 '+esc(t('pushBtn'))+'</button>';
   if(showChange&&API)h+='<button class="secondary installbtn" data-act="report">💬 '+esc(t('supportBtn'))+(ui.chatUnread?' <span class="cbadge">'+esc(ui.chatUnread)+'</span>':'')+'</button>';
   if(showChange&&!isStandalone())h+='<button class="secondary installbtn" data-act="install">📲 '+esc(t('install'))+'</button>';
