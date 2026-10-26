@@ -1186,7 +1186,7 @@ function render(){
   if(ui.toast)h+='<div class="toast'+(ui.toast.bad?' bad':'')+'" role="status">'+esc(ui.toast.text)+'</div>';
   root.innerHTML=h;
   syncNav();
-  slideAll();
+  slideAll();slideAll.only=null;
   // новый экран или другой день — карточки появляются по очереди
   var sk=ui.screen+'|'+(ui.screen==='day'?ui.date:ui.screen==='editor'?ui.etab:'');
   if(render.last!==sk&&root.firstChild)root.firstChild.classList.add('enter');
@@ -1194,7 +1194,8 @@ function render(){
   if(ui.screen==='editor'&&ui.sheet){var f=root.querySelector('.sheet input,.sheet select');if(f&&ui.sheet.kind==='change')f.focus();}
 }
 // светящаяся подсветка в переключателях (дни, языки, вкладки редактора): render() пересоздаёт
-// разметку, поэтому ставим подсветку на старое место и сразу переносим на новое — браузер анимирует
+// разметку, поэтому ставим подсветку на старое место и сразу переносим на новое — браузер анимирует.
+// Анимируется только переключатель, который нажали (slideAll.only), остальные встают на место сразу.
 var SLIDE={};
 function slideAll(){
   root.querySelectorAll('[data-slide]').forEach(function(c){
@@ -1204,8 +1205,11 @@ function slideAll(){
     if(!on){sl.style.opacity='0';delete SLIDE[k];return;}
     var r={x:on.offsetLeft,y:on.offsetTop,w:on.offsetWidth,h:on.offsetHeight},p=SLIDE[k];
     var put=function(q){sl.style.transform='translate('+q.x+'px,'+q.y+'px)';sl.style.width=q.w+'px';sl.style.height=q.h+'px';};
-    if(p&&(p.x!==r.x||p.y!==r.y||p.w!==r.w)){sl.style.transition='none';put(p);void sl.offsetWidth;sl.style.transition='';}
+    var go=p&&c.getAttribute('data-slide')===slideAll.only&&(p.x!==r.x||p.y!==r.y||p.w!==r.w);
+    sl.style.transition='none';
+    if(go){put(p);void sl.offsetWidth;sl.style.transition='';}
     put(r);SLIDE[k]=r;
+    if(!go){void sl.offsetWidth;sl.style.transition='';}
     // ряд вкладок редактора прокручивается: выбранная вкладка всегда на виду
     if(c.scrollWidth>c.clientWidth){var L=on.offsetLeft,R=L+on.offsetWidth;if(L<c.scrollLeft||R>c.scrollLeft+c.clientWidth)c.scrollLeft=L-(c.clientWidth-on.offsetWidth)/2;}
   });
@@ -1221,6 +1225,8 @@ function startSetup(){ui.screen='setup';ui.setupStep=firstStep();ui.tmpLetter=nu
 root.addEventListener('click',function(e){
   var el=e.target.closest('[data-act]');if(!el)return;
   var a=el.getAttribute('data-act'),id=el.getAttribute('data-id');
+  // какой переключатель нажали — только его подсветка переедет; стрелки дня двигают подсветку дней
+  var sc=el.closest('[data-slide]');slideAll.only=sc?sc.getAttribute('data-slide'):(a==='day'||a==='goto')?'days':null;
   if(a==='overlay'){if(e.target===el){ui.sheet=null;ui.delArm=false;ui.installOpen=false;ui.report=null;render();}return;}
   switch(a){
     case 'setLang':prefs.lang=el.getAttribute('data-l');sSet('localStorage','sched.prefs',prefs);render();syncPush();break;
@@ -1327,7 +1333,7 @@ root.addEventListener('touchstart',function(e){if(ui.screen!=='day')return;tx=e.
 root.addEventListener('touchend',function(e){
   if(ui.screen!=='day'||tx==null)return;
   var dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
-  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){var fwd=prefs.lang==='he'?dx>0:dx<0;ui.date=stepDay(ui.date,fwd?1:-1);render();}
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){var fwd=prefs.lang==='he'?dx>0:dx<0;slideAll.only='days';ui.date=stepDay(ui.date,fwd?1:-1);render();}
 },{passive:true});
 
 /* ---------- start ---------- */
@@ -1343,6 +1349,9 @@ render();
   var s=document.createElement('script');s.type='module';s.src='https://static.cloudflareinsights.com/beacon.min.js';
   s.setAttribute('data-cf-beacon','{"token": "c8cb7b7f66e7416e83e3de3a78ebeeef"}');document.body.appendChild(s);
 })();
+// шрифт догрузился или поменялся размер окна — подсветка тихо встаёт на место
+try{if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){slideAll();});}catch(e){}
+window.addEventListener('resize',function(){slideAll();});
 // раз в минуту обновляем экран дня, чтобы подсветка урока шла за временем
 window.addEventListener('online',function(){if(ui.screen==='day')render();loadRemote();});
 window.addEventListener('offline',function(){if(ui.screen==='day')render();});
