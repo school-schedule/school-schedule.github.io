@@ -786,7 +786,6 @@ var ACH=[
  ['cancel5','🍀',{he:'בר מזל',en:'Lucky',ru:'Везунчик'},{he:'5 ביטולים',en:'5 cancellations',ru:'5 отмен'}],
  ['night','🌙',{he:'ינשוף',en:'Night owl',ru:'Сова'},{he:'לפתוח אחרי 23:00',en:'Open after 11 pm',ru:'Открыть после 23:00'}],
  ['early','🌅',{he:'ציפור מוקדמת',en:'Early bird',ru:'Ранняя пташка'},{he:'לפתוח לפני 7:00',en:'Open before 7 am',ru:'Открыть до 7:00'}],
- ['chat','💬',{he:'בקשר',en:'In touch',ru:'На связи'},{he:'לכתוב לתמיכה',en:'Write to support',ru:'Написать в поддержку'}],
  ['search','🔍',{he:'בלש',en:'Detective',ru:'Сыщик'},{he:'למצוא שיעור בחיפוש',en:'Find a lesson with search',ru:'Найти урок через поиск'}],
  ['teacher','🧭',{he:'גשש',en:'Tracker',ru:'Следопыт'},{he:'למצוא מורה',en:'Find a teacher',ru:'Найти учителя'}],
  ['recap','✨',{he:'סיכום',en:'Recap',ru:'Итоги'},{he:'לראות את סיכום החודש',en:'Watch the monthly recap',ru:'Посмотреть итоги месяца'}],
@@ -1380,7 +1379,7 @@ function chatSend(){
   fetch(API+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k,text:text,classId:prefs.classId||'',ctx:ctx})})
   .then(function(r){return r.status;},function(){return 0;}).then(function(st){
     ui.chatBusy=false;
-    if(st===200){unlock('chat');sSet('localStorage','sched.chatOn',1);ui.chatDraft='';ui.chatCtx='';ui.chat.msgs.push({who:'u',text:text,at:new Date().toISOString(),ctx:ctx?JSON.stringify(ctx):''});render();chatBottom();chatLoad(true);}
+    if(st===200){sSet('localStorage','sched.chatOn',1);ui.chatDraft='';ui.chatCtx='';ui.chat.msgs.push({who:'u',text:text,at:new Date().toISOString(),ctx:ctx?JSON.stringify(ctx):''});render();chatBottom();chatLoad(true);}
     else{render();toast(t(st===429?'reportTooMany':st===0?'netBlocked':'reportFailed'),true);}
   });
 }
