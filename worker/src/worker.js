@@ -925,7 +925,11 @@ function parseExam(t) {
   const title = m[2].trim();
   return { date: isoDate(m[1]), from, to, teacher: m[6].trim(), type: /מבחן/.test(title) ? "exam" : "test", room: (m[7] || "").trim(), note: title };
 }
-// события: «24.12.2026, חופשת חנוכה» или «24.12.2026 - 31.12.2026, חופשת חנוכה»
+// события, как на вкладке «אירועים»:
+//  «01.12.2026, יום זכויות האדם משיעור 1 עד שיעור 4 לכיתות: י-1...י-12, …»
+//  «02.12.2026, סמינר … משיעור 10 עד שיעור 12 לכיתות: … בקבוצה של ברגר שירה, חדר: אודיטוריום גדול»
+// и на всякий случай простые: «24.12.2026, חופשת חנוכה», «24.12.2026 - 31.12.2026, חופשת חנוכה».
+// Классы берём не из строки, а из того, на странице какого класса она стоит.
 // Выходной — только если прямо написано, что учёбы нет; остальное — просто событие дня.
 const EVENT_LINE = /^\d{1,2}[./]\d{1,2}[./]\d{4}/;
 const OFF_WORDS = /חופש|אין לימודים|פגרה|יום חופשי|שבתון/;
@@ -934,10 +938,20 @@ function eventDate(d) {
   return m ? m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0") : null;
 }
 function parseEvent(t) {
-  // строки в формате вкладок «שינויים» и «מבחנים» — не события (если адрес вкладки неверный)
-  if (/^[\d.]+,\s*שיעור\s*\d+,/.test(t) || /לכיתות:/.test(t)) return null;
+  // строки в формате вкладки «שינויים» — не события (если адрес вкладки неверный)
+  if (/^[\d.]+,\s*שיעור\s*\d+,/.test(t)) return null;
+  const p = /^(\d{1,2}[./]\d{1,2}[./]\d{4}),\s*(.+?)\s+(?:משיעור\s*(\d+)\s*עד\s*שיעור\s*(\d+)|שיעור\s*(\d+))\s+לכיתות:\s*(.*)$/.exec(t);
+  if (p) {
+    const day = eventDate(p[1]), text = p[2].trim().slice(0, 120);
+    if (!day || !text) return null;
+    const ev = { days: [day], text, from: +(p[3] || p[5]), to: +(p[4] || p[5]), off: OFF_WORDS.test(text) };
+    const who = /בקבוצה של\s+([^,]+)/.exec(p[6]), room = /חדר:\s*(.+)$/.exec(p[6]);
+    if (who) ev.teacher = who[1].trim();
+    if (room) ev.room = room[1].trim().slice(0, 60);
+    return ev;
+  }
   const m = /^(\d{1,2}[./]\d{1,2}[./]\d{4})(?:\s*[-–]\s*(\d{1,2}[./]\d{1,2}[./]\d{4}))?\s*[,:\-–]?\s*(.+)$/.exec(t);
-  if (!m) return null;
+  if (!m || /לכיתות:/.test(t)) return null;
   const from = eventDate(m[1]), to = m[2] ? eventDate(m[2]) : from;
   const text = m[3].trim().slice(0, 120);
   if (!from || !to || to < from || !text) return null;
@@ -1000,7 +1014,7 @@ async function syncShahaf(env, ctx, opt) {
   const tabs = (opt.changes ? ["changes"] : []).concat(opt.exams ? ["exams"] : [], opt.events ? [evTab] : []);
   const events = new Map(); // дата|текст → событие и список классов
   const evCache = new Map();
-  if (opt.events) { report.events = 0; report.eventSamples = []; }
+  if (opt.events) { report.events = 0; report.eventSamples = []; report.eventUnknown = []; }
   for (const c of st.classes) {
     const sid = ids[c.num];
     if (!sid) continue;
@@ -1012,11 +1026,17 @@ async function syncShahaf(env, ctx, opt) {
           // примеры строк — в отчёт /shahaf, чтобы было видно, как выглядит вкладка
           if (report.eventSamples.length < 8 && !report.eventSamples.includes(t)) report.eventSamples.push(t);
           const ev = parseEvent(t);
-          if (!ev) continue;
+          if (!ev) { if (report.eventUnknown.length < 8 && !report.eventUnknown.includes(t)) report.eventUnknown.push(t); continue; }
           for (const day of ev.days) {
             if (day < today) continue;
-            const k = day + "|" + ev.text;
-            if (!events.has(k)) events.set(k, { date: day, text: ev.text, off: ev.off, cls: [] });
+            const k = [day, ev.text, ev.from || "", ev.to || "", ev.teacher || ""].join("|");
+            if (!events.has(k)) {
+              const e = { date: day, text: ev.text, off: ev.off, cls: [] };
+              if (ev.from) { e.from = ev.from; e.to = ev.to; }
+              if (ev.room) e.room = ev.room;
+              if (ev.teacher) e.teacher = ev.teacher;
+              events.set(k, e);
+            }
             const e = events.get(k);
             if (!e.cls.includes(c.id)) e.cls.push(c.id);
           }
@@ -1057,10 +1077,10 @@ async function syncShahaf(env, ctx, opt) {
   let nextEvents = st.events;
   if (opt.events) {
     nextEvents = [...events.values()].map((e) => {
-      const ev = { date: e.date, text: e.text, off: e.off };
-      if (e.cls.length < report.classes) ev.cls = e.cls.sort();
+      const ev = { ...e };
+      if (e.cls.length < report.classes) ev.cls = e.cls.sort(); else delete ev.cls;
       return ev;
-    }).sort((a, b) => a.date.localeCompare(b.date));
+    }).sort((a, b) => a.date.localeCompare(b.date) || (a.from || 0) - (b.from || 0));
     report.events = nextEvents.length;
     if (JSON.stringify(nextEvents) !== JSON.stringify(st.events || [])) report.changed = true;
   }

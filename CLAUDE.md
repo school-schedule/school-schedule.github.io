@@ -52,7 +52,7 @@ groups   [{id, subjectId, he, en, ru, teacher?, classId?, exceptClasses?}]
 classes  [{id, he, en, ru, letter, num}]           например י׳2: letter "י", num 2
 lessons  [{id, day 0–4 (вс–чт), period, subjectId, aud:{type:"class"|"group", id}, teacher, room}]
 changes  [{id, date "YYYY-MM-DD", lessonId, type:"cancel"|"room"|"test"|"exam", room?, note?}]
-events   [{date, text, off, cls?}]                 события из שחף («אירועים»), пишет только Worker; off = учёбы нет; cls — если не для всех классов
+events   [{date, text, off, cls?, from?, to?, room?, teacher?}]  события из שחף («אירועים»), пишет только Worker; off = учёбы нет; cls — если не для всех классов; from/to — уроки; teacher — событие одной группы (видят ученики этого учителя)
 updatedAt, version, gradeName, migrations
 ```
 
