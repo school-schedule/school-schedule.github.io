@@ -24,7 +24,8 @@
  *    подписок и отметок счётчика по адресам; описан в wrangler.toml.
  *  - Durable Object  STATS  (класс Stats, SQLite) — анонимный счётчик устройств
  *    (POST /ping от сайта, GET /stats — для редактора) и сообщения об ошибках
- *    (POST /report от учеников, GET /reports и POST /reports/delete — для редактора).
+ *    (POST /report от учеников, GET /reports и POST /reports/delete — для редактора),
+ *    коды друзей (POST /pal, GET /pal/<код>, POST /pal/delete) и «кто сейчас свободен» (GET /crowd).
  */
 
 import { DurableObject } from "cloudflare:workers";
@@ -101,7 +102,11 @@ export default {
       if (path === "/subscribe" && req.method === "POST") return await subscribe(req, env);
       if (path === "/unsubscribe" && req.method === "POST") return await unsubscribe(req, env);
       // нет привязки STATS в Cloudflare (Settings → Bindings) — говорим об этом прямо
-      if (["/ping", "/stats", "/report", "/reports", "/reports/delete"].includes(path) && !env.STATS) return json({ error: "no_stats_binding" }, 500);
+      if ((["/ping", "/stats", "/report", "/reports", "/reports/delete", "/pal", "/crowd"].includes(path) || path.startsWith("/pal/")) && !env.STATS) return json({ error: "no_stats_binding" }, 500);
+      if (path === "/pal" && req.method === "POST") return await palSave(req, env);
+      if (path === "/pal/delete" && req.method === "POST") return await palDelete(req, env);
+      if (path.startsWith("/pal/") && req.method === "GET") return await palGet(req, env, path.slice(5));
+      if (path === "/crowd" && req.method === "GET") return json(await statsObj(env).crowd(israelDate(0)));
       if (path === "/report" && req.method === "POST") return await report(req, env);
       if (path === "/reports" || path === "/reports/delete") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
@@ -354,7 +359,7 @@ async function ping(req, env) {
   catch (e) { return json({ error: "try_later" }, 503); }
   if (!lim.ok) return json({ error: "too_many_pings", retryAfter: lim.retryAfter }, 429);
   const raw = await req.text();
-  if (raw.length > 300) return json({ error: "too_big" }, 413);
+  if (raw.length > 1500) return json({ error: "too_big" }, 413);
   let b;
   try { b = JSON.parse(raw); } catch (e) { return json({ error: "bad_json" }, 400); }
   const dev = b && b.id;
@@ -362,8 +367,43 @@ async function ping(req, env) {
   const cls = b.classId ? String(b.classId) : "";
   if (cls && !/^c\d{1,2}$/.test(cls)) return json({ error: "bad_class" }, 400);
   // день считает сервер (по времени Израиля), дате с телефона не доверяем
-  await statsObj(env).ping(israelDate(0), dev, cls);
+  await statsObj(env).ping(israelDate(0), dev, cls, cleanGroups(b.groups));
   return json({ ok: true });
+}
+// выбранные группы: только id групп, не больше 40
+function cleanGroups(g) {
+  return (Array.isArray(g) ? g : []).map(String).filter((x) => /^[\w-]{1,40}$/.test(x)).slice(0, 40).sort().join(",");
+}
+
+/* ---------------- друзья ---------------- */
+// Код друга — 6 символов, по нему можно узнать только класс и группы (без имени).
+// Имя друга хранит у себя в телефоне тот, кто его добавил. Один код на устройство,
+// при смене групп код остаётся прежним, а данные обновляются.
+const PAL_MAX = 30, PAL_WINDOW_SEC = 3600, PALGET_MAX = 200;
+async function palSave(req, env) {
+  let lim;
+  try { lim = await limiter(env, "pal", req).hit(PAL_MAX, PAL_WINDOW_SEC); }
+  catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.id !== "string" || !/^[0-9a-f]{32}$/.test(b.id)) return json({ error: "bad_id" }, 400);
+  if (!/^c\d{1,2}$/.test(b.classId || "")) return json({ error: "bad_class" }, 400);
+  return json(await statsObj(env).palSave(b.id, b.classId, cleanGroups(b.groups), new Date().toISOString()));
+}
+async function palGet(req, env, code) {
+  code = String(code || "").toUpperCase();
+  if (!/^[A-Z2-9]{6}$/.test(code)) return json({ error: "bad_code" }, 400);
+  let lim;
+  try { lim = await limiter(env, "palget", req).hit(PALGET_MAX, PAL_WINDOW_SEC); }
+  catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const r = await statsObj(env).palGet(code);
+  return r ? json(r) : json({ error: "not_found" }, 404);
+}
+async function palDelete(req, env) {
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.id !== "string" || !/^[0-9a-f]{32}$/.test(b.id)) return json({ error: "bad_id" }, 400);
+  return json(await statsObj(env).palDelete(b.id));
 }
 /* ---------------- сообщения об ошибках ---------------- */
 // Ученик пишет, что в расписании не так. Сохраняются только текст, класс, дата и урок —
@@ -410,6 +450,39 @@ export class Stats extends DurableObject {
     this.sql.exec("CREATE TABLE IF NOT EXISTS seen (day TEXT NOT NULL, dev TEXT NOT NULL, cls TEXT NOT NULL, PRIMARY KEY (day, dev)) WITHOUT ROWID");
     this.sql.exec("CREATE TABLE IF NOT EXISTS devices (dev TEXT PRIMARY KEY, cls TEXT NOT NULL) WITHOUT ROWID");
     this.sql.exec("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, date TEXT NOT NULL, period INTEGER NOT NULL, lesson TEXT NOT NULL, cls TEXT NOT NULL, text TEXT NOT NULL)");
+    this.sql.exec("CREATE TABLE IF NOT EXISTS pals (code TEXT PRIMARY KEY, dev TEXT NOT NULL UNIQUE, cls TEXT NOT NULL, grp TEXT NOT NULL, at TEXT NOT NULL) WITHOUT ROWID");
+    // группы устройства (для «кто сейчас свободен»); у старой таблицы колонки ещё нет
+    const cols = this.sql.exec("PRAGMA table_info(devices)").toArray().map((c) => c.name);
+    if (!cols.includes("grp")) this.sql.exec("ALTER TABLE devices ADD COLUMN grp TEXT NOT NULL DEFAULT ''");
+  }
+  palSave(dev, cls, grp, at) {
+    const old = this.sql.exec("SELECT code FROM pals WHERE dev = ?", dev).toArray()[0];
+    if (old) {
+      this.sql.exec("UPDATE pals SET cls = ?, grp = ?, at = ? WHERE dev = ? AND (cls <> ? OR grp <> ?)", cls, grp, at, dev, cls, grp);
+      return { code: old.code };
+    }
+    const ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // без похожих 0/O, 1/I/L
+    for (let i = 0; i < 8; i++) {
+      const rnd = crypto.getRandomValues(new Uint8Array(6));
+      const code = Array.from(rnd, (x) => ABC[x % ABC.length]).join("");
+      if (this.sql.exec("SELECT 1 FROM pals WHERE code = ?", code).toArray().length) continue;
+      this.sql.exec("INSERT INTO pals (code, dev, cls, grp, at) VALUES (?, ?, ?, ?, ?)", code, dev, cls, grp, at);
+      return { code };
+    }
+    return { error: "busy" };
+  }
+  palGet(code) {
+    const r = this.sql.exec("SELECT cls, grp FROM pals WHERE code = ?", code).toArray()[0];
+    return r ? { classId: r.cls, groups: r.grp ? r.grp.split(",") : [] } : null;
+  }
+  palDelete(dev) {
+    this.sql.exec("DELETE FROM pals WHERE dev = ?", dev);
+    return { ok: true };
+  }
+  // «кто сейчас свободен»: сколько устройств за неделю с каждым выбором (класс + группы), без id
+  crowd(day) {
+    const rows = this.sql.exec("SELECT cls, grp, COUNT(*) AS n FROM devices WHERE grp <> '' AND dev IN (SELECT DISTINCT dev FROM seen WHERE day >= ?) GROUP BY cls, grp", shiftDay(day, -6)).toArray();
+    return { day, sel: rows.map((r) => ({ classId: r.cls, groups: r.grp.split(","), n: r.n })) };
   }
   addReport(r) {
     this.sql.exec("INSERT INTO reports (at, date, period, lesson, cls, text) VALUES (?, ?, ?, ?, ?, ?)", r.at, r.date, r.period, r.lesson, r.cls, r.text);
@@ -423,9 +496,9 @@ export class Stats extends DurableObject {
     this.sql.exec("DELETE FROM reports WHERE id = ?", id);
     return { ok: true };
   }
-  ping(day, dev, cls) {
+  ping(day, dev, cls, grp = "") {
     this.sql.exec("INSERT INTO seen (day, dev, cls) VALUES (?, ?, ?) ON CONFLICT (day, dev) DO UPDATE SET cls = excluded.cls WHERE cls <> excluded.cls", day, dev, cls);
-    this.sql.exec("INSERT INTO devices (dev, cls) VALUES (?, ?) ON CONFLICT (dev) DO UPDATE SET cls = excluded.cls WHERE cls <> excluded.cls", dev, cls);
+    this.sql.exec("INSERT INTO devices (dev, cls, grp) VALUES (?, ?, ?) ON CONFLICT (dev) DO UPDATE SET cls = excluded.cls, grp = excluded.grp WHERE cls <> excluded.cls OR grp <> excluded.grp", dev, cls, grp);
     // старые дни стираем раз в сутки (пока объект в памяти)
     if (this.cleaned !== day) {
       this.cleaned = day;
