@@ -509,6 +509,11 @@ html[data-look="p2"] .toast{background:#0D0D0D;border:1px solid rgba(255,255,255
 .ach.on{opacity:1;box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 14px rgba(198,255,0,.25)}
 .ach.on .ae{filter:none}
 .ach.on b{color:#C6FF00}
+/* ===== Два урока в одно время — одна карточка ===== */
+.lesson.pairbox,html[data-look^="p"] .lesson.pairbox{display:block;padding:0}
+.pairbox > .lesson{background:none!important;border:none!important;box-shadow:none!important;border-radius:0!important;margin:0!important}
+.pairbox > .lesson + .lesson{border-top:1px dashed rgba(255,255,255,.12)!important}
+.pairbox > .lesson + .lesson .num{visibility:hidden}
 /* ===== Стрик ===== */
 .streak{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 12px 0 10px;border-radius:999px;background:#0D0D0D;border:1px solid rgba(255,255,255,.08);color:#C6FF00;font-size:15px;box-shadow:0 0 12px rgba(198,255,0,.18)}
 .streak b{font-weight:700;font-variant-numeric:tabular-nums}
@@ -953,7 +958,10 @@ function renderDay(){
         if(p===brkAt)h+=brkHtml;
         var here=items.filter(function(x){return x.l.period===p;}),mark=p===nowP?'now':p===nextP?'next':'';
         var evTags=dEvs.filter(function(e){return e.from&&e.from<=p&&p<=e.to;}).map(function(e){return '<span class="tag ev">📅 <bdi>'+esc(e.text)+'</bdi></span>';}).join('');
-        if(here.length)here.forEach(function(x){h+=lessonCard(x.l,x.ch,mark,evTags,mark==='now'?cdNow:'');});
+        // два урока в одно время — одна общая карточка: уроки друг под другом, номер и метка один раз
+        if(here.length>1){var inner='';here.forEach(function(x,k){inner+=lessonCard(x.l,x.ch,k?'':mark,evTags,mark==='now'&&k===here.length-1?cdNow:'').replace('<li ','<div ').replace(/<\/li>$/,'</div>').replace(/ is-(now|next)/,'');});
+          h+='<li class="lesson pairbox'+(mark==='now'?' is-now':'')+'">'+inner+'</li>';}
+        else if(here.length)h+=lessonCard(here[0].l,here[0].ch,mark,evTags,mark==='now'?cdNow:'');
         else h+='<li class="lesson free'+(mark==='now'?' is-now':'')+'"><div class="num">'+esc(p)+'</div><div class="body"><div class="r1"><span class="subj">'+esc(t('free'))+'</span><span class="time">'+esc(periodTime(STATE,p))+'</span></div>'+(mark==='now'?'<div class="tags"><span class="tag now">'+esc(t('nowTag'))+'</span></div>'+cdNow:'')+'</div></li>';
       }
       h+='</ul>';
