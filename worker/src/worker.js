@@ -799,6 +799,7 @@ function applyMigrations(st) {
   if (!st.migrations.includes(MIGRATION6_ID)) { migration6(st); st.migrations.push(MIGRATION6_ID); changed = true; }
   if (!st.migrations.includes(MIGRATION7_ID)) { migration7(st); st.migrations.push(MIGRATION7_ID); changed = true; }
   if (!st.migrations.includes(MIGRATION8_ID)) { migration8(st); st.migrations.push(MIGRATION8_ID); changed = true; }
+  if (!st.migrations.includes(MIGRATION9_ID)) { migration9(st); st.migrations.push(MIGRATION9_ID); changed = true; }
   return changed;
 }
 function migration1(st) {
@@ -943,6 +944,13 @@ function migration8(st) {
   // новый кабинет у группы שקולניק בוריס
   const g = st.groups.find((x) => x.subjectId === "cat_math" && x.teacher === "שקולניק בוריס");
   if (g) for (const l of st.lessons) if (l.aud.type === "group" && l.aud.id === g.id) l.room = "גפן 23";
+}
+
+// 9. Английский открыт: ученик любого класса с английским видит все группы (subject.open, 28.10.2026)
+const MIGRATION9_ID = "eng-open-2026-10-28";
+function migration9(st) {
+  const s = st.subjects.find((x) => x.id === "cat_eng");
+  if (s) s.open = true;
 }
 
 const MIGRATION6_ID = "math-levels-2026-10-13";
@@ -1186,6 +1194,11 @@ function groupFitsClass(g, cid) {
   if (g.exceptClasses && g.exceptClasses.indexOf(cid) >= 0) return false;
   return !g.classId || g.classId === cid;
 }
+// как на сайте: у открытого предмета (subject.open) группа подходит любому классу, где этот предмет вообще есть
+function groupFits(idx, g, cid) {
+  if (!idx.openSubj.has(g.subjectId)) return groupFitsClass(g, cid);
+  return idx.classSubj.has(g.subjectId + "|" + cid);
+}
 // урок в нашем расписании: класс, день, номер урока, учитель
 function lessonIndex(st) {
   const groups = new Map(st.groups.map((g) => [g.id, g]));
@@ -1196,6 +1209,9 @@ function lessonIndex(st) {
     const g = l.aud.type === "group" ? groups.get(l.aud.id) : null;
     byDP.get(k).push({ l, g, t: normName(l.teacher), gt: g ? normName(g.teacher) : "" });
   }
+  byDP.openSubj = new Set(st.subjects.filter((s) => s.open).map((s) => s.id));
+  byDP.classSubj = new Set();
+  for (const g of st.groups) for (const c of st.classes) if (groupFitsClass(g, c.id)) byDP.classSubj.add(g.subjectId + "|" + c.id);
   return byDP;
 }
 function findLessons(idx, cid, item) {
@@ -1205,7 +1221,7 @@ function findLessons(idx, cid, item) {
   const out = [];
   for (let p = item.from; p <= item.to; p++) {
     for (const x of idx.get(wd + "|" + p) || []) {
-      if (x.l.aud.type === "class" ? x.l.aud.id !== cid : !x.g || !groupFitsClass(x.g, cid)) continue;
+      if (x.l.aud.type === "class" ? x.l.aud.id !== cid : !x.g || !groupFits(idx, x.g, cid)) continue;
       if (x.t === who || x.gt === who) out.push(x.l);
     }
   }
