@@ -35,7 +35,7 @@
 Разделы JS (ищи по комментариям `/* ---------- … ---------- */`):
 - **storage helpers** — `sGet/sSet/sDel` (обёртки над `localStorage`/`sessionStorage` в try/catch), `esc()` для экранирования HTML.
 - **texts** — словарь `T` с ключами `he`/`en`/`ru`; `t('ключ')` возвращает текст, `nm(obj)` — название объекта на текущем языке.
-- **state** — `prefs` (выбор ученика), `ui` (текущий экран и состояние), `draft`/`dirty` (черновик редактора); функции дат (`iso`, `schoolDay`, `stepDay`), подбор групп (`groupsFor`, `subjectsFor`, `groupFits`; для предметов из `openSubj()` — сейчас английский `cat_eng` — показываются все группы, если у класса вообще есть этот предмет), `migratePrefs()`, `studentLessons(date)`.
+- **state** — `prefs` (выбор ученика), `ui` (текущий экран и состояние), `draft`/`dirty` (черновик редактора); функции дат (`iso`, `schoolDay`, `stepDay`), подбор групп (`groupsFor`, `subjectsFor`, `groupFits`; у предмета с `open: true` — сейчас английский `cat_eng`, ставит миграция Worker — показываются все группы, если у класса вообще есть этот предмет; галочка в редакторе предмета), `migratePrefs()`, `studentLessons(date)`.
 - **streak** — `bumpStreak` (дни подряд в `localStorage["sched.streak"]` = `{last, n, best}`; пятница и суббота не обрывают), `streakPill` — огонёк справа вверху вместо языков; язык — во вкладке «Ещё» (на экранах выбора класса и входа — в шапке).
 - **achievements / logo of the day** — `ACH` (14 значков, `localStorage["sched.ach"]`), `unlock(id)` (тост и конфетти), `achCheck()` (по стрику, друзьям, отменам, времени, установке), `renderAch()` во вкладке «Ещё». `OCCASIONS` — праздники учебного года 2026–2027 (даты правятся там), иначе первая неделя сезона `SEASONS` (1–7 сентября, декабря, марта, июня), в остальные дни логотип без значка; `logoHtml()` — значок на логотипе, нажатие — поздравление.
 - **monthly recap** — итоги прошлого месяца как истории: `recapData(ym)` считает в телефоне (уроки, часы, отмены, контрольные, кабинет и предмет месяца, дни с приложением из `localStorage["sched.opens"]`), `renderRecap`; плашка на экране дня в первые 7 дней месяца (пока не открыли, `sched.recapSeen`), кнопка во вкладке «Ещё».
@@ -50,7 +50,7 @@
 
 ```
 periods  [{n, start, end}]                         время уроков, n = номер урока
-subjects [{id, he, en, ru, multi?}]                предметы; с группами = «выбор» (cat_math, cat_eng, cat_b …)
+subjects [{id, he, en, ru, multi?, open?}]         предметы; с группами = «выбор» (cat_math, cat_eng, cat_b …); open — группы не делятся по классам
 groups   [{id, subjectId, he, en, ru, teacher?, classId?, exceptClasses?}]
 classes  [{id, he, en, ru, letter, num}]           например י׳2: letter "י", num 2
 lessons  [{id, day 0–4 (вс–чт), period, subjectId, aud:{type:"class"|"group", id}, teacher, room}]
