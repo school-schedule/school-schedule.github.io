@@ -705,8 +705,12 @@ function fmtDate(s,opts){try{return new Intl.DateTimeFormat(LOC[prefs.lang],opts
 function byId(list,id){for(var i=0;i<list.length;i++)if(list[i].id===id)return list[i];return null;}
 function periodTime(st,n){var p=byId(st.periods.map(function(x){return {id:x.n,start:x.start,end:x.end};}),n);return p?p.start+'–'+p.end:'';}
 function subjectsWithGroups(st){return st.subjects.filter(function(s){return st.groups.some(function(g){return g.subjectId===s.id;});});}
-function groupFits(g,cid){if(g.exceptClasses&&g.exceptClasses.indexOf(cid)>=0)return false;return !g.classId||g.classId===cid;}
-function groupsFor(st,sid,cid){return st.groups.filter(function(g){return g.subjectId===sid&&groupFits(g,cid);});}
+function groupFitsCls(g,cid){if(g.exceptClasses&&g.exceptClasses.indexOf(cid)>=0)return false;return !g.classId||g.classId===cid;}
+/* English: any group of the subject, if the class has English at all */
+var OPEN_SUBJ={cat_eng:1};
+function groupFits(g,cid,st){if(!OPEN_SUBJ[g.subjectId])return groupFitsCls(g,cid);
+  return (st||STATE).groups.some(function(x){return x.subjectId===g.subjectId&&groupFitsCls(x,cid);});}
+function groupsFor(st,sid,cid){return st.groups.filter(function(g){return g.subjectId===sid&&groupFits(g,cid,st);});}
 function subjectsFor(st,cid){return st.subjects.filter(function(s){return groupsFor(st,s.id,cid).length>0;});}
 function audLabel(st,a){
   if(!a)return '';
@@ -761,7 +765,7 @@ function studentLessons(date){
 // уроки на дату для любого выбора: класс + группы (мой, друга, из сводки «кто свободен»)
 function lessonsFor(date,cid,gids){
   var wd=wday(date),st=STATE;
-  gids=(gids||[]).filter(function(id){var g=byId(st.groups,id);return g&&groupFits(g,cid);});
+  gids=(gids||[]).filter(function(id){var g=byId(st.groups,id);return g&&groupFits(g,cid,st);});
   return st.lessons.filter(function(l){return l.day===wd&&((l.aud.type==='class'&&l.aud.id===cid)||(l.aud.type==='group'&&gids.indexOf(l.aud.id)>=0));})
     .sort(function(a,b){return a.period-b.period;})
     .map(function(l){return {l:l,ch:changesFor(st,date,l.id)};});
