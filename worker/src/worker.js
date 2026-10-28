@@ -12,7 +12,7 @@
  *  - Secret  EDITOR_CODE  = код редактора
  *  - (необязательно) Variable  CONTACT  = mailto:твоя@почта
  *  - (необязательно) Variable  SHAHAF_URL = адрес сайта שחף школы
- *    (по умолчанию https://kfaryarok.shahaf.site). Cron Trigger: каждые 15 минут
+ *    (по умолчанию https://kfaryarok.shahaf.site). Cron Trigger: каждые 5 минут
  *    — сервер сам забирает оттуда отмены, смену кабинетов и контрольные,
  *    а раз в сутки — события (выходные и праздники) с вкладки «אירועים».
  *  - (необязательно) Variable  SHAHAF_EVENTS_TAB = имя вкладки событий в адресе (?tab=…),
@@ -51,9 +51,9 @@ export default {
   async scheduled(event, env, ctx) {
     const at = new Date(event.scheduledTime || Date.now());
     const min = at.getUTCMinutes();
-    // раз в час — контрольные, раз в сутки (в 3:15 UTC) — события, в остальное время — отмены и кабинеты
-    // (по отдельности, чтобы уложиться в 10 мс процессора бесплатного тарифа)
-    const opt = min < 15 ? { exams: true } : min < 30 && at.getUTCHours() === 3 ? { events: true } : { changes: true };
+    // cron каждые 5 минут: в :00 — контрольные (раз в час), в 3:15 UTC — события (раз в сутки),
+    // в остальное время — отмены и кабинеты (по отдельности, чтобы уложиться в 10 мс процессора бесплатного тарифа)
+    const opt = min < 5 ? { exams: true } : min >= 15 && min < 20 && at.getUTCHours() === 3 ? { events: true } : { changes: true };
     try {
       await syncShahaf(env, ctx, opt);
     } catch (e) {
