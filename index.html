@@ -678,7 +678,7 @@ var prefs = sGet('localStorage','sched.prefs') || {};
 if(['he','en','ru'].indexOf(prefs.lang)<0) prefs.lang='he';
 var LOC={he:'he-IL',en:'en-GB',ru:'ru-RU'};
 var ed = sGet('sessionStorage','sched.editor');
-var ui = {screen:'day',date:homeDay(),setupStep:0,tmpClass:null,tmpGroups:{},
+var ui = {screen:'day',date:null,setupStep:0,tmpClass:null,tmpGroups:{},
   etab:(ed&&ed.etab)||'changes',eDate:schoolDay((ed&&ed.eDate)||todayISO()),eAud:(ed&&ed.eAud)||'all',wDay:(ed&&ed.wDay!=null&&ed.wDay<5)?ed.wDay:0,wAud:(ed&&ed.wAud)||null,
   sheet:null,toast:null,busy:false,delArm:false};
 var draft = null, dirty = false;
@@ -2037,6 +2037,8 @@ root.addEventListener('touchend',function(e){
 },{passive:true});
 
 /* ---------- start ---------- */
+// стартовый день считаем здесь, когда весь код выше уже готов (иначе — пустой экран при запуске)
+try{ui.date=homeDay();}catch(e){ui.date=schoolDay(todayISO());}
 if(ed){ui.screen='editor';draft=clone(STATE);}
 else firstScreen();
 // ссылка от друга: #pal=КОД — открываем «Друзья» и форму добавления с этим кодом
