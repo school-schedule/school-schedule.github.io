@@ -1,4 +1,4 @@
-// המערכת שלי — service worker: push-уведомления и работа без интернета
+// Skedy — service worker: push-уведомления и работа без интернета
 // Файлы сайта: сначала из сети (свежая версия), без сети — из кэша.
 // Расписание само приложение хранит в localStorage, запросы к серверу (Worker) сюда не попадают.
 var CACHE = 'app-v2';
@@ -64,7 +64,7 @@ self.addEventListener('fetch', function (e) {
 self.addEventListener('push', function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) {}
-  e.waitUntil(self.registration.showNotification(d.title || 'המערכת שלי', {
+  e.waitUntil(self.registration.showNotification(d.title || 'Skedy', {
     body: d.body || '',
     tag: d.tag || 'changes',
     renotify: true,

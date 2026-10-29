@@ -1,4 +1,4 @@
-# hamaarechet — המערכת שלי
+# Skedy (formerly המערכת שלי)
 
 A personal school timetable for 10th grade (שכבת י׳) students, live at **https://school-schedule.github.io/**.
 
