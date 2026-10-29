@@ -535,6 +535,18 @@ html[data-look="p2"] .toast{background:#0D0D0D;border:1px solid rgba(255,255,255
 .wgrid .choice{font-size:19px}
 .wlinks{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 18px}
 .wlinks .link{min-height:44px;font-size:15px;opacity:.75}
+.getapp{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:calc(24px + env(safe-area-inset-top,0px)) 0 110px}
+.getapp .wlogo svg{width:64px;height:64px;border-radius:16px}
+.getapp .wfeat li{font-size:14px;padding:10px 12px}
+.getapp .isteps li{padding:10px 14px;font-size:15px}
+.getapp h1{font-size:24px;font-weight:800;margin:8px 0 2px;letter-spacing:-.02em;max-width:340px}
+.getapp .tip,.getapp .isteps{width:100%;max-width:360px;text-align:start;margin:0}
+.galater{min-height:44px;font-size:15px;opacity:.7}
+.gaarrow{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;color:#C6FF00;font-weight:700;font-size:14px;pointer-events:none;z-index:5}
+.gaarrow span{background:#0d0d0d;border:1px solid rgba(198,255,0,.35);border-radius:999px;padding:5px 12px}
+.gaarrow b{font-size:34px;line-height:1;text-shadow:0 0 12px rgba(198,255,0,.6)}
+@media (prefers-reduced-motion:no-preference){.gaarrow b{animation:gabounce 1.1s ease-in-out infinite}}
+@keyframes gabounce{50%{transform:translateY(8px)}}
 /* ===== Стрик ===== */
 .streak{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 12px 0 10px;border-radius:999px;background:#0D0D0D;border:1px solid rgba(255,255,255,.08);color:#C6FF00;font-size:15px;box-shadow:0 0 12px rgba(198,255,0,.18)}
 .streak b{font-weight:700;font-variant-numeric:tabular-nums}
@@ -619,7 +631,7 @@ var T = {
 he:{app:'Skedy',noSubject:'אין לי את המקצוע הזה',noSubjectSub:'השעות האלה יופיעו כשיעור חופשי',backups:'גיבויים',backupsHint:'השרת שומר את 10 הגרסאות האחרונות של המערכת. אם משהו התקלקל, אפשר לחזור לגרסה קודמת.',showBackups:'הצגת גיבויים',noBackups:'עדיין אין גיבויים.',restore:'שחזור',restoreConfirm:'לחזור לגרסה הזו? המצב הנוכחי יישמר כגיבוי.',restored:'הגרסה שוחזרה.',by_editor:'שמירה של עורך',by_shahaf:'עדכון משחף',by_restore:'לפני שחזור',locked:'יותר מדי ניסיונות. נסו שוב בעוד {m} דקות.',attemptsLeft:'(נשארו {n} ניסיונות)',codeOnServer:'הקוד נשמר בשרת (Cloudflare, EDITOR_CODE). כדי להחליף אותו, שנו אותו שם.',pushBtn:'קבלת התראות על ביטולים',pushActive:'התראות פעילות (לחיצה לכיבוי)',pushOn:'מעולה! תקבלו התראה כשמשהו משתנה בשיעורים שלכם.',pushOff:'ההתראות כבויות.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות הטלפון.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון התראות עובדות רק אחרי הוספה למסך הבית.',badServerCode:'השרת לא קיבל את הקוד. צאו ונכנסו שוב לעריכה.',server:'שרת',serverHint:'הנתונים נשמרים בשרת, וכולם רואים אותם מיד.',syncAll:'שמירת כל הנתונים בשרת',searchPh:'חיפוש לפי מקצוע או מורה',noMatch:'לא נמצא. נסו מילה אחרת.',groupFor:'לאיזו כיתה',wholeGrade:'כל השכבה',install:'התקנה בטלפון',insIntro:'שתי דקות, ואז המערכת תיפתח מאייקון במסך הבית כמו כל אפליקציה.',insComputer:'מחשב',insTipTitle:'חשוב:',insTipIos:'אם הקישור נפתח בתוך וואטסאפ או אינסטגרם, קודם לחצו על ⋯ ובחרו "פתיחה ב-Safari".',insTipAnd:'אם הקישור נפתח בתוך וואטסאפ או אינסטגרם, קודם לחצו על ⋮ ובחרו "פתיחה בדפדפן".',insIos1:'פתחו את הקישור ב-Safari.',insIos2:'לחצו על כפתור השיתוף בתחתית המסך (ריבוע עם חץ למעלה).',insIos3:'גללו מטה ובחרו "הוספה למסך הבית".',insIos4:'לחצו "הוספה" בפינה העליונה. זהו, האייקון במסך הבית.',insAnd1:'פתחו את הקישור ב-Chrome.',insAnd2:'לחצו על שלוש הנקודות בפינה העליונה.',insAnd3:'בחרו "הוספה למסך הבית" או "התקנת אפליקציה".',insAnd4:'אשרו ב"הוספה". זהו, האייקון במסך הבית.',insDesk1:'הכי נוח בטלפון: פתחו את אותו קישור בטלפון ובחרו כאן iPhone או Android.',insDesk2:'במחשב: בתפריט הדפדפן בחרו "התקנה" או "יצירת קיצור דרך".',gotIt:'הבנתי',changeGroups:'שינוי קבוצות',multiSub:'סמנו את כל הקבוצות שלכם. אם אין לכם כאן אף אחת, לחצו המשך.',multiLabel:'אפשר לבחור כמה קבוצות',openLabel:'כל הקבוצות פתוחות לכל הכיתות',free:'שיעור חופשי',nextWeek:'בשבוע הבא',lastWeek:'בשבוע שעבר',inWeeks:'בעוד # שבועות',weeksAgo:'לפני # שבועות',backToday:'חזרה להיום',langBtn:'EN',today:'היום',prevDay:'יום קודם',nextDay:'יום הבא',
  shabbat:'שבת, אין לימודים',noLessons:'אין שיעורים ביום הזה',cancelled:'בוטל',roomChanged:'החדר השתנה',test:'מבחן',exam:'בחינה',
  room:'חדר',changeMine:'שינוי כיתה וקבוצות',editorLogin:'כניסת עורכים',updated:'עודכן',
- chooseClass:'באיזו כיתה אתם?',chooseClassSub:'בוחרים פעם אחת. אפשר לשנות אחר כך בתחתית המסך.',welcomePick:'באיזו כיתה את/ה? בוחרים ומתחילים',chooseGroup:'הקבוצה שלכם ב',chooseGroupSub:'בחרו את ההקבצה שלכם.',
+ chooseClass:'באיזו כיתה אתם?',chooseClassSub:'בוחרים פעם אחת. אפשר לשנות אחר כך בתחתית המסך.',welcomePick:'באיזו כיתה את/ה? בוחרים ומתחילים',gaTitle:'צעד אחרון: Skedy למסך הבית',gaWhy:'ככה תקבלו התראה על כל ביטול והחלפת חדר. באייפון התראות עובדות רק מהאייקון במסך הבית.',gaFast:'נפתח בלחיצה אחת, גם בלי אינטרנט.',gaBtn:'התקנה',gaLater:'לא עכשיו',gaArrow:'שיתוף (או ⋯)',chooseGroup:'הקבוצה שלכם ב',chooseGroupSub:'בחרו את ההקבצה שלכם.',
  step:'שלב',of:'מתוך',next:'המשך',back:'חזרה',showMine:'הצג את המערכת שלי',noSetup:'עוד אין כיתות במערכת. העורכים צריכים להוסיף אותן.',
  changesToday:'שינויים היום',
  editor:'עריכה',exit:'יציאה',code:'קוד עורכים',enter:'כניסה',wrongCode:'הקוד לא נכון. נסו שוב.',
@@ -639,7 +651,7 @@ he:{app:'Skedy',noSubject:'אין לי את המקצוע הזה',noSubjectSub:'�
 en:{app:'Skedy',noSubject:'I don’t take this subject',noSubjectSub:'These periods will show as free',backups:'Backups',backupsHint:'The server keeps the last 10 versions. If something breaks, you can go back.',showBackups:'Show backups',noBackups:'No backups yet.',restore:'Restore',restoreConfirm:'Go back to this version? The current one will be saved as a backup.',restored:'Version restored.',by_editor:'Editor save',by_shahaf:'Update from Shahaf',by_restore:'Before restore',locked:'Too many attempts. Try again in {m} minutes.',attemptsLeft:'({n} attempts left)',codeOnServer:'The code is stored on the server (Cloudflare, EDITOR_CODE). Change it there.',pushBtn:'Get cancellation alerts',pushActive:'Alerts are on (tap to turn off)',pushOn:'Great! You will get an alert when your lessons change.',pushOff:'Alerts are off.',pushDenied:'Alerts were not allowed. You can turn them on in your phone settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone, alerts work only after adding the app to the Home Screen.',badServerCode:'The server did not accept the code. Exit and log in again.',server:'Server',serverHint:'Data is saved on the server, and everyone sees it right away.',syncAll:'Save all data to the server',searchPh:'Search by subject or teacher',noMatch:'Nothing found. Try another word.',groupFor:'For which class',wholeGrade:'Whole grade',install:'Install on phone',insIntro:'Two minutes, and your schedule opens from a home-screen icon like any app.',insComputer:'Computer',insTipTitle:'Important:',insTipIos:'If the link opened inside WhatsApp or Instagram, first tap ⋯ and choose "Open in Safari".',insTipAnd:'If the link opened inside WhatsApp or Instagram, first tap ⋮ and choose "Open in browser".',insIos1:'Open the link in Safari.',insIos2:'Tap the Share button at the bottom (square with an up arrow).',insIos3:'Scroll down and choose "Add to Home Screen".',insIos4:'Tap "Add" in the top corner. Done, the icon is on your home screen.',insAnd1:'Open the link in Chrome.',insAnd2:'Tap the three dots in the top corner.',insAnd3:'Choose "Add to Home screen" or "Install app".',insAnd4:'Confirm with "Add". Done, the icon is on your home screen.',insDesk1:'Easiest on a phone: open the same link there and pick iPhone or Android here.',insDesk2:'On a computer: in the browser menu choose "Install" or "Create shortcut".',gotIt:'Got it',changeGroups:'Change groups',multiSub:'Tick all your groups. If none of them is yours, tap Next.',multiLabel:'Students can pick several groups',openLabel:'All groups open to every class',free:'Free period',nextWeek:'Next week',lastWeek:'Last week',inWeeks:'In # weeks',weeksAgo:'# weeks ago',backToday:'Back to today',langBtn:'עב',today:'Today',prevDay:'Previous day',nextDay:'Next day',
  shabbat:'Shabbat, no school',noLessons:'No lessons on this day',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  room:'Room',changeMine:'Change class and groups',editorLogin:'Editor login',updated:'Updated',
- chooseClass:'Which class are you in?',chooseClassSub:'You choose once. You can change it later at the bottom of the screen.',welcomePick:'Which class are you in? Tap it to start',chooseGroup:'Your group in ',chooseGroupSub:'Pick your level group.',
+ chooseClass:'Which class are you in?',chooseClassSub:'You choose once. You can change it later at the bottom of the screen.',welcomePick:'Which class are you in? Tap it to start',gaTitle:'Last step: put Skedy on your Home Screen',gaWhy:'That’s how you get alerts about every cancellation and room change. On iPhone, alerts only work from the Home Screen icon.',gaFast:'Opens with one tap, even offline.',gaBtn:'Install',gaLater:'Not now',gaArrow:'Share (or ⋯)',chooseGroup:'Your group in ',chooseGroupSub:'Pick your level group.',
  step:'Step',of:'of',next:'Next',back:'Back',showMine:'Show my schedule',noSetup:'No classes yet. Editors need to add them.',
  changesToday:'Changes today',
  editor:'Editor',exit:'Exit',code:'Editor code',enter:'Enter',wrongCode:'Wrong code. Try again.',
@@ -659,7 +671,7 @@ en:{app:'Skedy',noSubject:'I don’t take this subject',noSubjectSub:'These peri
 ru:{app:'Skedy',noSubject:'У меня нет этого предмета',noSubjectSub:'Эти уроки будут показаны как свободные',backups:'Резервные копии',backupsHint:'Сервер хранит 10 последних версий расписания. Если что-то сломалось, можно вернуться к прошлой.',showBackups:'Показать копии',noBackups:'Копий пока нет.',restore:'Вернуть',restoreConfirm:'Вернуться к этой версии? Текущая сохранится как копия.',restored:'Версия восстановлена.',by_editor:'Сохранение редактора',by_shahaf:'Обновление из שחף',by_restore:'Перед восстановлением',locked:'Слишком много попыток. Попробуй через {m} мин.',attemptsLeft:'(осталось попыток: {n})',codeOnServer:'Код хранится на сервере (Cloudflare, EDITOR_CODE). Менять его нужно там.',pushBtn:'Получать уведомления об отменах',pushActive:'Уведомления включены (нажми, чтобы выключить)',pushOn:'Отлично! Придёт уведомление, когда что-то поменяется в твоих уроках.',pushOff:'Уведомления выключены.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках телефона.',pushFailed:'Не получилось включить уведомления. Попробуй ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone уведомления работают только после добавления на экран «Домой».',badServerCode:'Сервер не принял код. Выйди из редактора и войди снова.',server:'Сервер',serverHint:'Данные сохраняются на сервере, и все видят их сразу.',syncAll:'Сохранить все данные на сервер',searchPh:'Поиск по предмету или учителю',noMatch:'Ничего не найдено. Попробуй другое слово.',groupFor:'Для какого класса',wholeGrade:'Вся параллель',install:'Установить на телефон',insIntro:'Пара минут, и расписание будет открываться с иконки на главном экране, как обычное приложение.',insComputer:'Компьютер',insTipTitle:'Важно:',insTipIos:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋯ и выбери «Открыть в Safari».',insTipAnd:'Если ссылка открылась внутри WhatsApp или Instagram, сначала нажми ⋮ и выбери «Открыть в браузере».',insIos1:'Открой ссылку в Safari.',insIos2:'Нажми кнопку «Поделиться» внизу экрана (квадрат со стрелкой вверх).',insIos3:'Прокрути вниз и выбери «На экран „Домой“».',insIos4:'Нажми «Добавить» в верхнем углу. Готово, иконка на главном экране.',insAnd1:'Открой ссылку в Chrome.',insAnd2:'Нажми на три точки в верхнем углу.',insAnd3:'Выбери «Добавить на главный экран» или «Установить приложение».',insAnd4:'Подтверди кнопкой «Добавить». Готово, иконка на главном экране.',insDesk1:'Удобнее всего на телефоне: открой эту же ссылку там и выбери здесь iPhone или Android.',insDesk2:'На компьютере: в меню браузера выбери «Установить» или «Создать ярлык».',gotIt:'Понятно',changeGroups:'Сменить группы',multiSub:'Отметь все свои группы. Если здесь нет ни одной твоей, нажми «Дальше».',multiLabel:'Можно выбрать несколько групп',openLabel:'Все группы открыты для всех классов',free:'Свободный урок',nextWeek:'Следующая неделя',lastWeek:'Прошлая неделя',inWeeks:'Через # нед.',weeksAgo:'# нед. назад',backToday:'Вернуться к сегодня',langBtn:'RU',today:'Сегодня',prevDay:'Предыдущий день',nextDay:'Следующий день',
  shabbat:'Шаббат, уроков нет',noLessons:'В этот день уроков нет',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  room:'Каб.',changeMine:'Сменить класс и группы',editorLogin:'Вход для редакторов',updated:'Обновлено',
- chooseClass:'В каком ты классе?',chooseClassSub:'Выбираешь один раз. Потом можно поменять внизу экрана.',welcomePick:'В каком ты классе? Выбери — и начнём',chooseGroup:'Твоя группа: ',chooseGroupSub:'Выбери свою группу по уровню.',
+ chooseClass:'В каком ты классе?',chooseClassSub:'Выбираешь один раз. Потом можно поменять внизу экрана.',welcomePick:'В каком ты классе? Выбери — и начнём',gaTitle:'Последний шаг: Skedy на экран «Домой»',gaWhy:'Так будут приходить уведомления о каждой отмене и смене кабинета. На iPhone они работают только из иконки на экране «Домой».',gaFast:'Открывается одним нажатием, даже без интернета.',gaBtn:'Установить',gaLater:'Не сейчас',gaArrow:'Поделиться (или ⋯)',chooseGroup:'Твоя группа: ',chooseGroupSub:'Выбери свою группу по уровню.',
  step:'Шаг',of:'из',next:'Дальше',back:'Назад',showMine:'Показать моё расписание',noSetup:'Классов пока нет. Редакторам нужно их добавить.',
  changesToday:'Изменения сегодня',
  editor:'Редактор',exit:'Выйти',code:'Код редактора',enter:'Войти',wrongCode:'Неверный код. Попробуй ещё раз.',
@@ -1356,6 +1368,8 @@ function footer(showChange){
 }
 var installEvt=null;
 try{window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();installEvt=e;});}catch(e){}
+// установили из шага «поставь на телефон» — сразу к расписанию
+try{window.addEventListener('appinstalled',function(){if(ui.screen==='getapp'){ui.screen='day';render();}});}catch(e){}
 function isStandalone(){try{return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}catch(e){return false;}}
 function platform(){var u=navigator.userAgent||'';if(/iphone|ipad|ipod/i.test(u)||(/macintosh/i.test(u)&&navigator.maxTouchPoints>1))return 'ios';if(/android/i.test(u))return 'android';return 'desktop';}
 var ICO={
@@ -1382,6 +1396,23 @@ function renderInstall(){
   INS[p].forEach(function(x,i){h+='<li><span class="inum">'+(i+1)+'</span><span class="itext">'+esc(t(x[1]))+'</span><span class="iico">'+ICO[x[0]]+'</span></li>';});
   h+='</ol><div class="btns"><button class="primary" data-act="closeInstall">'+esc(t('gotIt'))+'</button></div>';
   return '<div class="overlay" data-act="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(t('install'))+'">'+h+'</div></div>';
+}
+// шаг «поставь на телефон» после выбора групп: только в браузере телефона и один раз
+function wantGetApp(){return !isStandalone()&&platform()!=='desktop'&&!sGet('localStorage','sched.getapp');}
+function afterSetup(){if(wantGetApp()){sSet('localStorage','sched.getapp',1);ui.screen='getapp';}else ui.screen='day';}
+function renderGetApp(){
+  var ios=platform()==='ios',h='<div class="getapp"><div class="wtop"><button class="link galater" data-act="getAppLater">'+esc(t('gaLater'))+'</button></div><div class="wlogo">'+LOGO.replace('width="36" height="36"','width="64" height="64"')+'</div>';
+  h+='<h1>'+esc(t('gaTitle'))+'</h1>';
+  h+='<ul class="wfeat"><li><span>🔔</span>'+esc(t('gaWhy'))+'</li><li><span>⚡</span>'+esc(t('gaFast'))+'</li></ul>';
+  if(!ios&&installEvt)h+='<button class="primary wbig" data-act="install">📲 '+esc(t('gaBtn'))+'</button>';
+  else{var p=ios?'ios':'android';
+    h+='<div class="tip">'+esc(t(ios?'insTipIos':'insTipAnd'))+'</div><ol class="isteps">';
+    INS[p].slice(1).forEach(function(x,i){h+='<li><span class="inum">'+(i+1)+'</span><span class="itext">'+esc(t(x[1]))+'</span><span class="iico">'+ICO[x[0]]+'</span></li>';});
+    h+='</ol>';}
+  h+='</div>';
+  // на iPhone стрелка показывает вниз, на панель Safari
+  if(ios)h+='<div class="gaarrow" aria-hidden="true"><span>'+esc(t('gaArrow'))+'</span><b>↓</b></div>';
+  return h;
 }
 /* ---------- support chat ---------- */
 // ключ переписки — случайный, хранится только в телефоне; сервер видит класс и сообщения, без имён
@@ -1830,6 +1861,7 @@ function render(){
   var h='<div class="wrap">';
   if(ui.screen==='welcome')h+=renderWelcome();
   else if(ui.screen==='setup')h+=renderSetup();
+  else if(ui.screen==='getapp')h+=renderGetApp();
   else if(ui.screen==='login')h+=renderLogin();
   else if(ui.screen==='editor')h+=renderEditor();
   else if(ui.screen==='tests')h+=renderTests();
@@ -1926,7 +1958,7 @@ root.addEventListener('click',function(e){
     case 'setupNext':
       var total=1+subjectsFor(STATE,ui.tmpClass).length;
       if(ui.setupStep<total-1){ui.setupStep++;ui.gq='';render();window.scrollTo(0,0);}
-      else{prefs.classId=ui.tmpClass;prefs.groups=ui.tmpGroups;sSet('localStorage','sched.prefs',prefs);syncPush();pingStats();bumpStreak();setTimeout(achCheck,1200);ui.screen='day';ui.date=homeDay();render();window.scrollTo(0,0);}
+      else{prefs.classId=ui.tmpClass;prefs.groups=ui.tmpGroups;sSet('localStorage','sched.prefs',prefs);syncPush();pingStats();bumpStreak();setTimeout(achCheck,1200);afterSetup();ui.date=homeDay();render();window.scrollTo(0,0);}
       break;
     case 'install':
       if(installEvt){var ev=installEvt;installEvt=null;try{ev.prompt();}catch(er){ui.installOpen=true;render();}}
@@ -1978,6 +2010,7 @@ root.addEventListener('click',function(e){
     case 'teacherPick':unlock('teacher');ui.teacher=id;ui.tq='';render();var tc=root.querySelector('.tcard');if(tc)tc.scrollIntoView({block:'nearest'});break;
     case 'tests':ui.screen='tests';render();window.scrollTo(0,0);break;
     case 'closeInstall':ui.installOpen=false;render();break;
+    case 'getAppLater':ui.screen='day';render();window.scrollTo(0,0);break;
     case 'insPlat':ui.insPlat=el.getAttribute('data-p');render();break;
     case 'resetMine':startSetup();render();window.scrollTo(0,0);break;
     case 'editorLogin':ui.loginErr=false;ui.screen='login';render();var c=document.getElementById('code');if(c)c.focus();break;
@@ -1985,7 +2018,7 @@ root.addEventListener('click',function(e){
     case 'welcomeGo':startSetup();render();window.scrollTo(0,0);break;
     case 'welcomeClass':startSetup();ui.tmpClass=id;ui.tmpLetter=null;
       if(subjectsFor(STATE,id).length){ui.setupStep=1;ui.gq='';}
-      else{prefs.classId=id;prefs.groups={};sSet('localStorage','sched.prefs',prefs);syncPush();pingStats();bumpStreak();ui.screen='day';ui.date=homeDay();}
+      else{prefs.classId=id;prefs.groups={};sSet('localStorage','sched.prefs',prefs);syncPush();pingStats();bumpStreak();afterSetup();ui.date=homeDay();}
       render();window.scrollTo(0,0);break;
     case 'toWelcome':ui.screen='welcome';render();window.scrollTo(0,0);break;
     case 'login':doLogin();break;
