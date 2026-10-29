@@ -310,6 +310,13 @@ html[data-look="p2"] .chip.on .dot{background:#171717}
 html[data-look="p2"] .link{background:#292929;color:var(--P-card-ink);border-radius:14px;min-height:48px;padding:0 20px;font-weight:500}
 html[data-look="p2"] .foot{gap:10px}
 html[data-look="p2"] .foot .link,html[data-look="p2"] .foot .installbtn{width:100%;max-width:340px}
+.mlist{width:100%;max-width:340px;background:#101010;border:1px solid rgba(255,255,255,.07);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.mrow{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:0 16px;background:none;border:none;border-radius:0;color:var(--ink,#fff);font-size:16px;font-weight:500;text-align:start}
+.mrow + .mrow{border-top:1px solid rgba(255,255,255,.07)}
+.mrow:active{background:rgba(198,255,0,.06)}
+.mrow .mico{font-size:19px;width:24px;text-align:center}
+.mrow .grow{flex:1}
+.mrow .chev{opacity:.4;font-size:22px;line-height:1}
 html[data-look="p2"] .icon-btn{background:#292929;color:var(--P-card-ink);width:44px;height:44px;border-radius:14px}
 html[data-look="p2"] .pill{background:#292929;color:var(--P-card-ink);border-radius:12px}
 /* ближайшие контрольные: заголовок дня над карточками */
@@ -1369,12 +1376,21 @@ function renderMore(){
 }
 function footer(showChange){
   var h='<div class="foot">';
-  if(showChange&&recapOn())h+='<button class="secondary installbtn" data-act="recapOpen">✨ '+esc(t('recapBtn'))+'</button>';
-  if(showChange&&API)h+=pushOn()?'':'<button class="primary installbtn pushbtn" data-act="pushOn">🔔 '+esc(t('pushBtn'))+'</button>';
-  if(showChange&&API)h+='<button class="secondary installbtn" data-act="report">💬 '+esc(t('supportBtn'))+(ui.chatUnread?' <span class="cbadge">'+esc(ui.chatUnread)+'</span>':'')+'</button>';
-  if(showChange&&!isStandalone())h+='<button class="secondary installbtn" data-act="install">📲 '+esc(t('install'))+'</button>';
+  if(showChange){
+    if(API&&!pushOn())h+='<button class="primary installbtn pushbtn" data-act="pushOn">🔔 '+esc(t('pushBtn'))+'</button>';
+    // одна группа строк, как в настройках iPhone
+    var row=function(act,ico,txt,extra){return '<button class="mrow" data-act="'+act+'"><span class="mico">'+ico+'</span><span class="grow">'+esc(txt)+'</span>'+(extra||'')+'<span class="chev">›</span></button>';};
+    h+='<div class="mlist">';
+    if(recapOn())h+=row('recapOpen','✨',t('recapBtn'));
+    if(!isStandalone())h+=row('install','📲',t('install'));
+    if(API)h+=row('report','💬',t('supportBtn'),ui.chatUnread?'<span class="cbadge">'+esc(ui.chatUnread)+'</span>':'');
+    h+=row('resetMine','🎒',t(firstStep()?'changeGroups':'changeMine'));
+    h+=row('editorLogin','🔑',t('editorLogin'));
+    h+='</div>';
+    if(STATE.updatedAt)h+='<div>'+esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'</div>';
+    return h+'</div>';
+  }
   if(STATE.updatedAt){h+='<div>'+esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'</div>';}
-  if(showChange)h+='<button class="link" data-act="resetMine">'+esc(t(firstStep()?'changeGroups':'changeMine'))+'</button>';
   h+='<button class="link" data-act="editorLogin">'+esc(t('editorLogin'))+'</button></div>';
   return h;
 }
