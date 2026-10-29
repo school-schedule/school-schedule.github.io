@@ -1404,6 +1404,27 @@ function renderInstall(){
 }
 // плашка «Установи Skedy» на экране дня: в браузере телефона; закрыли — вернётся через 3 дня
 function instBarOn(){var x=sGet('localStorage','sched.instBar');return !isStandalone()&&platform()!=='desktop'&&!(typeof x==='string'&&x>addDays(todayISO(),-3));}
+// перенос выбора в установленное приложение: на iPhone у иконки «Домой» своя память, отдельная от Safari.
+// В браузере держим выбор в адресе (?s=…) и в стартовом адресе манифеста; при первом запуске с иконки читаем его оттуда.
+function selCode(){try{return btoa(JSON.stringify({c:prefs.classId,g:prefs.groups||{},l:prefs.lang})).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}catch(e){return '';}}
+function syncInstallUrl(){
+  if(isStandalone()||platform()==='desktop'||!prefsValid())return;
+  var c=selCode();if(!c||syncInstallUrl.last===c)return;syncInstallUrl.last=c;
+  try{history.replaceState(history.state,'',location.pathname+'?s='+c+location.hash);}catch(e){}
+  if(platform()!=='ios')return;
+  var base=location.href.replace(/[?#].*$/,'').replace(/[^\/]*$/,''),m={name:'Skedy',short_name:'Skedy',lang:'he',dir:'rtl',start_url:base+'?s='+c,scope:base,display:'standalone',background_color:'#171717',theme_color:'#171717',
+    icons:[{src:base+'icon-192.png',sizes:'192x192',type:'image/png'},{src:base+'icon-512.png',sizes:'512x512',type:'image/png'}]};
+  var l=document.querySelector('link[rel="manifest"]');if(l)l.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(m));
+}
+function restoreFromUrl(){
+  if(!isStandalone()||prefs.classId)return;
+  var m=/[?&]s=([\w-]+)/.exec(location.search);if(!m)return;
+  try{var x=JSON.parse(atob(m[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return;}
+  if(!x||typeof x.c!=='string'||!byId(STATE.classes,x.c)||!x.g||typeof x.g!=='object'||Array.isArray(x.g))return;
+  var gs={};for(var k in x.g){var v=x.g[k];if(typeof v==='string'||(Array.isArray(v)&&v.every(function(y){return typeof y==='string';})))gs[k]=v;}
+  prefs.classId=x.c;prefs.groups=gs;if(['he','en','ru'].indexOf(x.l)>=0)prefs.lang=x.l;
+  sSet('localStorage','sched.prefs',prefs);sSet('localStorage','sched.getapp',1);
+}
 // шаг «поставь на телефон» после выбора групп: только в браузере телефона и один раз
 function wantGetApp(){return !isStandalone()&&platform()!=='desktop'&&!sGet('localStorage','sched.getapp');}
 function afterSetup(){if(wantGetApp()){sSet('localStorage','sched.getapp',1);ui.screen='getapp';}else ui.screen='day';}
@@ -1885,6 +1906,7 @@ function render(){
   if(ui.toast)h+='<div class="toast'+(ui.toast.bad?' bad':'')+'" role="status">'+esc(ui.toast.text)+'</div>';
   var af=document.activeElement&&document.activeElement.id;
   root.innerHTML=h;
+  syncInstallUrl();
   // поле сообщения не теряет фокус, когда приходят новые сообщения
   if(af==='cText'||af==='eReply'){var fe=document.getElementById(af);if(fe){fe.focus();try{fe.setSelectionRange(fe.value.length,fe.value.length);}catch(x){}}}
   syncNav();
@@ -2097,6 +2119,7 @@ root.addEventListener('touchend',function(e){
 /* ---------- start ---------- */
 // стартовый день считаем здесь, когда весь код выше уже готов (иначе — пустой экран при запуске)
 try{ui.date=homeDay();}catch(e){ui.date=schoolDay(todayISO());}
+restoreFromUrl();
 if(ed){ui.screen='editor';draft=clone(STATE);}
 else firstScreen();
 // ссылка от друга: #pal=КОД — открываем «Друзья» и форму добавления с этим кодом
