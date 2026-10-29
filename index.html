@@ -17,6 +17,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Secular+One&display=swap" rel="stylesheet">
 <style id="app-css">/* Стиль «как приложения iPhone»: системный шрифт, сгруппированные списки, системные цвета iOS */
+/* двойное нажатие не увеличивает экран (увеличение двумя пальцами остаётся) */
+*{touch-action:manipulation}
 :root{
   --bg:#F2F2F7; --surface:#FFFFFF; --surface-2:#F2F2F7; --fill:rgba(118,118,128,.12); --fill-2:rgba(118,118,128,.2);
   --ink:#000000; --muted:rgba(60,60,67,.6); --line:rgba(60,60,67,.29); --bar:rgba(249,249,249,.86);
