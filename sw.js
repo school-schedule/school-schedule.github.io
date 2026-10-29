@@ -1,7 +1,7 @@
 // Skedy — service worker: push-уведомления и работа без интернета
 // Файлы сайта: сначала из сети (свежая версия), без сети — из кэша.
 // Расписание само приложение хранит в localStorage, запросы к серверу (Worker) сюда не попадают.
-var CACHE = 'app-v2';
+var CACHE = 'app-v3';
 var SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 var FONTS = /^https:\/\/fonts\.(googleapis|gstatic)\.com$/;
 
