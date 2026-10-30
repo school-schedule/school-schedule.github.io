@@ -1,5 +1,5 @@
 /*
- * המערכת שלי — сервер (Cloudflare Worker)
+ * Skedy (раньше «המערכת שלי») — сервер (Cloudflare Worker)
  *
  * Что делает:
  *  1. Хранит расписание (GET /data — прочитать, POST /data — сохранить из редактора).
@@ -152,7 +152,7 @@ export default {
         return json(await syncShahaf(env, ctx, opt));
       }
       // проверка без кода: какие привязки подключены в Cloudflare
-      if (path === "/") return json({ ok: true, app: "hamaarechet-shelli", db: !!env.DB, limiter: !!env.LIMITER, stats: !!env.STATS, pushq: !!env.PUSHQ });
+      if (path === "/") return json({ ok: true, app: "skedy", db: !!env.DB, limiter: !!env.LIMITER, stats: !!env.STATS, pushq: !!env.PUSHQ });
       return json({ error: "not_found" }, 404);
     } catch (e) {
       return json({ error: "server", message: String((e && e.message) || e) }, 500);
@@ -1250,7 +1250,7 @@ async function syncShahaf(env, ctx, opt) {
   const today = israelDate(0);
   const letter = (st.classes[0] && st.classes[0].letter) || "י";
   const get = async (q) => {
-    const r = await fetch(base + "/" + q, { headers: { "User-Agent": "hamaarechet-shelli (school schedule app)" } });
+    const r = await fetch(base + "/" + q, { headers: { "User-Agent": "Skedy (school schedule app; https://school-schedule.github.io/)" } });
     if (!r.ok) throw new Error("shahaf " + r.status);
     return r.text();
   };
