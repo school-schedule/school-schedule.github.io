@@ -471,6 +471,7 @@ async function report(req, env) {
 // У каждого телефона свой случайный ключ переписки (хранится только в телефоне), сервер хранит
 // его отпечаток (sha256). Имён нет: редактор видит класс и сообщения. Ученик — 20 сообщений в час.
 const CHAT_MAX = 20, CHAT_WINDOW_SEC = 3600;
+const KEEP_DAYS = 30; // сколько дней хранить переписки чата и сообщения об ошибках
 function chatCtx(c) {
   if (!c || typeof c !== "object") return "";
   const o = {};
@@ -570,6 +571,7 @@ export class Stats extends DurableObject {
     this.sql.exec("DELETE FROM msgs WHERE tid = ? AND id <= (SELECT MAX(id) FROM msgs WHERE tid = ?) - 100", tid, tid);
     const old = this.sql.exec("SELECT id FROM threads ORDER BY last DESC LIMIT -1 OFFSET 500").toArray();
     for (const o of old) this.chatDelete(o.id);
+    this.chatPrune(at);
     return { ok: true };
   }
   chatGet(tkey, mark) {
@@ -579,8 +581,16 @@ export class Stats extends DurableObject {
     if (mark && t.uu) this.sql.exec("UPDATE threads SET uu = 0 WHERE id = ?", t.id);
     return { msgs: this.chatMsgs(t.id), unread: mark ? 0 : t.uu };
   }
+  // переписки и старые сообщения об ошибках живут 30 дней после последнего сообщения (в них пишут ученики)
+  chatPrune(now) {
+    this.chatInit();
+    const cut = new Date(Date.parse(now) - KEEP_DAYS * 86400000).toISOString();
+    for (const o of this.sql.exec("SELECT id FROM threads WHERE last < ?", cut).toArray()) this.chatDelete(o.id);
+    this.sql.exec("DELETE FROM reports WHERE at < ?", cut);
+  }
   chatList() {
     this.chatInit();
+    this.chatPrune(new Date().toISOString());
     return this.sql.exec("SELECT t.id, t.cls, t.last, t.ue, (SELECT text FROM msgs WHERE tid = t.id ORDER BY id DESC LIMIT 1) AS lt, (SELECT who FROM msgs WHERE tid = t.id ORDER BY id DESC LIMIT 1) AS lw FROM threads t ORDER BY t.last DESC LIMIT 200").toArray();
   }
   chatOpen(id) {
@@ -633,6 +643,7 @@ export class Stats extends DurableObject {
     return { ok: true };
   }
   reports() {
+    this.chatPrune(new Date().toISOString());
     return this.sql.exec("SELECT * FROM reports ORDER BY id DESC LIMIT 300").toArray();
   }
   delReport(id) {
