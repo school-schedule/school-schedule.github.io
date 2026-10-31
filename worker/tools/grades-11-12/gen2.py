@@ -63,7 +63,9 @@ for G,num in (('יא',11),('יב',12)):
         SLUG={'הבעה ולשון':'lashon','היסטוריה':'hist','ספרות':'lit','תנ"ך':'tanach','אזרחות':'civics','ביולוגיה חקלאית':'agrobio','הרכבים':'ens'}
         catId='cat%d_%s'%(num,slug or SLUG.get(he) or 'x%d'%len(out['subjects']))
         single=slug in('math','eng','pe')
-        out['subjects'].append({'id':catId,'he':he,'en':en,'ru':ru,'multi':not single})
+        cat={'id':catId,'he':he,'en':en,'ru':ru,'multi':not single}
+        if slug=='eng': cat['open']=True  # как в י׳: ученики учатся английскому не только со своим классом
+        out['subjects'].append(cat)
         inst_=set().union(*[c['inst'] for c in cs])
         if slug=='pe':
             keyf=lambda k:(sorted(inst[k],key=int)[0] if False else None)
