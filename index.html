@@ -911,6 +911,9 @@ function langSwitch(){
   return h+'</div>';
 }
 function normQ(x){return String(x||'').toLowerCase().replace(/[״"'׳`.,()\-–\/]/g,' ').replace(/\s+/g,' ').trim();}
+// кабинеты группы для списка выбора: самые частые, не больше двух
+function groupRooms(st,g){var c={};st.lessons.forEach(function(l){if(l.aud.type==='group'&&l.aud.id===g.id&&l.room)c[l.room]=(c[l.room]||0)+1;});
+  return Object.keys(c).sort(function(a,b){return c[b]-c[a];}).slice(0,2);}
 function groupSubjects(st,g){var out=[];st.lessons.forEach(function(l){if(l.aud.type==='group'&&l.aud.id===g.id){var sb=byId(st.subjects,l.subjectId);if(sb){var k=sb.he+' '+(sb.en||'')+' '+(sb.ru||'');if(out.indexOf(k)<0)out.push(k);}}});return out;}
 function filterGroups(q){ui.gq=q;var nq=normQ(q),n=0;
   root.querySelectorAll('#glist [data-key]').forEach(function(b){var ok=!nq||b.getAttribute('data-key').indexOf(nq)>=0;b.hidden=!ok;if(ok)n++;});
@@ -951,10 +954,10 @@ function renderSetup(){
     h+='<div class="stack" id="glist">';
     var picked=ui.tmpGroups[s.id],shown=0;
     glist.forEach(function(g){
-      var key=normQ([g.he,g.en,g.ru,g.teacher].concat(groupSubjects(st,g)).join(' '));
+      var rooms=groupRooms(st,g),key=normQ([g.he,g.en,g.ru,g.teacher].concat(groupSubjects(st,g),rooms).join(' '));
       var hide=q&&key.indexOf(normQ(q))<0;if(!hide)shown++;
       var on=s.multi?(Array.isArray(picked)&&picked.indexOf(g.id)>=0):picked===g.id;
-      h+='<button class="choice'+(on?' on':'')+(s.multi?' multi':'')+'" data-act="pickGroup" data-sub="'+esc(s.id)+'" data-id="'+esc(g.id)+'" data-key="'+esc(key)+'" aria-pressed="'+on+'"'+(hide?' hidden':'')+'>'+esc(nm(g))+(g.teacher?'<small>'+esc(g.teacher)+'</small>':'')+'</button>';
+      h+='<button class="choice'+(on?' on':'')+(s.multi?' multi':'')+'" data-act="pickGroup" data-sub="'+esc(s.id)+'" data-id="'+esc(g.id)+'" data-key="'+esc(key)+'" aria-pressed="'+on+'"'+(hide?' hidden':'')+'>'+esc(nm(g))+(g.teacher||rooms.length?'<small>'+(g.teacher?'<bdi>'+esc(g.teacher)+'</bdi>':'')+(rooms.length?(g.teacher?' · ':'')+esc(t('room'))+' '+rooms.map(function(r){return '<bdi>'+esc(r)+'</bdi>';}).join(', '):'')+'</small>':'')+'</button>';
     });
     if(canSkip(s)){var none=picked==='__none';
       h+='<button class="choice'+(none?' on':'')+'" style="margin-top:0" data-act="pickGroup" data-sub="'+esc(s.id)+'" data-id="__none" aria-pressed="'+none+'">'+esc(t('noSubject'))+'<small>'+esc(t('noSubjectSub'))+'</small></button>';}
