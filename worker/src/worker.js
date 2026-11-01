@@ -695,9 +695,9 @@ async function* allSubs(env) {
 /* ---------------- уведомления ---------------- */
 
 const T = {
-  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", today: "היום", tomorrow: "מחר", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
-  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", today: "Today", tomorrow: "Tomorrow", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
-  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", today: "Сегодня", tomorrow: "Завтра", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
+  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
+  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
+  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
 };
 const DAYS = {
   he: ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"],
@@ -738,7 +738,22 @@ function line(d, lang) {
   const L = T[lang];
   let what = d.type === "cancel" ? L.cancel : d.type === "room" ? L.room + ": " + d.room : d.type === "test" ? L.test : L.exam;
   if (d.note) what += " (" + d.note + ")";
-  return dayWord(d.date, lang) + ", " + L.period + " " + d.period + ", " + d.name[lang] + ": " + what;
+  const p = d.to > d.period ? L.periods + " " + d.period + "–" + d.to : L.period + " " + d.period;
+  return dayWord(d.date, lang) + ", " + p + ", " + d.name[lang] + ": " + what;
+}
+// контрольная одного предмета на несколько уроков подряд — одна строка «уроки 1–2», а не две
+function mergeTests(list) {
+  const out = [];
+  for (const d of list) {
+    const b = out[out.length - 1];
+    if (b && (d.type === "test" || d.type === "exam") && b.type === d.type && b.date === d.date &&
+        b.name.he === d.name.he && b.note === d.note && d.period >= (b.to || b.period) && d.period <= (b.to || b.period) + 1) {
+      b.to = d.period;
+      continue;
+    }
+    out.push(Object.assign({}, d));
+  }
+  return out;
 }
 function concerns(d, rec) {
   if (d.aud.type === "class") return d.aud.id === rec.c;
@@ -757,7 +772,7 @@ async function notifyAll(env, ds) {
 async function planPushes(env, ds) {
   const jobs = [];
   for await (const { key, rec } of allSubs(env)) {
-    const mine = ds.filter((d) => concerns(d, rec)).sort((a, b) => a.k.localeCompare(b.k));
+    const mine = mergeTests(ds.filter((d) => concerns(d, rec)).sort((a, b) => a.k.localeCompare(b.k)));
     if (!mine.length) continue;
     const L = T[rec.l];
     jobs.push({
