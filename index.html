@@ -612,6 +612,7 @@ html[data-look="p2"] .lesson .num{background:none;color:#F2F2F2;box-shadow:inset
 html[data-look="p2"] .lesson.is-now .num{color:#C6FF00;box-shadow:inset 0 0 0 1.5px #C6FF00,0 0 10px rgba(198,255,0,.5)}
 html[data-look="p2"] .lesson.is-room .num,html[data-look="p2"] .lesson.is-test .num,html[data-look="p2"] .lesson.is-exam .num{background:#C6FF00;color:#171717;box-shadow:0 0 10px rgba(198,255,0,.45)}
 html[data-look="p2"] .lesson.is-cancel .num{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3)}
+html[data-look] .lesson .num.span{width:auto;min-width:28px;padding:0 9px;border-radius:999px;direction:ltr;white-space:nowrap}
 /* кнопки — капсулы */
 html[data-look="p2"] .secondary,html[data-look="p2"] .installbtn,html[data-look="p2"] .link,html[data-look="p2"] .pill{background:#101010;border:1px solid var(--cap-bd);color:#F2F2F2;border-radius:999px}
 html[data-look="p2"] .primary{border-radius:999px}
@@ -1038,6 +1039,13 @@ function renderDay(){
   return h;
 }
 // контрольные и экзамены ученика на 3 недели вперёд, по дням
+function testKind(x){var k='';x.ch.forEach(function(c){if(c.type==='test'||c.type==='exam')k=c.type;});return k;}
+// уроки одного предмета подряд с одной и той же контрольной — один блок (одна длинная контрольная, а не две)
+function testBlocks(items){var out=[];
+  items.forEach(function(x){var k=testKind(x),b=out[out.length-1];
+    if(b&&k&&b.k===k&&b.s===x.l.subjectId&&x.l.period>=b.last&&x.l.period<=b.last+1){b.last=x.l.period;b.items.push(x);}
+    else out.push({k:k,s:x.l.subjectId,last:x.l.period,items:[x]});});
+  return out;}
 function upcomingTests(){
   var d=todayISO(),end=addDays(d,21),out=[];
   for(;d<=end;d=addDays(d,1)){if(wday(d)>=5||dayOff(d))continue;
@@ -1053,7 +1061,7 @@ function renderTests(){
   days.forEach(function(x){
     var rel=x.date===today?t('today'):x.date===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wday(x.date)];
     h+='<h3 class="dhead">'+esc(rel+', '+fmtDate(x.date))+'</h3><ul class="lessons">';
-    x.items.forEach(function(y){h+=lessonCard(y.l,y.ch);});
+    testBlocks(x.items).forEach(function(b){var y=b.items[0];h+=lessonCard(y.l,y.ch,null,null,null,b.last);});
     h+='</ul>';
   });
   return h;
@@ -1118,8 +1126,10 @@ function weekLabel(d,today){
   if(w===0)return '';if(w===1)return t('nextWeek');if(w===-1)return t('lastWeek');
   return w>0?t('inWeeks').replace('#',w):t('weeksAgo').replace('#',-w);
 }
-function lessonCard(l,ch,mark,extraTags,after){
+function lessonCard(l,ch,mark,extraTags,after,toP){
   var s=byId(STATE.subjects,l.subjectId),cls=[],tags='',roomHtml=esc(l.room||'');
+  // toP: карточка на несколько уроков подряд (одна длинная контрольная): «3–4», время от начала первого до конца последнего
+  var span=toP&&toP>l.period,pt=periodTime(STATE,l.period);if(span)pt=pt.split('–')[0]+'–'+periodTime(STATE,toP).split('–')[1];
   if(mark){cls.push('is-'+mark);tags+='<span class="tag '+esc(mark)+'">'+esc(t(mark+'Tag'))+'</span>';}
   if(extraTags)tags+=extraTags;
   ch.forEach(function(c){
@@ -1128,8 +1138,8 @@ function lessonCard(l,ch,mark,extraTags,after){
     else tags+='<span class="tag '+esc(c.type)+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';
   });
   var hue=0,hn=String(s?s.he:'');for(var hi=0;hi<hn.length;hi++)hue=(hue*31+hn.charCodeAt(hi))%997;hue=Math.round((hue*137.508)%360);
-  return '<li class="lesson '+esc(cls.join(' '))+'" style="--hue:'+hue+'"'+(ch.some(function(c){return c.type==='cancel';})?' data-act="cheer"':'')+'><div class="num">'+esc(l.period)+'</div><div class="body">'+
-    '<div class="r1"><span class="subj">'+esc(nm(s))+'</span><span class="time">'+esc(periodTime(STATE,l.period))+'</span></div>'+
+  return '<li class="lesson '+esc(cls.join(' '))+'" style="--hue:'+hue+'"'+(ch.some(function(c){return c.type==='cancel';})?' data-act="cheer"':'')+'><div class="num'+(span?' span':'')+'">'+esc(span?l.period+'–'+toP:l.period)+'</div><div class="body">'+
+    '<div class="r1"><span class="subj">'+esc(nm(s))+'</span><span class="time">'+esc(pt)+'</span></div>'+
     '<div class="r2">'+(l.teacher?'<span>'+esc(l.teacher)+'</span>':'')+(l.room||ch.some(function(c){return c.type==='room';})?'<span class="room">'+(/^חדר/.test(l.room||'')?'':esc(t('room'))+' ')+roomHtml+'</span>':'')+'</div>'+
     (tags?'<div class="tags">'+tags+'</div>':'')+(after||'')+'</div></li>';
 }
@@ -1156,7 +1166,7 @@ function syncNav(){
       ui.screen=ns;if(ns==='pals')palOpen();render();window.scrollTo(0,0);});
   }
   nav.hidden=i<0;if(i<0){syncNav.last=-1;return;}
-  var nt=0;upcomingTests().forEach(function(x){nt+=x.items.length;});
+  var nt=0;upcomingTests().forEach(function(x){nt+=testBlocks(x.items).length;});
   nav.setAttribute('aria-label',t('app'));nav.style.setProperty('--i',i);nav.style.setProperty('--n',NAV_TABS.length);
   var bs=nav.querySelectorAll('button');
   NAV_TABS.forEach(function(x,k){var b=bs[k],on=k===i;
@@ -1339,9 +1349,10 @@ function recapData(ym){
   var r={ym:ym,lessons:0,min:0,cancel:0,cancelBy:{},tests:0,rooms:{},subs:{}},d=ym+'-01',end=todayISO();
   for(;d.slice(0,7)===ym&&d<end;d=addDays(d,1)){
     if(wday(d)>=5||dayOff(d))continue;
-    studentLessons(d).forEach(function(x){
+    var dl=studentLessons(d);
+    r.tests+=testBlocks(dl.filter(function(x){return testKind(x);})).length;
+    dl.forEach(function(x){
       var sb=nm(byId(STATE.subjects,x.l.subjectId));
-      x.ch.forEach(function(c){if(c.type==='test'||c.type==='exam')r.tests++;});
       if(x.ch.some(function(c){return c.type==='cancel';})){r.cancel++;r.cancelBy[sb]=(r.cancelBy[sb]||0)+1;return;}
       r.lessons++;var p=null;STATE.periods.forEach(function(q){if(q.n===x.l.period)p=q;});if(p)r.min+=mins(p.end)-mins(p.start);
       var rm=roomOf(x);if(rm)r.rooms[rm]=(r.rooms[rm]||0)+1;r.subs[sb]=(r.subs[sb]||0)+1;});
