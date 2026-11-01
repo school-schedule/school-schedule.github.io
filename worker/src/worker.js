@@ -103,6 +103,7 @@ export default {
       if (path === "/subscribe" && req.method === "POST") return await subscribe(req, env);
       if (path === "/unsubscribe" && req.method === "POST") return await unsubscribe(req, env);
       // нет привязки STATS в Cloudflare (Settings → Bindings) — говорим об этом прямо
+      if (path.startsWith("/cal/") && req.method === "GET") return await calFeed(env, path, new URL(req.url).searchParams.get("l"));
       if ((["/ping", "/stats", "/report", "/reports", "/reports/delete", "/pal", "/crowd"].includes(path) || path.startsWith("/pal/")) && !env.STATS) return json({ error: "no_stats_binding" }, 500);
       if (path === "/pal" && req.method === "POST") return await palSave(req, env);
       if (path === "/pal/delete" && req.method === "POST") return await palDelete(req, env);
@@ -394,6 +395,108 @@ async function ping(req, env) {
 // выбранные группы: только id групп, не больше 40
 function cleanGroups(g) {
   return (Array.isArray(g) ? g : []).map(String).filter((x) => /^[\w-]{1,40}$/.test(x)).slice(0, 40).sort().join(",");
+}
+
+/* ---------------- календарь контрольных ---------------- */
+// GET /cal/<код друга>.ics?l=he|en|ru — подписка на календарь (iPhone: webcal://, Android: через Google Календарь).
+// Контрольные и экзамены ученика по его выбору (класс + группы, как у кода друга), 30 дней назад и 120 вперёд.
+// Календарь сам обновляется: телефон заново забирает этот адрес раз в несколько часов.
+const CAL_T = {
+  he: { name: "Skedy · מבחנים", periods: "שיעורים", period: "שיעור" },
+  en: { name: "Skedy · Tests", periods: "Periods", period: "Period" },
+  ru: { name: "Skedy · Контрольные", periods: "Уроки", period: "Урок" },
+};
+// местное время Иерусалима → UTC (с учётом летнего времени)
+function jlmOffsetMin(ms) {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jerusalem", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(ms))) p[x.type] = x.value;
+  return (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - Math.floor(ms / 60000) * 60000) / 60000;
+}
+function jlmToUtc(date, hm) {
+  const [y, m, d] = date.split("-").map(Number), [h, mi] = String(hm).split(":").map(Number);
+  const local = Date.UTC(y, m - 1, d, h, mi);
+  let t = local - jlmOffsetMin(local) * 60000;
+  t = local - jlmOffsetMin(t) * 60000;
+  return t;
+}
+function icsTime(ms) { return new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
+function icsText(s) { return String(s || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n"); }
+// строки ics не длиннее 75 байт (иврит и русский — по 2 байта на букву)
+function icsFold(line) {
+  const out = []; let cur = "", n = 0;
+  for (const ch of line) {
+    const b = new TextEncoder().encode(ch).length;
+    if (n + b > (out.length ? 74 : 75)) { out.push(cur); cur = ""; n = 0; }
+    cur += ch; n += b;
+  }
+  out.push(cur);
+  return out.join("\r\n ");
+}
+async function calFeed(env, path, lang) {
+  const m = /^\/cal\/([1-9]\d{2})(?:\.ics)?$/.exec(path);
+  if (!m) return json({ error: "bad_code" }, 400);
+  if (!env.STATS) return json({ error: "no_stats_binding" }, 500);
+  const sel = await statsObj(env).palGet(m[1]);
+  if (!sel) return json({ error: "not_found" }, 404);
+  const raw = await env.DB.get("state");
+  if (!raw) return json({ error: "empty" }, 404);
+  const st = JSON.parse(raw);
+  return calResponse(st, sel, m[1], CAL_T[lang] ? lang : "he");
+}
+function calEvents(st, sel, lang) {
+  const L = T[lang], groups = new Map(st.groups.map((g) => [g.id, g]));
+  const openSubj = new Set(st.subjects.filter((s) => s.open).map((s) => s.id));
+  const classSubj = new Set(st.groups.filter((g) => groupFitsClass(g, sel.classId)).map((g) => g.subjectId));
+  const mine = new Set(sel.groups.filter((id) => {
+    const g = groups.get(id);
+    return g && (openSubj.has(g.subjectId) ? classSubj.has(g.subjectId) : groupFitsClass(g, sel.classId));
+  }));
+  const lessons = new Map(st.lessons.map((l) => [l.id, l]));
+  const from = israelDate(-30), to = israelDate(120);
+  const items = [];
+  for (const c of st.changes || []) {
+    if ((c.type !== "test" && c.type !== "exam") || c.date < from || c.date > to) continue;
+    const l = lessons.get(c.lessonId);
+    if (!l || (l.aud.type === "class" ? l.aud.id !== sel.classId : !mine.has(l.aud.id))) continue;
+    items.push({ c, l });
+  }
+  items.sort((a, b) => (a.c.date + String(a.l.period).padStart(2, "0")).localeCompare(b.c.date + String(b.l.period).padStart(2, "0")));
+  const ev = [];
+  for (const x of items) {
+    const b = ev[ev.length - 1];
+    if (b && b.date === x.c.date && b.type === x.c.type && b.subjectId === x.l.subjectId && x.l.period >= b.to && x.l.period <= b.to + 1) { b.to = x.l.period; continue; }
+    ev.push({ date: x.c.date, type: x.c.type, subjectId: x.l.subjectId, from: x.l.period, to: x.l.period, note: x.c.note || "", teacher: x.l.teacher || "", room: x.l.room || "" });
+  }
+  const per = new Map(st.periods.map((p) => [p.n, p]));
+  return ev.filter((e) => per.get(e.from) && per.get(e.to)).map((e) => {
+    const sub = byId(st.subjects, e.subjectId) || {};
+    const name = sub[lang] || sub.he || "";
+    const C = CAL_T[lang];
+    return {
+      uid: "skedy-" + e.date + "-" + e.subjectId + "-" + e.from + "-" + e.type,
+      start: jlmToUtc(e.date, per.get(e.from).start),
+      end: jlmToUtc(e.date, per.get(e.to).end),
+      summary: (e.type === "test" ? L.test : L.exam) + ": " + name + (e.note ? " (" + e.note + ")" : ""),
+      location: e.room,
+      description: (e.from === e.to ? C.period + " " + e.from : C.periods + " " + e.from + "–" + e.to) + (e.teacher ? "\n" + e.teacher : "") + "\nSkedy",
+    };
+  });
+}
+function calResponse(st, sel, code, lang) {
+  if (!T[lang]) lang = "he";
+  const now = icsTime(Date.now());
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Skedy//Tests//" + lang.toUpperCase(), "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "X-WR-CALNAME:" + icsText(CAL_T[lang].name), "X-WR-TIMEZONE:Asia/Jerusalem", "REFRESH-INTERVAL;VALUE=DURATION:PT3H", "X-PUBLISHED-TTL:PT3H"];
+  for (const e of calEvents(st, sel, lang)) {
+    lines.push("BEGIN:VEVENT", "UID:" + e.uid + "-" + code + "@skedy", "DTSTAMP:" + now, "DTSTART:" + icsTime(e.start), "DTEND:" + icsTime(e.end),
+      "SUMMARY:" + icsText(e.summary), "DESCRIPTION:" + icsText(e.description));
+    if (e.location) lines.push("LOCATION:" + icsText(e.location));
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return new Response(lines.map(icsFold).join("\r\n") + "\r\n", {
+    headers: { ...CORS, "Content-Type": "text/calendar; charset=utf-8", "Cache-Control": "max-age=900", "Content-Disposition": 'inline; filename="skedy-tests.ics"' },
+  });
 }
 
 /* ---------------- друзья ---------------- */
