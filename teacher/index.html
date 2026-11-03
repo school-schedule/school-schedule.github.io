@@ -82,12 +82,20 @@ ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column
 .welcome .logo{width:88px;height:88px}
 .welcome h1{font-size:32px;margin:12px 0 4px}
 .tabbar{position:fixed;inset-inline:0;bottom:0;padding:0 16px calc(10px + env(safe-area-inset-bottom));z-index:5;pointer-events:none}
-.tabbar .in{pointer-events:auto;max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(16,16,16,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:28px;padding:6px}
+.tabbar .in{pointer-events:auto;max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(16,16,16,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:28px;padding:6px}
 .tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:52px;color:var(--muted);font-size:12px;font-weight:600;position:relative}
 .tabbar button.on{color:var(--acc)}
 .tabbar svg{width:24px;height:24px}
 .tabbar .badge{position:absolute;top:2px;inset-inline-end:calc(50% - 22px);background:var(--acc);color:var(--acc-ink);border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
 .tabbar .badge:empty{display:none}
+.pstrip{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin:0 -16px 6px;padding-inline:16px;scrollbar-width:none}
+.pstrip::-webkit-scrollbar{display:none}
+.pstrip .chip{flex:none;min-width:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;background:#0D0D0D;border:1px solid var(--line)}
+.pstrip .chip small{font-size:11px;font-weight:400;color:var(--muted);direction:ltr}
+.pstrip .chip.on{border-color:transparent}
+.bld{margin:14px 0}.bld>b{display:block;font-size:15px;color:var(--muted);margin:0 4px 8px}
+.rooms{display:flex;flex-wrap:wrap;gap:8px}
+.room{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;font-size:15px;min-height:40px;display:inline-flex;align-items:center}
 bdi{unicode-bidi:isolate}
 [hidden]{display:none!important}
 </style>
@@ -104,21 +112,21 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 /* ---------- texts ---------- */
 var T={
-he:{app:'Skedy Teachers',pushBtn:'🔔 קבלת התראות על שינויים בשיעורים שלי',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה בשיעורים שלכם.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את השם שבחרתם ואת כתובת ההתראות של המכשיר – לא יותר.',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
+he:{app:'Skedy Teachers',navRooms:'חדרים',roomsTitle:'חדרים פנויים',roomsSub:'כיתות ומעבדות שאין בהן שיעור, לפי המערכת של כל בית הספר (ז׳–י״ב).',roomsNote:'לפי המערכת הקבועה. חדר יכול להיתפס בגלל שינוי – כדאי לבדוק.',roomsNone:'אין חדרים פנויים בשיעור הזה.',roomsFree:'פנויים: {n}',other:'אחר',roomsWait:'טוען את החדרים…',pushBtn:'🔔 קבלת התראות על שינויים בשיעורים שלי',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה בשיעורים שלכם.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את השם שבחרתם ואת כתובת ההתראות של המכשיר – לא יותר.',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
  today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין לכם שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',test:'מבחן',exam:'בחינה',
  nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, בשיעורים שלכם.',
  noTests:'אין מבחנים ב־3 השבועות הקרובים.',language:'שפה',changeMe:'שינוי מורה',studentApp:'האפליקציה לתלמידים',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',
  loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
  installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
  noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
-en:{app:'Skedy Teachers',pushBtn:'🔔 Get alerts about changes in my lessons',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your lessons.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps the name you picked and this device’s alert address — nothing else.',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
+en:{app:'Skedy Teachers',navRooms:'Rooms',roomsTitle:'Free rooms',roomsSub:'Classrooms and labs with no lesson, by the whole school’s timetable (grades 7–12).',roomsNote:'Based on the regular timetable. A room may be taken because of a change — worth checking.',roomsNone:'No free rooms in this period.',roomsFree:'Free: {n}',other:'Other',roomsWait:'Loading rooms…',pushBtn:'🔔 Get alerts about changes in my lessons',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your lessons.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps the name you picked and this device’s alert address — nothing else.',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
  today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'You have no lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, in your lessons.',
  noTests:'No tests in the next 3 weeks.',language:'Language',changeMe:'Change teacher',studentApp:'Student app',updated:'Updated',offline:'No internet. Showing the last saved schedule.',
  loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
  installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
  noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
-ru:{app:'Skedy Teachers',pushBtn:'🔔 Получать уведомления об изменениях в моих уроках',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в ваших уроках.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит выбранное имя и адрес уведомлений этого устройства — и больше ничего.',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
+ru:{app:'Skedy Teachers',navRooms:'Кабинеты',roomsTitle:'Свободные кабинеты',roomsSub:'Классы и лаборатории, где нет урока, по расписанию всей школы (ז׳–י״ב).',roomsNote:'По постоянному расписанию. Кабинет могли занять из-за изменений — лучше проверить.',roomsNone:'На этом уроке свободных кабинетов нет.',roomsFree:'Свободно: {n}',other:'Другое',roomsWait:'Загружаю кабинеты…',pushBtn:'🔔 Получать уведомления об изменениях в моих уроках',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в ваших уроках.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит выбранное имя и адрес уведомлений этого устройства — и больше ничего.',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
  today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день у вас нет уроков',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, на ваших уроках.',
  noTests:'В ближайшие 3 недели контрольных нет.',language:'Язык',changeMe:'Сменить учителя',studentApp:'Приложение для учеников',updated:'Обновлено',offline:'Нет интернета. Показано последнее сохранённое расписание.',
@@ -135,6 +143,7 @@ var LOGO='<svg class="logo" width="36" height="36" aria-hidden="true" viewBox="0
 // своя память, отдельная от ученического Skedy (sched.*)
 var prefs=sGet('skedyT.prefs')||{};if(!T[prefs.lang])prefs.lang='he';
 var STATE=sGet('skedyT.data');
+var ROOMS=sGet('skedyT.rooms'); // занятость кабинетов всей школы (rooms.json, собирает worker/tools/rooms/build.py)
 var ui={screen:'day',date:null,q:'',offline:false,loading:false,failed:false};
 var API=(function(){var u=String(window.SCHEDULE_API||'').trim();return /^(https:\/\/|http:\/\/localhost)/.test(u)?u.replace(/\/+$/,''):'';})();
 function t(k){return (T[prefs.lang]||T.he)[k]||T.he[k]||k;}
@@ -210,6 +219,8 @@ function load(){
     else{ui.offline=!!STATE;ui.failed=!STATE;}
     render();
   },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
+  fetch('rooms.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&j.rooms){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
 }
 
 /* ---------- push ---------- */
@@ -237,6 +248,41 @@ function enablePush(){
 function syncPush(){
   if(!API||!pushOn()||!meOk()||!('serviceWorker' in navigator))return;
   navigator.serviceWorker.getRegistration('./').then(function(reg){return reg&&reg.pushManager.getSubscription();}).then(function(x){if(x)return sendSub(x);}).catch(function(){});
+}
+
+/* ---------- free rooms ---------- */
+var BUILD=['גפן','זית','אלון','ארז','שקד','רימון','ברוש','אורן','תמר','ריושקה','בית רינה'];
+function building(r){for(var i=0;i<BUILD.length;i++)if(r.indexOf(BUILD[i]+' ')===0)return BUILD[i];return '';}
+function roomNum(r){var m=/\s(\d+)/.exec(r);return m?+m[1]:999;}
+// текущий урок, а между уроками и до начала — следующий
+function curP(){var n=nowMins(),best=null;(STATE.periods||[]).forEach(function(p){if(!best&&n<mins(p.end))best=p.n;});return best||((STATE.periods||[])[0]||{}).n||1;}
+function freeRooms(date,p){
+  var wd=wday(date),taken={};
+  // изменения, которые знает Skedy: другой кабинет, событие в кабинете
+  (STATE.changes||[]).forEach(function(c){if(c.date!==date||c.type!=='room'||!c.room)return;var l=byId(STATE.lessons,c.lessonId);if(l&&l.period===p)taken[c.room]=1;});
+  (STATE.events||[]).forEach(function(e){if(e.date===date&&e.room&&e.from&&p>=e.from&&p<=e.to)taken[e.room]=1;});
+  return Object.keys(ROOMS.rooms).filter(function(r){return !(ROOMS.rooms[r][wd]&(1<<p))&&!taken[r];});
+}
+function renderRooms(){
+  var h=top()+'<h2>'+esc(t('roomsTitle'))+'</h2><p class="sub">'+esc(t('roomsSub'))+'</p>';
+  if(!ROOMS)return h+'<div class="empty">'+esc(t('roomsWait'))+'</div>';
+  var today=todayISO(),d=ui.rDate||schoolDay(today),p=ui.rP||(d===today?curP():1),sun=addDays(d,-wday(d));
+  h+='<div class="strip">';
+  for(var i=0;i<5;i++){var di=addDays(sun,i);h+='<button class="chip'+(di===d?' on':'')+(di===today?' today':'')+'" data-act="rday" data-id="'+di+'"><b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}
+  h+='</div><div class="pstrip">';
+  (STATE.periods||[]).forEach(function(x){h+='<button class="chip'+(x.n===p?' on':'')+'" data-act="rp" data-id="'+x.n+'"><b>'+x.n+'</b><small>'+esc(x.start)+'</small></button>';});
+  h+='</div>';
+  if(dayOff(d))return h+'<div class="empty">'+esc(t('noSchool'))+'</div>';
+  var free=freeRooms(d,p),by={};
+  free.forEach(function(r){var b=building(r)||t('other');(by[b]=by[b]||[]).push(r);});
+  h+='<div class="dhead">'+esc(t('period')+' '+p+' · '+DAYS[prefs.lang][wday(d)]+', '+fmtDate(d)+' · '+t('roomsFree').replace('{n}',free.length))+'</div>';
+  if(!free.length)return h+'<div class="empty">'+esc(t('roomsNone'))+'</div>';
+  BUILD.concat([t('other')]).forEach(function(b){var list=by[b];if(!list)return;
+    list.sort(function(x,y){return roomNum(x)-roomNum(y)||x.localeCompare(y,'he');});
+    h+='<div class="bld"><b>'+esc(b)+'</b><div class="rooms">';
+    list.forEach(function(r){var rest=b===t('other')?r:r.slice(b.length+1);h+='<span class="room"><bdi>'+esc(rest)+'</bdi></span>';});
+    h+='</div></div>';});
+  return h+'<p class="muted small center">'+esc(t('roomsNote'))+(ROOMS.updated?' · '+esc(fmtDate(ROOMS.updated)):'')+'</p>';
 }
 
 /* ---------- screens ---------- */
@@ -316,6 +362,7 @@ function renderMore(){
 }
 var NAV=[['day','navDay','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>'],
   ['tests','navTests','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5h6v3H9zM9 13l2 2 4-4"/></svg>'],
+  ['rooms','navRooms','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4.5A1.5 1.5 0 0 1 6.5 3h8A1.5 1.5 0 0 1 16 4.5V21M3 21h18M16 6h2.5a1 1 0 0 1 1 1v14"/><circle cx="12.5" cy="12.5" r="1" fill="currentColor"/></svg>'],
   ['more','navMore','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>']];
 function nav(){var nt=0;upcomingTests().forEach(function(x){nt+=x.items.length;});
   var h='<nav class="tabbar"><div class="in">';NAV.forEach(function(x){h+='<button class="'+(ui.screen===x[0]?'on':'')+'" data-act="tab" data-id="'+x[0]+'">'+x[2]+'<span>'+esc(t(x[1]))+'</span><span class="badge">'+(x[0]==='tests'&&nt?nt:'')+'</span></button>';});
@@ -329,7 +376,7 @@ function render(){
   if(!STATE)h=top()+'<div class="empty">'+esc(ui.failed?t('loadFail'):t('loading'))+(ui.failed?'<div class="stack"><button class="primary" data-act="retry">'+esc(t('retry'))+'</button></div>':'')+'</div>';
   else if(!meOk()||ui.screen==='pick')h=renderPick();
   else{if(!ui.date)ui.date=schoolDay(todayISO());
-    h=(ui.screen==='tests'?renderTests():ui.screen==='more'?renderMore():renderDay())+nav();}
+    h=(ui.screen==='tests'?renderTests():ui.screen==='rooms'?renderRooms():ui.screen==='more'?renderMore():renderDay())+nav();}
   root.innerHTML=h;
 }
 root.addEventListener('click',function(e){
@@ -342,6 +389,8 @@ root.addEventListener('click',function(e){
     case 'tab':ui.msg='';if(id==='day'&&ui.screen==='day')ui.date=schoolDay(todayISO());ui.screen=id;render();window.scrollTo(0,0);break;
     case 'day':ui.date=stepDay(ui.date,+el.getAttribute('data-n'));render();break;
     case 'goto':ui.date=id;render();break;
+    case 'rday':ui.rDate=id;render();break;
+    case 'rp':ui.rP=+id;render();break;
     case 'retry':load();break;
   }
 });
