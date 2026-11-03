@@ -25,7 +25,7 @@
  *  - Durable Object  STATS  (класс Stats, SQLite) — анонимный счётчик устройств
  *    (POST /ping от сайта, GET /stats — для редактора) и сообщения об ошибках
  *    (POST /report от учеников, GET /reports и POST /reports/delete — для редактора),
- *    коды друзей (POST /pal, GET /pal/<код>, POST /pal/delete, POST /pal/link|inbox — взаимное добавление), «кто сейчас свободен» (GET /crowd)
+ *    коды друзей (POST /pal, GET /pal/<код>, POST /pal/delete, POST /pal/link|inbox — взаимное добавление, POST /pal/unlink — взаимное удаление), «кто сейчас свободен» (GET /crowd)
  *    и чат поддержки (POST /chat, POST /chat/get — ученик; GET /chats, POST /chats/open|reply|delete — редактор).
  */
 
@@ -109,6 +109,7 @@ export default {
       if (path === "/pal/delete" && req.method === "POST") return await palDelete(req, env);
       if (path === "/pal/link" && req.method === "POST") return await palLink(req, env);
       if (path === "/pal/inbox" && req.method === "POST") return await palInbox(req, env);
+      if (path === "/pal/unlink" && req.method === "POST") return await palUnlink(req, env);
       if (path.startsWith("/pal/") && req.method === "GET") return await palGet(req, env, path.slice(5));
       if (path === "/crowd" && req.method === "GET") return json(await statsObj(env).crowd(israelDate(0)));
       if ((path === "/chat" || path === "/chat/get" || path.startsWith("/chats")) && !env.STATS) return json({ error: "no_stats_binding" }, 500);
@@ -540,6 +541,17 @@ async function palLink(req, env) {
   if (!/^[1-9]\d{2}$/.test(String(b.to || ""))) return json({ error: "bad_code" }, 400);
   return json(await statsObj(env).palLink(b.id, String(b.to), new Date().toISOString()));
 }
+// взаимное удаление: A убрал B из друзей — B при следующем открытии тоже уберёт A
+async function palUnlink(req, env) {
+  let lim;
+  try { lim = await limiter(env, "pal", req).hit(PAL_MAX, PAL_WINDOW_SEC); }
+  catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.id !== "string" || !/^[0-9a-f]{32}$/.test(b.id)) return json({ error: "bad_id" }, 400);
+  if (!/^[1-9]\d{2}$/.test(String(b.to || ""))) return json({ error: "bad_code" }, 400);
+  return json(await statsObj(env).palUnlink(b.id, String(b.to), new Date().toISOString()));
+}
 async function palInbox(req, env) {
   const b = await req.json().catch(() => null);
   if (!b || typeof b.id !== "string" || !/^[0-9a-f]{32}$/.test(b.id)) return json({ error: "bad_id" }, 400);
@@ -632,6 +644,8 @@ export class Stats extends DurableObject {
     this.sql.exec("CREATE TABLE IF NOT EXISTS pals (code TEXT PRIMARY KEY, dev TEXT NOT NULL UNIQUE, cls TEXT NOT NULL, grp TEXT NOT NULL, at TEXT NOT NULL) WITHOUT ROWID");
     // кто кого добавил (ждёт, пока второй откроет приложение); строка удаляется после доставки
     this.sql.exec("CREATE TABLE IF NOT EXISTS pallinks (to_code TEXT NOT NULL, from_code TEXT NOT NULL, at TEXT NOT NULL, PRIMARY KEY (to_code, from_code)) WITHOUT ROWID");
+    // кто кого удалил из друзей (второй тоже уберёт первого, когда откроет приложение); строка удаляется после доставки
+    this.sql.exec("CREATE TABLE IF NOT EXISTS palunlinks (to_code TEXT NOT NULL, from_code TEXT NOT NULL, at TEXT NOT NULL, PRIMARY KEY (to_code, from_code)) WITHOUT ROWID");
     // группы устройства (для «кто сейчас свободен»); у старой таблицы колонки ещё нет
     const cols = this.sql.exec("PRAGMA table_info(devices)").toArray().map((c) => c.name);
     if (!cols.includes("grp")) this.sql.exec("ALTER TABLE devices ADD COLUMN grp TEXT NOT NULL DEFAULT ''");
@@ -721,6 +735,15 @@ export class Stats extends DurableObject {
     if (!me) return { error: "no_code" };
     if (me.code === to || !this.sql.exec("SELECT 1 FROM pals WHERE code = ?", to).toArray().length) return { ok: false };
     this.sql.exec("INSERT OR IGNORE INTO pallinks (to_code, from_code, at) VALUES (?, ?, ?)", to, me.code, at);
+    this.sql.exec("DELETE FROM palunlinks WHERE to_code = ? AND from_code = ?", to, me.code); // снова добавил — прежнее удаление не нужно
+    return { ok: true };
+  }
+  palUnlink(dev, to, at) {
+    const me = this.sql.exec("SELECT code FROM pals WHERE dev = ?", dev).toArray()[0];
+    if (!me) return { error: "no_code" };
+    if (me.code === to) return { ok: false };
+    this.sql.exec("DELETE FROM pallinks WHERE to_code = ? AND from_code = ?", to, me.code); // недоставленное добавление больше не нужно
+    this.sql.exec("INSERT OR REPLACE INTO palunlinks (to_code, from_code, at) VALUES (?, ?, ?)", to, me.code, at);
     return { ok: true };
   }
   palInbox(dev) {
@@ -729,7 +752,9 @@ export class Stats extends DurableObject {
     const list = this.sql.exec("SELECT l.from_code AS code, p.cls, p.grp FROM pallinks l JOIN pals p ON p.code = l.from_code WHERE l.to_code = ?", me.code).toArray()
       .map((r) => ({ code: r.code, classId: r.cls, groups: r.grp ? r.grp.split(",") : [] }));
     this.sql.exec("DELETE FROM pallinks WHERE to_code = ?", me.code);
-    return { list };
+    const removed = this.sql.exec("SELECT from_code AS code FROM palunlinks WHERE to_code = ?", me.code).toArray().map((r) => r.code);
+    this.sql.exec("DELETE FROM palunlinks WHERE to_code = ?", me.code);
+    return { list, removed };
   }
   palDelete(dev) {
     this.sql.exec("DELETE FROM pals WHERE dev = ?", dev);
