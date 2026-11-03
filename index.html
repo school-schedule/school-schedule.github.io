@@ -1212,6 +1212,12 @@ function crowdLoad(){
   fetch(API+'/crowd').then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&Array.isArray(j.sel)){ui.crowd={at:Date.now(),sel:j.sel};if(ui.screen==='pals'&&!ui.palAdd)render();}},function(){});
 }
 // кто добавил меня — добавляем его в ответ (имя он потом подпишет сам)
+// один человек с двумя кодами (на iPhone у Safari и у приложения с экрана «Домой» своя память и свой код):
+// узнаём его по одинаковому выбору — тот же класс и те же группы
+function palKey(f){return (f.classId||'')+'|'+(f.groups||[]).map(String).sort().join(',');}
+// убрать повторы без имени, если этот же человек уже есть в списке под именем
+function palDedupe(){var all=pals(),named={};all.forEach(function(f){if(f.name)named[palKey(f)]=1;});
+  var left=all.filter(function(f){return f.name||!named[palKey(f)];});if(left.length!==all.length)savePals(left);}
 // сообщить серверу, что я убрал друга (чтобы и он убрал меня)
 function palUnlink(code){var id=deviceId();if(!API||!id||!palMe().code)return;
   fetch(API+'/pal/unlink',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,to:code})}).catch(function(){});}
@@ -1225,7 +1231,7 @@ function palInbox(){
     if(gone.length){var left=pals().filter(function(f){return gone.indexOf(f.code)<0;});if(left.length!==pals().length){savePals(left);if(ui.palView&&gone.indexOf(ui.palView)>=0)ui.palView=null;if(ui.screen==='pals'&&!ui.palAdd)render();}}
     if(!Array.isArray(j.list)||!j.list.length)return;
     var all=pals(),me=palMe().code,added=[];
-    j.list.forEach(function(x){if(x.code===me||all.some(function(f){return f.code===x.code;}))return;all.push({code:x.code,name:'',classId:x.classId,groups:x.groups||[]});added.push(x.code);});
+    j.list.forEach(function(x){if(x.code===me||all.some(function(f){return f.code===x.code||palKey(f)===palKey(x);}))return;all.push({code:x.code,name:'',classId:x.classId,groups:x.groups||[]});added.push(x.code);});
     if(!added.length)return;savePals(all);toast(added.map(function(c){return t('palAddedYou').replace('{c}',c);}).join(' · '));setTimeout(achCheck,4000);if(ui.screen==='pals'&&!ui.palAdd)render();
   },function(){}).then(function(){palInbox.busy=false;});
 }
@@ -1233,7 +1239,7 @@ function palInbox(){
 function palLink(code){var id=deviceId();if(!API||!id)return;
   var go=function(){fetch(API+'/pal/link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,to:code})}).catch(function(){});};
   if(palMe().code)go();else{palSync();setTimeout(function(){if(palMe().code)go();},2500);}}
-function palOpen(){palSync();palRefresh();palInbox();if(SHOW_CROWD)crowdLoad();}
+function palOpen(){palDedupe();palSync();palRefresh();palInbox();if(SHOW_CROWD)crowdLoad();}
 function palShare(){
   var c=palMe().code;if(!c)return;var url=location.origin+location.pathname.replace(/index\.html$/,'')+'#pal='+c,text=t('shareText')+c;
   try{if(navigator.share){navigator.share({text:text,url:url}).catch(function(){});return;}}catch(e){}
@@ -1349,7 +1355,11 @@ function palAddSave(){
   a.busy=true;render();
   palFetch(a.code).then(function(x){
     if(ui.palAdd)ui.palAdd.busy=false;
-    if(x.s===200&&x.j.classId){var all=pals();all.push({code:a.code,name:a.name,classId:x.j.classId,groups:x.j.groups||[]});savePals(all);palLink(a.code);ui.palAdd=null;render();achCheck();}
+    if(x.s===200&&x.j.classId){var nf={code:a.code,name:a.name,classId:x.j.classId,groups:x.j.groups||[]},k=palKey(nf);
+      // тот же человек с другим кодом: это я сам или он уже есть в списке под именем
+      if(k===palKey({classId:prefs.classId,groups:myGroupIds()})){toast(t('palSelf'),true);render();return;}
+      if(pals().some(function(f){return f.name&&palKey(f)===k;})){toast(t('palExists'),true);render();return;}
+      var all=pals().filter(function(f){return palKey(f)!==k;});all.push(nf);savePals(all);palLink(a.code);ui.palAdd=null;render();achCheck();}
     else toast(t(x.s===404||x.s===400?'palNotFound':x.s===0?'netBlocked':'reportFailed'),true);
   });
 }
