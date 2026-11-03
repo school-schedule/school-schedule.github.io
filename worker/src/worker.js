@@ -351,6 +351,9 @@ async function subscribe(req, env) {
     l: ["he", "en", "ru"].includes(b.lang) ? b.lang : "he",
   };
   rec.g = rec.g.filter((x) => /^[\w-]{1,40}$/.test(x));
+  // Skedy для учителей: вместо класса и групп — имя учителя (уведомления о его уроках)
+  const teacher = typeof b.teacher === "string" ? b.teacher.replace(/\s+/g, " ").trim().slice(0, 60) : "";
+  if (teacher) { rec.t = teacher; rec.c = ""; rec.g = []; }
   const txt = JSON.stringify(rec);
   // если ничего не поменялось — не тратим запись
   const old = await env.DB.getWithMetadata("sub:" + id);
@@ -859,6 +862,7 @@ function describe(st, c) {
     note: c.note || "",
     period: les.period,
     aud: les.aud,
+    t: normName(les.teacher),
     name: { he: sub.he || "", en: sub.en || sub.he || "", ru: sub.ru || sub.he || "" },
   };
 }
@@ -884,6 +888,7 @@ function mergeTests(list) {
   return out;
 }
 function concerns(d, rec) {
+  if (rec.t) return !!d.t && d.t === normName(rec.t); // учитель: изменения в его уроках
   if (d.aud.type === "class") return d.aud.id === rec.c;
   return rec.g.includes(d.aud.id);
 }
@@ -900,7 +905,10 @@ async function notifyAll(env, ds) {
 async function planPushes(env, ds) {
   const jobs = [];
   for await (const { key, rec } of allSubs(env)) {
-    const mine = mergeTests(ds.filter((d) => concerns(d, rec)).sort((a, b) => a.k.localeCompare(b.k)));
+    // одинаковые строки (у учителя один урок сразу у нескольких классов) — один раз
+    const seen = new Set();
+    const mine = mergeTests(ds.filter((d) => concerns(d, rec)).sort((a, b) => a.k.localeCompare(b.k)))
+      .filter((d) => { const k = [d.date, d.period, d.to || "", d.type, d.name.he, d.room, d.note].join("|"); if (seen.has(k)) return false; seen.add(k); return true; });
     if (!mine.length) continue;
     const L = T[rec.l];
     jobs.push({

@@ -78,8 +78,13 @@ self.addEventListener('push', function (e) {
 
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
+  // открываем то приложение, чья это подписка: ученическое (scope «/») или для учителей (scope «/teacher/»)
+  var scope = self.registration.scope, teacher = /\/teacher\/$/.test(scope);
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
-    for (var i = 0; i < list.length; i++) { if ('focus' in list[i]) return list[i].focus(); }
-    return self.clients.openWindow('./');
+    for (var i = 0; i < list.length; i++) {
+      var u = list[i].url, mine = u.indexOf(scope) === 0 && (teacher || u.indexOf('/teacher/') < 0);
+      if (mine && 'focus' in list[i]) return list[i].focus();
+    }
+    return self.clients.openWindow(scope);
   }));
 });
