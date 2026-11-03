@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # Данные для Skedy Teachers по постоянному расписанию всей школы (вкладка timetable שחף у всех классов ז׳–י״ב):
 #   teacher/rooms.json    — какой кабинет на каком уроке занят («Свободные кабинеты»);
-#   teacher/teachers.json — уроки каждого учителя: день, урок, предмет, кабинет, классы («Где учитель»).
+#   teacher/teachers.json — уроки каждого учителя: день, урок, предмет, кабинет, классы («Где учитель»);
+#   teacher/classes/<параллель>-<номер>.json — уроки одного класса: день, урок, предмет, кабинет, учитель («Мой класс»;
+#     по файлу на класс, чтобы учитель скачивал только свой), teacher/classes/index.json — список классов.
 # Запуск из корня репозитория (нужен доступ к kfaryarok.shahaf.site):
 #   python3 worker/tools/rooms/build.py            — скачать страницы и собрать файл
 #   python3 worker/tools/rooms/build.py --cached   — собрать из уже скачанных /tmp/sh/tt_*.html
@@ -43,6 +45,7 @@ def main():
     opts = class_opts(open(CACHE + '/idx.html', encoding='utf-8').read() if cached else get(BASE + '?tab=timetable'))
     busy = {}   # кабинет -> [битовая маска уроков на каждый день вс–чт]
     tl = {}     # (учитель, день, урок, предмет, кабинет) -> классы
+    cl = {}     # класс -> список (день, урок, предмет, кабинет, учитель)
     for cid, cname in opts:
         path = '%s/tt_%s.html' % (CACHE, cid)
         if cached:
@@ -69,6 +72,8 @@ def main():
                         busy.setdefault(room, [0] * 5)[d] |= 1 << p
                     if teacher:
                         tl.setdefault((teacher, d, p, subj, room), set()).add(cname)
+                    if subj:
+                        cl.setdefault(cname, []).append((d, p, subj, room, teacher))
     rooms = {k: v for k, v in sorted(busy.items()) if not SKIP.search(k)}
     today = datetime.date.today().isoformat()
     out = {'updated': today, 'classes': len(opts), 'rooms': rooms}
@@ -84,6 +89,23 @@ def main():
         T.setdefault(teacher, []).append([d, p, ix(S, subj), ix(R, room), ix(A, aud_label(cls))])
     with open('teacher/teachers.json', 'w', encoding='utf-8') as f:
         json.dump({'updated': today, 's': S, 'r': R, 'a': A, 't': T}, f, ensure_ascii=False, separators=(',', ':'))
+    # уроки классов: по файлу на класс, имя файла — номер параллели и класса («יא-2» → 11-2.json)
+    NUM = {'ז': 7, 'ח': 8, 'ט': 9, 'י': 10, 'יא': 11, 'יב': 12}
+    os.makedirs('teacher/classes', exist_ok=True)
+    for f in os.listdir('teacher/classes'):
+        os.remove('teacher/classes/' + f)
+    index = []
+    for cid, cname in opts:
+        g, n = cname.split('-')
+        key = '%d-%s' % (NUM.get(g, 0), n)
+        cs, cr, ct = [], [], []
+        ls = [[d, p, ix(cs, subj), ix(cr, room), ix(ct, teacher)] for d, p, subj, room, teacher in sorted(set(cl.get(cname, [])))]
+        with open('teacher/classes/%s.json' % key, 'w', encoding='utf-8') as f:
+            json.dump({'updated': today, 's': cs, 'r': cr, 't': ct, 'l': ls}, f, ensure_ascii=False, separators=(',', ':'))
+        index.append({'k': key, 'he': GRADE.get(g, g) + n, 'g': NUM.get(g, 0), 'n': int(n)})
+    index.sort(key=lambda x: (x['g'], x['n']))
+    with open('teacher/classes/index.json', 'w', encoding='utf-8') as f:
+        json.dump({'updated': today, 'classes': index}, f, ensure_ascii=False, separators=(',', ':'))
     print('классов:', len(opts), 'кабинетов:', len(rooms), 'пропущено:', len(busy) - len(rooms), 'учителей:', len(T), 'уроков:', len(tl))
 
 main()
