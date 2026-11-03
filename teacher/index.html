@@ -104,21 +104,21 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 /* ---------- texts ---------- */
 var T={
-he:{app:'Skedy למורים',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
+he:{app:'Skedy למורים',pushBtn:'🔔 קבלת התראות על שינויים בשיעורים שלי',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה בשיעורים שלכם.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את השם שבחרתם ואת כתובת ההתראות של המכשיר – לא יותר.',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
  today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין לכם שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',test:'מבחן',exam:'בחינה',
  nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, בשיעורים שלכם.',
  noTests:'אין מבחנים ב־3 השבועות הקרובים.',language:'שפה',changeMe:'שינוי מורה',studentApp:'האפליקציה לתלמידים',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',
  loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
  installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
  noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
-en:{app:'Skedy for teachers',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
+en:{app:'Skedy for teachers',pushBtn:'🔔 Get alerts about changes in my lessons',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your lessons.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps the name you picked and this device’s alert address — nothing else.',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
  today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'You have no lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, in your lessons.',
  noTests:'No tests in the next 3 weeks.',language:'Language',changeMe:'Change teacher',studentApp:'Student app',updated:'Updated',offline:'No internet. Showing the last saved schedule.',
  loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
  installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
  noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
-ru:{app:'Skedy для учителей',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
+ru:{app:'Skedy для учителей',pushBtn:'🔔 Получать уведомления об изменениях в моих уроках',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в ваших уроках.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит выбранное имя и адрес уведомлений этого устройства — и больше ничего.',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
  today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день у вас нет уроков',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, на ваших уроках.',
  noTests:'В ближайшие 3 недели контрольных нет.',language:'Язык',changeMe:'Сменить учителя',studentApp:'Приложение для учеников',updated:'Обновлено',offline:'Нет интернета. Показано последнее сохранённое расписание.',
@@ -212,6 +212,33 @@ function load(){
   },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
 }
 
+/* ---------- push ---------- */
+// своя регистрация service worker на /teacher/ — значит своя подписка, отдельная от ученического Skedy
+function standalone(){try{return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}}
+function isIOS(){var u=navigator.userAgent||'';return /iphone|ipad|ipod/i.test(u)||(/macintosh/i.test(u)&&navigator.maxTouchPoints>1);}
+function pushOn(){try{return Notification.permission==='granted'&&!!sGet('skedyT.push');}catch(e){return false;}}
+function b64uBytes(s){s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var r=atob(s),a=new Uint8Array(r.length);for(var i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}
+function swReady(){return navigator.serviceWorker.register('../sw.js',{scope:'./'}).then(function(){return navigator.serviceWorker.ready;});}
+function sendSub(sub,force){
+  var sig=[sub.endpoint,normT(prefs.teacher),prefs.lang].join('|');if(!force&&sGet('skedyT.pushsig')===sig)return Promise.resolve();
+  return fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub.toJSON?sub.toJSON():sub,teacher:prefs.teacher,lang:prefs.lang})})
+  .then(function(r){if(!r.ok)throw new Error('subscribe');sSet('skedyT.pushsig',sig);});
+}
+function enablePush(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){ui.msg=t(isIOS()&&!standalone()?'pushNeedInstall':'pushUnsupported');render();return;}
+  Notification.requestPermission().then(function(p){
+    if(p!=='granted'){ui.msg=t('pushDenied');render();return;}
+    return Promise.all([swReady(),fetch(API+'/vapid').then(function(r){return r.json();})]).then(function(a){
+      var reg=a[0];return reg.pushManager.getSubscription().then(function(old){return old||reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uBytes(a[1].key)});});
+    }).then(function(sub){return sendSub(sub,true);}).then(function(){sSet('skedyT.push','on');ui.msg=t('pushOnMsg');render();});
+  }).catch(function(){ui.msg=t('pushFailed');render();});
+}
+// сменили учителя или язык — сообщаем серверу
+function syncPush(){
+  if(!API||!pushOn()||!meOk()||!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.getRegistration('./').then(function(reg){return reg&&reg.pushManager.getSubscription();}).then(function(x){if(x)return sendSub(x);}).catch(function(){});
+}
+
 /* ---------- screens ---------- */
 function top(){return '<div class="top">'+LOGO+'<b>Skedy</b>'+(prefs.teacher&&meOk()?'<span class="who"><bdi>'+esc(prefs.teacher)+'</bdi></span>':'')+'</div>';}
 function langSwitch(){var h='<div class="langs">';[['he','עב'],['en','EN'],['ru','RU']].forEach(function(x){h+='<button class="'+(prefs.lang===x[0]?'on':'')+'" data-act="lang" data-id="'+x[0]+'">'+x[1]+'</button>';});return h+'</div>';}
@@ -278,7 +305,11 @@ function renderTests(){
 }
 function renderMore(){
   var h=top()+'<h2>'+esc(t('navMore'))+'</h2><div class="field"><label>'+esc(t('language'))+'</label>'+langSwitch()+'</div>';
-  h+='<div class="stack"><button class="secondary" data-act="change">'+esc(t('changeMe'))+'</button>';
+  h+='<div class="stack">';
+  if(API){h+=pushOn()?'<div class="notice">'+esc(t('pushIsOn'))+'</div>':'<button class="primary" data-act="push">'+esc(t('pushBtn'))+'</button>';
+    if(ui.msg)h+='<div class="notice plain small">'+esc(ui.msg)+'</div>';
+    h+='<p class="muted small" style="margin:0 4px">'+esc(t('pushNote'))+'</p>';}
+  h+='<button class="secondary" data-act="change">'+esc(t('changeMe'))+'</button>';
   if(!(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)&&navigator.standalone!==true)h+='<div class="notice plain small"><b>'+esc(t('install'))+'</b><br>'+esc(t('installHint'))+'</div>';
   h+='</div><div class="center" style="margin-top:10px"><a class="link" href="../">'+esc(t('studentApp'))+'</a></div>';
   return h+'<div class="foot">'+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';
@@ -304,10 +335,11 @@ function render(){
 root.addEventListener('click',function(e){
   var el=e.target.closest('[data-act]');if(!el)return;var a=el.getAttribute('data-act'),id=el.getAttribute('data-id');
   switch(a){
-    case 'me':prefs.teacher=id;savePrefs();ui.screen='day';ui.q='';ui.date=schoolDay(todayISO());render();window.scrollTo(0,0);break;
+    case 'push':ui.msg='';enablePush();break;
+    case 'me':prefs.teacher=id;savePrefs();syncPush();ui.screen='day';ui.q='';ui.date=schoolDay(todayISO());render();window.scrollTo(0,0);break;
     case 'change':ui.screen='pick';render();window.scrollTo(0,0);break;
-    case 'lang':prefs.lang=id;savePrefs();render();break;
-    case 'tab':if(id==='day'&&ui.screen==='day')ui.date=schoolDay(todayISO());ui.screen=id;render();window.scrollTo(0,0);break;
+    case 'lang':prefs.lang=id;savePrefs();syncPush();render();break;
+    case 'tab':ui.msg='';if(id==='day'&&ui.screen==='day')ui.date=schoolDay(todayISO());ui.screen=id;render();window.scrollTo(0,0);break;
     case 'day':ui.date=stepDay(ui.date,+el.getAttribute('data-n'));render();break;
     case 'goto':ui.date=id;render();break;
     case 'retry':load();break;
@@ -328,7 +360,7 @@ render();load();
 setInterval(function(){if(ui.screen==='day'&&STATE&&meOk())render();},60000);
 setInterval(load,300000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)load();});
-if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js',{scope:'./'}).then(syncPush,function(){});
 })();
 </script>
 </body>
