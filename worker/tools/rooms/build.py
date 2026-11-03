@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-# Свободные кабинеты для Skedy Teachers: какой кабинет на каком уроке занят по постоянному расписанию всей школы.
-# Берёт вкладку timetable שחף у всех классов (ז׳–י״ב) и пишет teacher/rooms.json.
+# Данные для Skedy Teachers по постоянному расписанию всей школы (вкладка timetable שחף у всех классов ז׳–י״ב):
+#   teacher/rooms.json    — какой кабинет на каком уроке занят («Свободные кабинеты»);
+#   teacher/teachers.json — уроки каждого учителя: день, урок, предмет, кабинет, классы («Где учитель»).
 # Запуск из корня репозитория (нужен доступ к kfaryarok.shahaf.site):
 #   python3 worker/tools/rooms/build.py            — скачать страницы и собрать файл
 #   python3 worker/tools/rooms/build.py --cached   — собрать из уже скачанных /tmp/sh/tt_*.html
@@ -17,15 +18,32 @@ def get(url):
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read().decode('utf-8')
 
-def class_ids(page):
-    return [v for v, t in re.findall(r'<option[^>]*value="(\d+)"[^>]*>([\s\S]*?)</option>', page)]
+def class_opts(page):
+    return [(v, re.sub(r'\s', '', html.unescape(t))) for v, t in re.findall(r'<option[^>]*value="(\d+)"[^>]*>([\s\S]*?)</option>', page)]
+
+GRADE = {'ז': 'ז׳', 'ח': 'ח׳', 'ט': 'ט׳', 'י': 'י׳', 'יא': 'י״א', 'יב': 'י״ב'}
+def aud_label(classes):
+    # «יא-2» → «י״א2»; больше трёх классов одной параллели — «שכבת י״א»
+    by = {}
+    for c in classes:
+        g, n = c.split('-')
+        by.setdefault(g, []).append(int(n))
+    out = []
+    for g in sorted(by, key=lambda x: list(GRADE).index(x) if x in GRADE else 99):
+        ns = sorted(by[g])
+        out.append('שכבת ' + GRADE.get(g, g) if len(ns) > 3 else ', '.join(GRADE.get(g, g) + str(n) for n in ns))
+    return ', '.join(out)
+
+def clean(x):
+    return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', '', x or ''))).strip()
 
 def main():
     os.makedirs(CACHE, exist_ok=True)
     cached = '--cached' in sys.argv
-    ids = class_ids(open(CACHE + '/idx.html', encoding='utf-8').read() if cached else get(BASE + '?tab=timetable'))
+    opts = class_opts(open(CACHE + '/idx.html', encoding='utf-8').read() if cached else get(BASE + '?tab=timetable'))
     busy = {}   # кабинет -> [битовая маска уроков на каждый день вс–чт]
-    for cid in ids:
+    tl = {}     # (учитель, день, урок, предмет, кабинет) -> классы
+    for cid, cname in opts:
         path = '%s/tt_%s.html' % (CACHE, cid)
         if cached:
             page = open(path, encoding='utf-8').read()
@@ -43,15 +61,29 @@ def main():
                 if d > 4:
                     continue
                 for les in re.findall(r'<div class="TTLesson">([\s\S]*?)</div>', cell):
-                    r = re.search(r'</b>(?:&nbsp;)*\s*\(([\s\S]*?)\)\s*<br', les)
-                    if not r:
+                    mm = re.match(r'\s*<b>([\s\S]*?)</b>(?:&nbsp;)*\s*(?:\(([\s\S]*?)\))?\s*<br/>([\s\S]*)', les)
+                    if not mm:
                         continue
-                    room = re.sub(r'\s+', ' ', html.unescape(r.group(1))).strip()
-                    busy.setdefault(room, [0] * 5)[d] |= 1 << p
+                    subj, room, teacher = [clean(x) for x in mm.groups()]
+                    if room:
+                        busy.setdefault(room, [0] * 5)[d] |= 1 << p
+                    if teacher:
+                        tl.setdefault((teacher, d, p, subj, room), set()).add(cname)
     rooms = {k: v for k, v in sorted(busy.items()) if not SKIP.search(k)}
-    out = {'updated': datetime.date.today().isoformat(), 'classes': len(ids), 'rooms': rooms}
+    today = datetime.date.today().isoformat()
+    out = {'updated': today, 'classes': len(opts), 'rooms': rooms}
     with open('teacher/rooms.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, separators=(',', ':'))
-    print('классов:', len(ids), 'кабинетов:', len(rooms), 'пропущено:', len(busy) - len(rooms))
+    # уроки учителей: строки предметов, кабинетов и классов — в общих списках, в уроке только их номера
+    S, R, A, T = [], [], [], {}
+    def ix(lst, v):
+        if v not in lst:
+            lst.append(v)
+        return lst.index(v)
+    for (teacher, d, p, subj, room), cls in sorted(tl.items(), key=lambda x: (x[0][0], x[0][1], x[0][2])):
+        T.setdefault(teacher, []).append([d, p, ix(S, subj), ix(R, room), ix(A, aud_label(cls))])
+    with open('teacher/teachers.json', 'w', encoding='utf-8') as f:
+        json.dump({'updated': today, 's': S, 'r': R, 'a': A, 't': T}, f, ensure_ascii=False, separators=(',', ':'))
+    print('классов:', len(opts), 'кабинетов:', len(rooms), 'пропущено:', len(busy) - len(rooms), 'учителей:', len(T), 'уроков:', len(tl))
 
 main()
