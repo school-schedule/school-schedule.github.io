@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#171717">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Skedy למורים">
-<title>Skedy למורים</title>
+<meta name="apple-mobile-web-app-title" content="Skedy Teachers">
+<title>Skedy Teachers</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style id="app-css">
-/* Skedy для учителей: та же палитра p2 («лайм»), что у ученического приложения */
+/* Skedy Teachers: та же палитра p2 («лайм»), что у ученического приложения */
 :root{--bg:#171717;--card:#101010;--line:rgba(255,255,255,.08);--ink:#F2F2F2;--muted:#A3A3A3;--acc:#C6FF00;--acc-ink:#171717;--bad:#FF5A5F}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Rubik",system-ui,sans-serif;-webkit-text-size-adjust:100%}
@@ -104,21 +104,21 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 /* ---------- texts ---------- */
 var T={
-he:{app:'Skedy למורים',pushBtn:'🔔 קבלת התראות על שינויים בשיעורים שלי',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה בשיעורים שלכם.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את השם שבחרתם ואת כתובת ההתראות של המכשיר – לא יותר.',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
+he:{app:'Skedy Teachers',pushBtn:'🔔 קבלת התראות על שינויים בשיעורים שלי',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה בשיעורים שלכם.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את השם שבחרתם ואת כתובת ההתראות של המכשיר – לא יותר.',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
  today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין לכם שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',test:'מבחן',exam:'בחינה',
  nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, בשיעורים שלכם.',
  noTests:'אין מבחנים ב־3 השבועות הקרובים.',language:'שפה',changeMe:'שינוי מורה',studentApp:'האפליקציה לתלמידים',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',
  loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
  installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
  noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
-en:{app:'Skedy for teachers',pushBtn:'🔔 Get alerts about changes in my lessons',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your lessons.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps the name you picked and this device’s alert address — nothing else.',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
+en:{app:'Skedy Teachers',pushBtn:'🔔 Get alerts about changes in my lessons',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your lessons.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps the name you picked and this device’s alert address — nothing else.',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
  today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'You have no lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, in your lessons.',
  noTests:'No tests in the next 3 weeks.',language:'Language',changeMe:'Change teacher',studentApp:'Student app',updated:'Updated',offline:'No internet. Showing the last saved schedule.',
  loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
  installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
  noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
-ru:{app:'Skedy для учителей',pushBtn:'🔔 Получать уведомления об изменениях в моих уроках',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в ваших уроках.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит выбранное имя и адрес уведомлений этого устройства — и больше ничего.',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
+ru:{app:'Skedy Teachers',pushBtn:'🔔 Получать уведомления об изменениях в моих уроках',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в ваших уроках.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит выбранное имя и адрес уведомлений этого устройства — и больше ничего.',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
  today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день у вас нет уроков',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, на ваших уроках.',
  noTests:'В ближайшие 3 недели контрольных нет.',language:'Язык',changeMe:'Сменить учителя',studentApp:'Приложение для учеников',updated:'Обновлено',offline:'Нет интернета. Показано последнее сохранённое расписание.',

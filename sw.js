@@ -65,7 +65,7 @@ self.addEventListener('fetch', function (e) {
 self.addEventListener('push', function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) {}
-  // у Skedy для учителей своя иконка (с шапочкой)
+  // у Skedy Teachers своя иконка (с шапочкой)
   var ico = /\/teacher\/$/.test(self.registration.scope) ? 'teacher/icon-192.png' : 'icon-192.png';
   e.waitUntil(self.registration.showNotification(d.title || 'Skedy', {
     body: d.body || '',
