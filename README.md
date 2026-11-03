@@ -4,6 +4,8 @@ A personal school timetable for 10th grade (שכבת י׳) students, live at **h
 
 Each student picks their class and groups once (math, English, majors, …) and from then on sees only their own lessons for the day, already updated with cancellations, room changes, tests and exams.
 
+Teachers have their own app at **https://school-schedule.github.io/teacher/** (*Skedy for teachers*): a teacher picks their name and sees only their lessons — which class or group, the room, cancellations and tests.
+
 It combines the best of the two apps the school uses: **משוב** has a personal timetable but no changes, **שחף** has the changes but only a grade-wide timetable.
 
 ## Languages

@@ -111,7 +111,19 @@ const base = path.basename(file);
 const text = fs.readFileSync(file, 'utf8');
 const errors = [];
 
-if (base === 'index.html') checkIndex(text, errors);
+// приложение для учителей (teacher/index.html): без встроенных данных, проверяем код и <head>
+function checkTeacher(html, errors) {
+  const jOpen = '<script id="app-js">';
+  const ji = html.indexOf(jOpen), je = html.indexOf('</script>', ji);
+  if (ji < 0 || je < ji) errors.push('teacher/index.html: не найден <script id="app-js"> с кодом');
+  else checkJs('\n'.repeat(lineOf(html, ji) - 1) + html.slice(ji + jOpen.length, je), 'teacher/index.html', errors);
+  const head = (html.match(/<head>([\s\S]*?)<\/head>/) || [])[1] || '';
+  for (const must of ['config.js', 'manifest.webmanifest'])
+    if (!head.includes(must)) errors.push(`teacher/index.html: в <head> нет "${must}"`);
+}
+
+if (base === 'index.html' && path.basename(path.dirname(path.resolve(file))) === 'teacher') checkTeacher(text, errors);
+else if (base === 'index.html') checkIndex(text, errors);
 // код Cloudflare Worker (worker/) — тоже модуль
 else if (ext === '.mjs' || (ext === '.js' && /(^|[\\/])worker[\\/]/.test(path.resolve(file)))) checkModule(file, base, errors);
 else if (ext === '.js') checkJs(text, base, errors);

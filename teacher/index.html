@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#171717">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Skedy למורים">
+<title>Skedy למורים</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="../config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="app-css">
+/* Skedy для учителей: та же палитра p2 («лайм»), что у ученического приложения */
+:root{--bg:#171717;--card:#101010;--line:rgba(255,255,255,.08);--ink:#F2F2F2;--muted:#A3A3A3;--acc:#C6FF00;--acc-ink:#171717;--bad:#FF5A5F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Rubik",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#root{max-width:620px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);margin:0 -16px 8px;padding-inline:16px}
+.top .logo{width:36px;height:36px;flex:none}
+.top b{font-size:20px;font-weight:700}
+.top .who{margin-inline-start:auto;color:var(--muted);font-size:14px;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+h2{font-size:30px;font-weight:700;margin:14px 0 4px}
+.sub{color:var(--muted);margin:0 0 16px;line-height:1.45}
+.muted{color:var(--muted)}.small{font-size:14px}.center{text-align:center}
+.input{width:100%;font:inherit;font-size:17px;color:var(--ink);background:#0D0D0D;border:1px solid var(--line);border-radius:16px;padding:13px 16px;outline:none}
+.input:focus{border-color:var(--acc)}
+.list{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.list button{display:block;width:100%;text-align:start;padding:14px 18px;font-size:17px;border-bottom:1px solid var(--line);min-height:50px}
+.list button:last-child{border-bottom:0}
+.list button:active{background:#1d1d1d}
+.primary{background:var(--acc);color:var(--acc-ink);font-weight:600;border-radius:999px;padding:14px 22px;min-height:48px;width:100%;box-shadow:0 0 18px rgba(198,255,0,.25)}
+.secondary{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:13px 20px;min-height:48px;width:100%;font-weight:600}
+.link{color:var(--acc);text-decoration:underline;padding:10px;font-size:15px}
+.dayhead{display:flex;align-items:center;gap:10px;margin:14px 0 10px}
+.dayhead .t{flex:1}.dayhead .wd{font-size:30px;font-weight:700;margin:0}.dayhead .dt{color:var(--muted);font-size:15px}
+.icon-btn{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#0D0D0D;border:1px solid var(--line);border-radius:18px;padding:4px;margin-bottom:14px}
+.chip{border-radius:14px;min-height:48px;font-weight:600;color:var(--muted)}
+.chip.on{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc),0 0 12px rgba(198,255,0,.25)}
+.chip.today b{text-decoration:underline;text-underline-offset:4px}
+ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.lesson{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:13px 15px}
+.lesson .num{flex:none;min-width:30px;height:30px;padding:0 6px;border-radius:999px;display:grid;place-items:center;font-weight:600;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3);font-variant-numeric:tabular-nums;direction:ltr}
+.lesson .body{flex:1;min-width:0}
+.r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.subj{font-weight:700;font-size:17px}
+.time{color:var(--muted);font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}
+.r2{color:var(--muted);font-size:14px;margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.r2 .aud{color:var(--ink)}
+.r2 s{opacity:.6}.r2 mark{background:none;color:var(--acc);font-weight:600}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;background:var(--acc);color:var(--acc-ink)}
+.tag.cancel{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)}
+.tag.next{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.lesson.is-now{border-color:var(--acc);box-shadow:0 0 18px rgba(198,255,0,.22)}
+.lesson.is-now .num{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.lesson.is-test .num,.lesson.is-exam .num,.lesson.is-room .num{background:var(--acc);color:var(--acc-ink);box-shadow:none}
+.lesson.is-cancel .subj{text-decoration:line-through;opacity:.7}
+.lesson.free{background:none;border:0;padding:4px 15px;color:var(--muted)}
+.lesson.free .num{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.left{color:var(--acc);font-size:14px;font-weight:600;margin-top:6px}
+.notice{background:#1f2a00;border:1px solid rgba(198,255,0,.5);color:var(--acc);border-radius:16px;padding:11px 14px;margin-bottom:12px;font-weight:500}
+.notice.plain{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:400}
+.empty{color:var(--muted);text-align:center;padding:40px 10px}
+.dhead{font-size:16px;color:var(--muted);margin:18px 4px 8px}
+.field{margin:16px 0}.field>label{display:block;color:var(--muted);font-size:14px;margin:0 4px 6px}
+.langs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#0D0D0D;border:1px solid var(--line);border-radius:16px;padding:4px}
+.langs button{border-radius:12px;min-height:44px;font-weight:600;color:var(--muted)}
+.langs button.on{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.foot{color:var(--muted);font-size:13px;text-align:center;margin-top:22px;line-height:1.5}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.welcome{text-align:center;padding-top:30px}
+.welcome .logo{width:88px;height:88px}
+.welcome h1{font-size:32px;margin:12px 0 4px}
+.tabbar{position:fixed;inset-inline:0;bottom:0;padding:0 16px calc(10px + env(safe-area-inset-bottom));z-index:5;pointer-events:none}
+.tabbar .in{pointer-events:auto;max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(16,16,16,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:28px;padding:6px}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:52px;color:var(--muted);font-size:12px;font-weight:600;position:relative}
+.tabbar button.on{color:var(--acc)}
+.tabbar svg{width:24px;height:24px}
+.tabbar .badge{position:absolute;top:2px;inset-inline-end:calc(50% - 22px);background:var(--acc);color:var(--acc-ink);border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
+.tabbar .badge:empty{display:none}
+bdi{unicode-bidi:isolate}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script id="app-js">
+(function(){
+'use strict';
+/* ---------- storage helpers ---------- */
+function sGet(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/* ---------- texts ---------- */
+var T={
+he:{app:'Skedy למורים',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
+ today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין לכם שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',test:'מבחן',exam:'בחינה',
+ nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, בשיעורים שלכם.',
+ noTests:'אין מבחנים ב־3 השבועות הקרובים.',language:'שפה',changeMe:'שינוי מורה',studentApp:'האפליקציה לתלמידים',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',
+ loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
+ installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
+ noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
+en:{app:'Skedy for teachers',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
+ today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'You have no lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
+ nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, in your lessons.',
+ noTests:'No tests in the next 3 weeks.',language:'Language',changeMe:'Change teacher',studentApp:'Student app',updated:'Updated',offline:'No internet. Showing the last saved schedule.',
+ loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
+ installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
+ noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
+ru:{app:'Skedy для учителей',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
+ today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день у вас нет уроков',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
+ nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, на ваших уроках.',
+ noTests:'В ближайшие 3 недели контрольных нет.',language:'Язык',changeMe:'Сменить учителя',studentApp:'Приложение для учеников',updated:'Обновлено',offline:'Нет интернета. Показано последнее сохранённое расписание.',
+ loading:'Загружаю расписание…',loadFail:'Не удалось загрузить расписание. Проверьте интернет.',retry:'Попробовать ещё раз',install:'На экран «Домой»',
+ installHint:'iPhone и iPad: в Safari нажмите «Поделиться» → «На экран „Домой“». Android: меню ⋮ → «Установить». Компьютер: значок установки в адресной строке.',
+ noSchool:'Учёбы нет',period:'Урок',periods:'Уроки',room:'Каб.',backToday:'Вернуться к сегодня',notOfficial:'Skedy — помощник, а не официальное расписание. Если сомневаетесь, проверьте в שח״ף.'}
+};
+var DAYS={he:['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],ru:['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']};
+var DAYS_S={he:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ru:['Вс','Пн','Вт','Ср','Чт','Пт','Сб']};
+var LOC={he:'he-IL',en:'en-GB',ru:'ru-RU'};
+var LOGO='<svg class="logo" width="36" height="36" aria-hidden="true" viewBox="0 0 512 512"><defs><radialGradient id="lgb" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#1c1f12"/><stop offset=".55" stop-color="#0d0d0d"/><stop offset="1" stop-color="#070707"/></radialGradient><filter id="lgg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="512" height="512" rx="116" fill="url(#lgb)"/><g transform="translate(256 256) scale(.92) translate(-256 -256)"><path fill="#fff" d="M134.8 353.2Q116.4 353.2 103.5 349.3Q90.5 345.4 82.3 339.4Q74.1 333.5 70.3 327.1Q66.5 320.8 66.2 315.9Q66 313 68 310.9Q70 308.9 72.4 308.9H111.6Q111.9 308.9 112.4 309.1Q112.9 309.2 113.5 309.7Q117 310.8 120.1 313.2Q123.2 315.7 127.1 317.6Q131 319.4 136.4 319.4Q141 319.4 144.7 317.4Q148.3 315.4 148.3 311.6Q148.3 308.4 146.3 305.9Q144.3 303.5 137.8 301.2Q131.3 298.9 117 296.2Q103.8 293.5 92.8 288.3Q81.9 283 75.5 274.1Q69.2 265.2 69.2 252.2Q69.2 241.1 76.5 230.9Q83.8 220.6 98.2 214Q112.7 207.4 133.7 207.4Q149.7 207.4 161.9 211.2Q174.2 215 182.7 220.6Q191.2 226.3 195.7 232.8Q200.1 239.3 200.4 244.4Q200.7 247.4 198.8 249.4Q196.9 251.4 194.5 251.4H159.1Q158.3 251.4 157.4 251.3Q156.4 251.1 155.9 250.6Q152.1 249.8 149 247.5Q145.9 245.2 142.4 243.2Q138.9 241.1 133.5 241.1Q128.9 241.1 126 243.3Q123.2 245.5 123.2 249Q123.2 251.9 125.1 254.4Q127 256.8 133.7 259Q140.5 261.1 155.1 263.6Q174 266.5 185.3 273.4Q196.6 280.3 201.5 289.5Q206.4 298.7 206.4 307.8Q206.4 321.6 198.1 331.9Q189.9 342.1 173.8 347.7Q157.8 353.2 134.8 353.2ZM234.4 350.5Q231.5 350.5 229.4 348.5Q227.4 346.4 227.4 343.5V165.8Q227.4 162.8 229.4 160.8Q231.5 158.8 234.4 158.8H273.6Q276.6 158.8 278.6 160.8Q280.6 162.8 280.6 165.8V254.9L311.4 214.7Q312.5 213.3 314.4 211.7Q316.2 210.1 319.8 210.1H365.1Q367.8 210.1 369.6 211.9Q371.3 213.6 371.3 216.3Q371.3 217.4 370.9 218.7Q370.5 220.1 369.7 220.6L326.8 273.3L376.5 340.2Q377.8 342.4 377.8 344.3Q377.8 347 376.1 348.7Q374.3 350.5 371.6 350.5H324.6Q320.6 350.5 318.8 348.7Q317.1 347 315.7 345.9L280.6 297.3V343.5Q280.6 346.4 278.6 348.5Q276.6 350.5 273.6 350.5Z"/><circle cx="418.8" cy="326.2" r="27" fill="#C6FF00" filter="url(#lgg)"/></g></svg>';
+
+/* ---------- state ---------- */
+// своя память, отдельная от ученического Skedy (sched.*)
+var prefs=sGet('skedyT.prefs')||{};if(!T[prefs.lang])prefs.lang='he';
+var STATE=sGet('skedyT.data');
+var ui={screen:'day',date:null,q:'',offline:false,loading:false,failed:false};
+var API=(function(){var u=String(window.SCHEDULE_API||'').trim();return /^(https:\/\/|http:\/\/localhost)/.test(u)?u.replace(/\/+$/,''):'';})();
+function t(k){return (T[prefs.lang]||T.he)[k]||T.he[k]||k;}
+function nm(o){return o?(o[prefs.lang]||o.he||''):'';}
+function savePrefs(){sSet('skedyT.prefs',prefs);}
+
+/* ---------- dates ---------- */
+function pad(n){return (n<10?'0':'')+n;}
+function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function addDays(s,n){var d=parse(s);d.setDate(d.getDate()+n);return iso(d);}
+function wday(s){return parse(s).getDay();}
+function todayISO(){return iso(new Date());}
+function schoolDay(s){while(wday(s)>=5)s=addDays(s,1);return s;}
+function stepDay(s,n){do{s=addDays(s,n);}while(wday(s)>=5);return s;}
+function fmtDate(s){try{return new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'long'}).format(parse(s));}catch(e){return s;}}
+function fmtStamp(s){try{return new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(s));}catch(e){return s;}}
+function mins(hm){var p=String(hm).split(':');return (+p[0])*60+(+p[1]);}
+function nowMins(){var d=new Date();return d.getHours()*60+d.getMinutes();}
+
+/* ---------- data helpers ---------- */
+function byId(list,id){for(var i=0;i<(list||[]).length;i++)if(list[i].id===id)return list[i];return null;}
+function per(n){var r=null;(STATE.periods||[]).forEach(function(p){if(p.n===n)r=p;});return r;}
+function normT(s){return String(s||'').replace(/[״"'׳`\-–]/g,' ').replace(/\s+/g,' ').trim();}
+function normQ(s){return normT(s).toLowerCase();}
+// все учителя из расписания (по урокам), по алфавиту
+function teachers(){if(teachers.k===STATE.updatedAt)return teachers.v;var seen={},out=[];
+  STATE.lessons.forEach(function(l){var k=normT(l.teacher);if(k&&!seen[k]){seen[k]=1;out.push(l.teacher);}});
+  out.sort(function(a,b){return a.localeCompare(b,'he');});teachers.k=STATE.updatedAt;teachers.v=out;return out;}
+function meOk(){return !!(STATE&&prefs.teacher&&teachers().some(function(n){return normT(n)===normT(prefs.teacher);}));}
+// кому этот урок: класс или группа (у группы — её уровень или блок, у групп одного класса — и класс)
+function audName(a,sname){
+  if(a.type==='class')return nm(byId(STATE.classes,a.id));
+  var g=byId(STATE.groups,a.id);if(!g)return '';var cat=byId(STATE.subjects,g.subjectId),gn=nm(g);
+  // блок (אשכול) — его название; математика, английский, физкультура — уровень или название группы
+  var lbl=cat&&cat.multi?nm(cat):(gn||nm(cat));
+  if(lbl===sname)lbl=''; // «חנ״ג בנים» у урока «חנ״ג בנים» — лишнее
+  return [g.classId?nm(byId(STATE.classes,g.classId)):'',lbl].filter(Boolean).join(' · ')||nm(cat);
+}
+function changesFor(date,lid){return (STATE.changes||[]).filter(function(c){return c.date===date&&c.lessonId===lid;});}
+// мои уроки в этот день; одинаковые уроки у нескольких классов (тот же номер, предмет и кабинет) — одна карточка
+function myLessons(date){
+  var wd=wday(date),me=normT(prefs.teacher),map={},out=[];
+  STATE.lessons.forEach(function(l){if(l.day!==wd||normT(l.teacher)!==me)return;
+    var k=l.period+'|'+l.subjectId+'|'+(l.room||''),ch=changesFor(date,l.id);
+    if(map[k]){var x=map[k];var a=audName(l.aud,nm(byId(STATE.subjects,l.subjectId)));if(a&&x.aud.indexOf(a)<0)x.aud.push(a);ch.forEach(function(c){if(!x.ch.some(function(y){return y.type===c.type;}))x.ch.push(c);});return;}
+    map[k]={l:l,ch:ch,aud:[audName(l.aud,nm(byId(STATE.subjects,l.subjectId)))].filter(Boolean)};out.push(map[k]);});
+  return out.sort(function(a,b){return a.l.period-b.l.period;});
+}
+// мои классы (по урокам всего класса) — для событий отдельных классов
+function myClasses(){var me=normT(prefs.teacher),s={};STATE.lessons.forEach(function(l){if(normT(l.teacher)===me&&l.aud.type==='class')s[l.aud.id]=1;});return s;}
+function eventsFor(date){var mc=myClasses(),me=normT(prefs.teacher);
+  return (STATE.events||[]).filter(function(e){if(e.date!==date)return false;if(e.teacher)return normT(e.teacher)===me;
+    return !e.cls||e.cls.some(function(c){return mc[c];});});}
+function dayOff(date){var e=eventsFor(date).filter(function(x){return x.off&&!x.from&&!x.cls;});return e.length?e[0]:null;}
+function kind(x){var k='';x.ch.forEach(function(c){if(c.type==='test'||c.type==='exam')k=c.type;});return k;}
+// контрольная одного предмета на несколько уроков подряд — одна карточка
+function blocks(items){var out=[];items.forEach(function(x){var k=kind(x),b=out[out.length-1];
+  if(b&&k&&b.k===k&&b.s===x.l.subjectId&&x.l.period>=b.last&&x.l.period<=b.last+1){b.last=x.l.period;}
+  else out.push({k:k,s:x.l.subjectId,last:x.l.period,x:x});});return out;}
+function upcomingTests(){var d=todayISO(),end=addDays(d,21),out=[];
+  for(;d<=end;d=addDays(d,1)){if(wday(d)>=5||dayOff(d))continue;
+    var its=myLessons(d).filter(function(x){return kind(x);});if(its.length)out.push({date:d,items:blocks(its)});}
+  return out;}
+
+/* ---------- data from server ---------- */
+function load(){
+  if(!API){ui.failed=!STATE;render();return;}
+  ui.loading=!STATE;render();
+  fetch(API+'/data',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    ui.loading=false;
+    if(j&&Array.isArray(j.lessons)){if(!STATE||!STATE.updatedAt||!j.updatedAt||j.updatedAt>=STATE.updatedAt){STATE=j;sSet('skedyT.data',j);}ui.offline=false;ui.failed=false;}
+    else{ui.offline=!!STATE;ui.failed=!STATE;}
+    render();
+  },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
+}
+
+/* ---------- screens ---------- */
+function top(){return '<div class="top">'+LOGO+'<b>Skedy</b>'+(prefs.teacher&&meOk()?'<span class="who"><bdi>'+esc(prefs.teacher)+'</bdi></span>':'')+'</div>';}
+function langSwitch(){var h='<div class="langs">';[['he','עב'],['en','EN'],['ru','RU']].forEach(function(x){h+='<button class="'+(prefs.lang===x[0]?'on':'')+'" data-act="lang" data-id="'+x[0]+'">'+x[1]+'</button>';});return h+'</div>';}
+function chev(n){var r=(n<0)===(document.documentElement.dir==='rtl');return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+(r?'M9 6l6 6-6 6':'M15 6l-6 6 6 6')+'"/></svg>';}
+function renderPick(){
+  var h='<div class="welcome">'+LOGO.replace('class="logo"','class="logo big"')+'<h1>'+esc(t('app'))+'</h1></div>';
+  h+='<div class="field">'+langSwitch()+'</div>';
+  h+='<h2>'+esc(t('pickTitle'))+'</h2><p class="sub">'+esc(t('pickSub'))+'</p>';
+  h+='<input class="input" id="q" type="search" autocomplete="off" dir="auto" placeholder="'+esc(t('searchPh'))+'" value="'+esc(ui.q)+'">';
+  var q=normQ(ui.q),n=0;h+='<div class="list" id="tl">';
+  teachers().forEach(function(name){var k=normQ(name),ok=!q||k.indexOf(q)>=0;if(ok)n++;
+    h+='<button data-act="me" data-id="'+esc(name)+'" data-key="'+esc(k)+'"'+(ok?'':' hidden')+'><bdi>'+esc(name)+'</bdi></button>';});
+  h+='</div><p class="muted center" id="nomatch"'+(n?' hidden':'')+'>'+esc(t('noMatch'))+'</p>';
+  return h+'<div class="center"><a class="link" href="../">'+esc(t('studentApp'))+'</a></div>';
+}
+function card(x,mark,after,toP){
+  var l=x.l,s=byId(STATE.subjects,l.subjectId),cls=[],tags='',roomHtml=esc(l.room||'');
+  if(mark){cls.push('is-'+mark);tags+='<span class="tag '+mark+'">'+esc(t(mark+'Tag'))+'</span>';}
+  x.ch.forEach(function(c){cls.push('is-'+c.type);
+    if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag">'+esc(t('roomChanged'))+'</span>';}
+    else tags+='<span class="tag '+esc(c.type)+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';});
+  var p=per(l.period),pe=toP&&toP>l.period?per(toP):null,time=p?(p.start+'–'+(pe||p).end):'';
+  return '<li class="lesson '+esc(cls.join(' '))+'"><div class="num">'+esc(pe?l.period+'–'+toP:l.period)+'</div><div class="body">'+
+    '<div class="r1"><span class="subj">'+esc(nm(s))+'</span><span class="time">'+esc(time)+'</span></div>'+
+    '<div class="r2"><span class="aud"><bdi>'+esc(x.aud.join(', '))+'</bdi></span>'+(l.room||x.ch.some(function(c){return c.type==='room';})?'<span>'+(/^חדר/.test(l.room||'')?'':esc(t('room'))+' ')+'<bdi>'+roomHtml+'</bdi></span>':'')+'</div>'+
+    (tags?'<div class="tags">'+tags+'</div>':'')+(after||'')+'</div></li>';
+}
+function renderDay(){
+  var d=ui.date,today=todayISO(),wd=wday(d),h=top();
+  if(ui.offline)h+='<div class="notice plain small">'+esc(t('offline'))+'</div>';
+  h+='<div class="dayhead"><button class="icon-btn" data-act="day" data-n="-1" aria-label="'+esc(t('prevDay'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+
+    esc(d===today?t('today'):d===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wd])+'</p><div class="dt">'+esc((d===today||d===addDays(today,1)?DAYS[prefs.lang][wd]+', ':'')+fmtDate(d))+'</div></div>'+
+    '<button class="icon-btn" data-act="day" data-n="1" aria-label="'+esc(t('nextDay'))+'">'+chev(1)+'</button></div>';
+  var sun=addDays(d,-wd);h+='<div class="strip">';
+  for(var i=0;i<5;i++){var di=addDays(sun,i);h+='<button class="chip'+(di===d?' on':'')+(di===today?' today':'')+'" data-act="goto" data-id="'+di+'"><b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}
+  h+='</div>';
+  if(schoolDay(today)!==d&&Math.abs(parse(d)-parse(schoolDay(today)))>6*864e5)h+='<div class="center"><button class="link" data-act="goto" data-id="'+schoolDay(today)+'">'+esc(t('backToday'))+'</button></div>';
+  var off=dayOff(d);
+  eventsFor(d).forEach(function(e){h+='<div class="notice">'+esc(e.text)+(e.from?' · '+esc(e.from===e.to?t('period')+' '+e.from:t('periods')+' '+e.from+'–'+e.to):'')+(e.room?' · <bdi>'+esc(e.room)+'</bdi>':'')+'</div>';});
+  if(off)return h+'<div class="empty">'+esc(t('noSchool'))+'</div>';
+  var ls=myLessons(d);
+  if(!ls.length)return h+'<div class="empty">'+esc(t('noLessons'))+'</div>';
+  // текущий и следующий урок — только сегодня
+  var nowP=0,nextP=0,nm_=nowMins();
+  if(d===today){ls.forEach(function(x){var p=per(x.l.period);if(!p||x.ch.some(function(c){return c.type==='cancel';}))return;
+    if(nm_>=mins(p.start)&&nm_<mins(p.end))nowP=x.l.period;else if(!nextP&&mins(p.start)>nm_)nextP=x.l.period;});}
+  var first=ls[0].l.period,last=ls[ls.length-1].l.period,by={};ls.forEach(function(x){(by[x.l.period]=by[x.l.period]||[]).push(x);});
+  h+='<ul class="lessons">';
+  for(var n=first;n<=last;n++){
+    if(!by[n]){var fp=per(n);if(fp)h+='<li class="lesson free"><div class="num">'+n+'</div><div class="body"><div class="r1"><span>'+esc(t('free'))+'</span><span class="time">'+esc(fp.start+'–'+fp.end)+'</span></div></div></li>';continue;}
+    by[n].forEach(function(x){var mark=x.l.period===nowP?'now':x.l.period===nextP?'next':'';
+      var after='';if(mark==='now'){var p=per(n);after='<div class="left">'+esc(t('minLeft').replace('{n}',mins(p.end)-nm_))+'</div>';}
+      h+=card(x,mark,after);});
+  }
+  return h+'</ul><div class="foot">'+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';
+}
+function renderTests(){
+  var h=top()+'<h2>'+esc(t('testsTitle'))+'</h2><p class="sub">'+esc(t('testsSub'))+'</p>',days=upcomingTests(),today=todayISO();
+  if(!days.length)return h+'<div class="empty">'+esc(t('noTests'))+'</div>';
+  days.forEach(function(x){var rel=x.date===today?t('today'):x.date===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wday(x.date)];
+    h+='<div class="dhead">'+esc(rel+', '+fmtDate(x.date))+'</div><ul class="lessons">';
+    x.items.forEach(function(b){h+=card(b.x,'','',b.last);});h+='</ul>';});
+  return h;
+}
+function renderMore(){
+  var h=top()+'<h2>'+esc(t('navMore'))+'</h2><div class="field"><label>'+esc(t('language'))+'</label>'+langSwitch()+'</div>';
+  h+='<div class="stack"><button class="secondary" data-act="change">'+esc(t('changeMe'))+'</button>';
+  if(!(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)&&navigator.standalone!==true)h+='<div class="notice plain small"><b>'+esc(t('install'))+'</b><br>'+esc(t('installHint'))+'</div>';
+  h+='</div><div class="center" style="margin-top:10px"><a class="link" href="../">'+esc(t('studentApp'))+'</a></div>';
+  return h+'<div class="foot">'+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';
+}
+var NAV=[['day','navDay','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>'],
+  ['tests','navTests','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5h6v3H9zM9 13l2 2 4-4"/></svg>'],
+  ['more','navMore','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>']];
+function nav(){var nt=0;upcomingTests().forEach(function(x){nt+=x.items.length;});
+  var h='<nav class="tabbar"><div class="in">';NAV.forEach(function(x){h+='<button class="'+(ui.screen===x[0]?'on':'')+'" data-act="tab" data-id="'+x[0]+'">'+x[2]+'<span>'+esc(t(x[1]))+'</span><span class="badge">'+(x[0]==='tests'&&nt?nt:'')+'</span></button>';});
+  return h+'</div></nav>';}
+
+/* ---------- render ---------- */
+var root=document.getElementById('root');
+function render(){
+  document.documentElement.lang=prefs.lang;document.documentElement.dir=prefs.lang==='he'?'rtl':'ltr';document.title=t('app');
+  var h;
+  if(!STATE)h=top()+'<div class="empty">'+esc(ui.failed?t('loadFail'):t('loading'))+(ui.failed?'<div class="stack"><button class="primary" data-act="retry">'+esc(t('retry'))+'</button></div>':'')+'</div>';
+  else if(!meOk()||ui.screen==='pick')h=renderPick();
+  else{if(!ui.date)ui.date=schoolDay(todayISO());
+    h=(ui.screen==='tests'?renderTests():ui.screen==='more'?renderMore():renderDay())+nav();}
+  root.innerHTML=h;
+}
+root.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]');if(!el)return;var a=el.getAttribute('data-act'),id=el.getAttribute('data-id');
+  switch(a){
+    case 'me':prefs.teacher=id;savePrefs();ui.screen='day';ui.q='';ui.date=schoolDay(todayISO());render();window.scrollTo(0,0);break;
+    case 'change':ui.screen='pick';render();window.scrollTo(0,0);break;
+    case 'lang':prefs.lang=id;savePrefs();render();break;
+    case 'tab':if(id==='day'&&ui.screen==='day')ui.date=schoolDay(todayISO());ui.screen=id;render();window.scrollTo(0,0);break;
+    case 'day':ui.date=stepDay(ui.date,+el.getAttribute('data-n'));render();break;
+    case 'goto':ui.date=id;render();break;
+    case 'retry':load();break;
+  }
+});
+// поиск учителя: фильтруем список без перерисовки, чтобы не прыгала клавиатура
+root.addEventListener('input',function(e){if(!e.target||e.target.id!=='q')return;ui.q=e.target.value;var q=normQ(ui.q),n=0;
+  root.querySelectorAll('#tl [data-key]').forEach(function(b){var ok=!q||b.getAttribute('data-key').indexOf(q)>=0;b.hidden=!ok;if(ok)n++;});
+  var nm_=document.getElementById('nomatch');if(nm_)nm_.hidden=!!n;});
+// сменить день свайпом
+var sx=null;root.addEventListener('touchstart',function(e){sx=ui.screen==='day'&&e.touches.length===1?e.touches[0].clientX:null;},{passive:true});
+root.addEventListener('touchend',function(e){if(sx==null||!STATE||!meOk())return;var dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)<70)return;
+  var fwd=dx<0;if(document.documentElement.dir==='rtl')fwd=!fwd;ui.date=stepDay(ui.date,fwd?1:-1);render();},{passive:true});
+
+/* ---------- start ---------- */
+render();load();
+// раз в минуту обновляем «сейчас» и «осталось», раз в 5 минут — данные
+setInterval(function(){if(ui.screen==='day'&&STATE&&meOk())render();},60000);
+setInterval(load,300000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)load();});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});
+})();
+</script>
+</body>
+</html>
