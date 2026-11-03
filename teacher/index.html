@@ -173,9 +173,11 @@ function per(n){var r=null;(STATE.periods||[]).forEach(function(p){if(p.n===n)r=
 function normT(s){return String(s||'').replace(/[״"'׳`\-–]/g,' ').replace(/\s+/g,' ').trim();}
 function normQ(s){return normT(s).toLowerCase();}
 // все учителя из расписания (по урокам), по алфавиту
-function teachers(){if(teachers.k===STATE.updatedAt)return teachers.v;var seen={},out=[];
-  STATE.lessons.forEach(function(l){var k=normT(l.teacher);if(k&&!seen[k]){seen[k]=1;out.push(l.teacher);}});
-  out.sort(function(a,b){return a.localeCompare(b,'he');});teachers.k=STATE.updatedAt;teachers.v=out;return out;}
+// все учителя школы (teachers.json) и из данных Skedy, по алфавиту
+function teachers(){var key=STATE.updatedAt+'|'+(WHO?WHO.updated:'');if(teachers.k===key)return teachers.v;var seen={},out=[];
+  var add=function(n){var k=normT(n);if(k&&!seen[k]){seen[k]=1;out.push(n);}};
+  if(WHO)Object.keys(WHO.t).forEach(add);STATE.lessons.forEach(function(l){add(l.teacher);});
+  out.sort(function(a,b){return a.localeCompare(b,'he');});teachers.k=key;teachers.v=out;return out;}
 function meOk(){return !!(STATE&&prefs.teacher&&teachers().some(function(n){return normT(n)===normT(prefs.teacher);}));}
 // кому этот урок: класс или группа (у группы — её уровень или блок, у групп одного класса — и класс)
 function audName(a,sname){
@@ -188,7 +190,19 @@ function audName(a,sname){
 }
 function changesFor(date,lid){return (STATE.changes||[]).filter(function(c){return c.date===date&&c.lessonId===lid;});}
 // мои уроки в этот день; одинаковые уроки у нескольких классов (тот же номер, предмет и кабинет) — одна карточка
+// мои уроки: по расписанию всей школы (teachers.json), изменения — из Skedy, где они есть (уроки י׳)
+function whoName(name){if(!WHO)return null;if(WHO.t[name])return name;var k=normT(name),r=null;Object.keys(WHO.t).forEach(function(n){if(!r&&normT(n)===k)r=n;});return r;}
 function myLessons(date){
+  var wn=whoName(prefs.teacher);if(!wn)return myLessonsSkedy(date);
+  var wd=wday(date),me=normT(prefs.teacher),own=myLessonsSkedy(date);
+  return WHO.t[wn].filter(function(x){return x[0]===wd;}).map(function(x){
+    var sname=WHO.s[x[2]],m=null;own.forEach(function(o){if(!m&&o.l.period===x[1])m=o;});
+    // урок есть и в Skedy — берём оттуда изменения и перевод предмета
+    var l={id:m?m.l.id:'w'+x[1],period:x[1],room:WHO.r[x[3]],subjectName:sname,subjectId:m?m.l.subjectId:'w:'+sname};
+    return {l:l,ch:m?m.ch:[],aud:[WHO.a[x[4]]]};
+  }).sort(function(a,b){return a.l.period-b.l.period;});
+}
+function myLessonsSkedy(date){
   var wd=wday(date),me=normT(prefs.teacher),map={},out=[];
   STATE.lessons.forEach(function(l){if(l.day!==wd||normT(l.teacher)!==me)return;
     var k=l.period+'|'+l.subjectId+'|'+(l.room||''),ch=changesFor(date,l.id);
@@ -225,7 +239,7 @@ function load(){
   fetch('rooms.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.rooms){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
   fetch('teachers.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
-    if(j&&j.t){WHO=j;sSet('skedyT.who',j);if(ui.screen==='rooms')render();}},function(){});
+    if(j&&j.t){WHO=j;sSet('skedyT.who',j);render();}},function(){});
 }
 
 /* ---------- push ---------- */
@@ -338,7 +352,7 @@ function renderPick(){
   return h+'<div class="center"><a class="link" href="../">'+esc(t('studentApp'))+'</a></div>';
 }
 function card(x,mark,after,toP){
-  var l=x.l,s=l.subjectName?{he:l.subjectName}:byId(STATE.subjects,l.subjectId),cls=[],tags='',roomHtml=esc(l.room||'');
+  var l=x.l,s=(l.subjectId&&byId(STATE.subjects,l.subjectId))||{he:l.subjectName||''},cls=[],tags='',roomHtml=esc(l.room||'');
   if(mark){cls.push('is-'+mark);tags+='<span class="tag '+mark+'">'+esc(t(mark+'Tag'))+'</span>';}
   x.ch.forEach(function(c){cls.push('is-'+c.type);
     if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag">'+esc(t('roomChanged'))+'</span>';}
