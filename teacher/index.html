@@ -97,6 +97,10 @@ ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column
 .rooms{display:flex;flex-wrap:wrap;gap:8px}
 .room{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;font-size:15px;min-height:40px;display:inline-flex;align-items:center}
 .seg2{grid-template-columns:repeat(2,1fr);margin-top:14px}
+.g6{grid-template-columns:repeat(6,1fr)}
+.nums{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}
+.nums button{border-radius:12px;min-height:44px;font-weight:600;background:#0D0D0D;border:1px solid var(--line);color:var(--muted)}
+.nums button.on{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
 #wl{margin-top:8px}#wl:not(:has(button:not([hidden]))){display:none}
 bdi{unicode-bidi:isolate}
 [hidden]{display:none!important}
@@ -114,21 +118,21 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 /* ---------- texts ---------- */
 var T={
-he:{app:'Skedy Teachers',navFind:'חיפוש',modeWho:'איפה מורה',whoSub:'איפה המורה עכשיו ומה השיעורים ביום – לפי המערכת של כל בית הספר.',whoPh:'🔍 שם המורה',whoNoNow:'אין שיעור עכשיו',whoNoDay:'אין שיעורים ביום הזה',whoNote:'לפי המערכת הקבועה. שינויים מוצגים רק לשכבה י׳.',navRooms:'חדרים',roomsTitle:'חדרים פנויים',roomsSub:'כיתות ומעבדות שאין בהן שיעור, לפי המערכת של כל בית הספר (ז׳–י״ב).',roomsNote:'לפי המערכת הקבועה. חדר יכול להיתפס בגלל שינוי – כדאי לבדוק.',roomsNone:'אין חדרים פנויים בשיעור הזה.',roomsFree:'פנויים: {n}',other:'אחר',roomsWait:'טוען את החדרים…',pushBtn:'🔔 קבלת התראות על שינויים בשיעורים שלי',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה בשיעורים שלכם.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את השם שבחרתם ואת כתובת ההתראות של המכשיר – לא יותר.',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
+he:{app:'Skedy Teachers',myClass:'הכיתה שלי',myClassHint:'למחנכים: בחרו את הכיתה, ובמסך המערכת יופיע גם מה יש לה בכל יום.',noClass:'בלי כיתה',meTab:'השיעורים שלי',groupsN:'{n} קבוצות',classNote:'לפי המערכת הקבועה של הכיתה.',navFind:'חיפוש',modeWho:'איפה מורה',whoSub:'איפה המורה עכשיו ומה השיעורים ביום – לפי המערכת של כל בית הספר.',whoPh:'🔍 שם המורה',whoNoNow:'אין שיעור עכשיו',whoNoDay:'אין שיעורים ביום הזה',whoNote:'לפי המערכת הקבועה. שינויים מוצגים רק לשכבה י׳.',navRooms:'חדרים',roomsTitle:'חדרים פנויים',roomsSub:'כיתות ומעבדות שאין בהן שיעור, לפי המערכת של כל בית הספר (ז׳–י״ב).',roomsNote:'לפי המערכת הקבועה. חדר יכול להיתפס בגלל שינוי – כדאי לבדוק.',roomsNone:'אין חדרים פנויים בשיעור הזה.',roomsFree:'פנויים: {n}',other:'אחר',roomsWait:'טוען את החדרים…',pushBtn:'🔔 קבלת התראות על שינויים בשיעורים שלי',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה בשיעורים שלכם.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את השם שבחרתם ואת כתובת ההתראות של המכשיר – לא יותר.',pickTitle:'בחרו את השם שלכם',pickSub:'Skedy יראה רק את השיעורים שלכם: כיתות, חדרים, ביטולים ומבחנים.',searchPh:'🔍 חיפוש לפי שם',noMatch:'לא נמצא. נסו לכתוב אחרת.',
  today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין לכם שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',test:'מבחן',exam:'בחינה',
  nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים, בשיעורים שלכם.',
  noTests:'אין מבחנים ב־3 השבועות הקרובים.',language:'שפה',changeMe:'שינוי מורה',studentApp:'האפליקציה לתלמידים',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',
  loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
  installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
  noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
-en:{app:'Skedy Teachers',navFind:'Find',modeWho:'Find a teacher',whoSub:'Where a teacher is now and their lessons that day, by the whole school’s timetable.',whoPh:'🔍 Teacher’s name',whoNoNow:'No lesson right now',whoNoDay:'No lessons on this day',whoNote:'Based on the regular timetable. Changes are shown for grade 10 only.',navRooms:'Rooms',roomsTitle:'Free rooms',roomsSub:'Classrooms and labs with no lesson, by the whole school’s timetable (grades 7–12).',roomsNote:'Based on the regular timetable. A room may be taken because of a change — worth checking.',roomsNone:'No free rooms in this period.',roomsFree:'Free: {n}',other:'Other',roomsWait:'Loading rooms…',pushBtn:'🔔 Get alerts about changes in my lessons',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your lessons.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps the name you picked and this device’s alert address — nothing else.',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
+en:{app:'Skedy Teachers',myClass:'My class',myClassHint:'For homeroom teachers: pick your class, and the Schedule tab will also show its day.',noClass:'No class',meTab:'My lessons',groupsN:'{n} groups',classNote:'Based on the class’s regular timetable.',navFind:'Find',modeWho:'Find a teacher',whoSub:'Where a teacher is now and their lessons that day, by the whole school’s timetable.',whoPh:'🔍 Teacher’s name',whoNoNow:'No lesson right now',whoNoDay:'No lessons on this day',whoNote:'Based on the regular timetable. Changes are shown for grade 10 only.',navRooms:'Rooms',roomsTitle:'Free rooms',roomsSub:'Classrooms and labs with no lesson, by the whole school’s timetable (grades 7–12).',roomsNote:'Based on the regular timetable. A room may be taken because of a change — worth checking.',roomsNone:'No free rooms in this period.',roomsFree:'Free: {n}',other:'Other',roomsWait:'Loading rooms…',pushBtn:'🔔 Get alerts about changes in my lessons',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your lessons.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps the name you picked and this device’s alert address — nothing else.',pickTitle:'Pick your name',pickSub:'Skedy will show only your lessons: classes, rooms, cancellations and tests.',searchPh:'🔍 Search by name',noMatch:'Not found. Try spelling it differently.',
  today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'You have no lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',test:'Test',exam:'Exam',
  nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks, in your lessons.',
  noTests:'No tests in the next 3 weeks.',language:'Language',changeMe:'Change teacher',studentApp:'Student app',updated:'Updated',offline:'No internet. Showing the last saved schedule.',
  loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
  installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
  noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
-ru:{app:'Skedy Teachers',navFind:'Поиск',modeWho:'Где учитель',whoSub:'Где сейчас учитель и какие у него уроки в этот день — по расписанию всей школы.',whoPh:'🔍 Имя учителя',whoNoNow:'Сейчас нет урока',whoNoDay:'В этот день уроков нет',whoNote:'По постоянному расписанию. Изменения видны только для י׳.',navRooms:'Кабинеты',roomsTitle:'Свободные кабинеты',roomsSub:'Классы и лаборатории, где нет урока, по расписанию всей школы (ז׳–י״ב).',roomsNote:'По постоянному расписанию. Кабинет могли занять из-за изменений — лучше проверить.',roomsNone:'На этом уроке свободных кабинетов нет.',roomsFree:'Свободно: {n}',other:'Другое',roomsWait:'Загружаю кабинеты…',pushBtn:'🔔 Получать уведомления об изменениях в моих уроках',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в ваших уроках.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит выбранное имя и адрес уведомлений этого устройства — и больше ничего.',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
+ru:{app:'Skedy Teachers',myClass:'Мой класс',myClassHint:'Для классных руководителей: выберите класс — на вкладке «Расписание» появится и его день.',noClass:'Без класса',meTab:'Мои уроки',groupsN:'Групп: {n}',classNote:'По постоянному расписанию класса.',navFind:'Поиск',modeWho:'Где учитель',whoSub:'Где сейчас учитель и какие у него уроки в этот день — по расписанию всей школы.',whoPh:'🔍 Имя учителя',whoNoNow:'Сейчас нет урока',whoNoDay:'В этот день уроков нет',whoNote:'По постоянному расписанию. Изменения видны только для י׳.',navRooms:'Кабинеты',roomsTitle:'Свободные кабинеты',roomsSub:'Классы и лаборатории, где нет урока, по расписанию всей школы (ז׳–י״ב).',roomsNote:'По постоянному расписанию. Кабинет могли занять из-за изменений — лучше проверить.',roomsNone:'На этом уроке свободных кабинетов нет.',roomsFree:'Свободно: {n}',other:'Другое',roomsWait:'Загружаю кабинеты…',pushBtn:'🔔 Получать уведомления об изменениях в моих уроках',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в ваших уроках.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит выбранное имя и адрес уведомлений этого устройства — и больше ничего.',pickTitle:'Выберите своё имя',pickSub:'Skedy покажет только ваши уроки: классы, кабинеты, отмены и контрольные.',searchPh:'🔍 Поиск по имени',noMatch:'Не найдено. Попробуйте написать иначе.',
  today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день у вас нет уроков',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',test:'Контрольная',exam:'Экзамен',
  nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд, на ваших уроках.',
  noTests:'В ближайшие 3 недели контрольных нет.',language:'Язык',changeMe:'Сменить учителя',studentApp:'Приложение для учеников',updated:'Обновлено',offline:'Нет интернета. Показано последнее сохранённое расписание.',
@@ -146,7 +150,9 @@ var LOGO='<svg class="logo" width="36" height="36" aria-hidden="true" viewBox="0
 var prefs=sGet('skedyT.prefs')||{};if(!T[prefs.lang])prefs.lang='he';
 var STATE=sGet('skedyT.data');
 var ROOMS=sGet('skedyT.rooms');
-var WHO=sGet('skedyT.who'); // уроки всех учителей школы (teachers.json, тот же build.py) // занятость кабинетов всей школы (rooms.json, собирает worker/tools/rooms/build.py)
+var WHO=sGet('skedyT.who');
+var CLS=sGet('skedyT.class');    // «Мой класс»: {k: '10-2', d: файл classes/10-2.json}
+var CIDX=sGet('skedyT.cindex');  // список классов школы (classes/index.json) // уроки всех учителей школы (teachers.json, тот же build.py) // занятость кабинетов всей школы (rooms.json, собирает worker/tools/rooms/build.py)
 var ui={screen:'day',date:null,q:'',offline:false,loading:false,failed:false};
 var API=(function(){var u=String(window.SCHEDULE_API||'').trim();return /^(https:\/\/|http:\/\/localhost)/.test(u)?u.replace(/\/+$/,''):'';})();
 function t(k){return (T[prefs.lang]||T.he)[k]||T.he[k]||k;}
@@ -238,6 +244,7 @@ function load(){
   },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
   fetch('rooms.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.rooms){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
+  loadClass();
   fetch('teachers.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.t){WHO=j;sSet('skedyT.who',j);render();}},function(){});
 }
@@ -336,6 +343,40 @@ function renderRooms(){
   return h+'<p class="muted small center">'+esc(t('roomsNote'))+(ROOMS.updated?' · '+esc(fmtDate(ROOMS.updated)):'')+'</p>';
 }
 
+/* ---------- my class (для мехнехим) ---------- */
+var GR={7:'ז׳',8:'ח׳',9:'ט׳',10:'י׳',11:'י״א',12:'י״ב'};
+function classLabel(k){var m=/^(\d+)-(\d+)$/.exec(k||'');return m?(GR[m[1]]||'')+m[2]:'';}
+function loadClass(){if(!prefs.myClass)return;var k=prefs.myClass;
+  fetch('classes/'+k+'.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&j.l&&prefs.myClass===k){CLS={k:k,d:j};sSet('skedyT.class',CLS);render();}},function(){});}
+function loadIndex(){fetch('classes/index.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&j.classes){CIDX=j;sSet('skedyT.cindex',j);if(ui.screen==='more')render();}},function(){});}
+// класс י׳ — есть в данных Skedy: оттуда отмены, контрольные и события
+function classCid(){var m=/^10-(\d+)$/.exec(prefs.myClass||''),c=null;if(m)STATE.classes.forEach(function(x){if(x.letter==='י'&&x.num===+m[1])c=x.id;});return c;}
+function classEvents(date){var cid=classCid();if(!cid)return [];
+  return (STATE.events||[]).filter(function(e){return e.date===date&&!e.teacher&&(!e.cls||e.cls.indexOf(cid)>=0);});}
+// уроки класса в этот день: один урок — предмет, учитель и кабинет; деление на группы — одна строка «N групп»
+function classLessons(date){
+  if(!CLS||CLS.k!==prefs.myClass)return null;
+  var D=CLS.d,wd=wday(date),cid=classCid(),byP={};
+  D.l.forEach(function(x){if(x[0]===wd)(byP[x[1]]=byP[x[1]]||[]).push(x);});
+  return Object.keys(byP).map(Number).sort(function(a,b){return a-b;}).map(function(p){var xs=byP[p],ch=[];
+    if(cid)STATE.lessons.forEach(function(l){if(l.day===wd&&l.period===p&&l.aud.type==='class'&&l.aud.id===cid)ch=ch.concat(changesFor(date,l.id));});
+    if(xs.length===1){var x=xs[0];return {l:{id:'c'+p,period:p,room:D.r[x[3]],subjectName:D.s[x[2]]},ch:ch,aud:[D.t[x[4]]].filter(Boolean)};}
+    var cnt={};xs.forEach(function(x){var n=D.s[x[2]];cnt[n]=(cnt[n]||0)+1;});
+    var names=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
+    return {l:{id:'c'+p,period:p,room:'',subjectName:names.slice(0,3).join(' · ')+(names.length>3?' …':'')},ch:[],aud:[t('groupsN').replace('{n}',xs.length)]};});
+}
+function classPicker(){
+  var h='<div class="field"><label>'+esc(t('myClass'))+'</label><p class="muted small" style="margin:0 4px 8px">'+esc(t('myClassHint'))+'</p>';
+  if(!CIDX){loadIndex();return h+'<p class="muted small">'+esc(t('loading'))+'</p></div>';}
+  var cur=/^(\d+)-/.exec(prefs.myClass||''),g=ui.cg||(cur?+cur[1]:0);
+  h+='<div class="langs g6">';[7,8,9,10,11,12].forEach(function(x){h+='<button class="'+(g===x?'on':'')+'" data-act="cg" data-id="'+x+'">'+esc(GR[x])+'</button>';});h+='</div>';
+  if(g){h+='<div class="nums">';CIDX.classes.forEach(function(c){if(c.g!==g)return;h+='<button class="'+(prefs.myClass===c.k?'on':'')+'" data-act="cls" data-id="'+esc(c.k)+'">'+esc(c.n)+'</button>';});h+='</div>';}
+  if(prefs.myClass)h+='<button class="link" data-act="cls" data-id="">'+esc(t('noClass'))+'</button>';
+  return h+'</div>';
+}
+
 /* ---------- screens ---------- */
 function top(){return '<div class="top">'+LOGO+'<b>Skedy</b>'+(prefs.teacher&&meOk()?'<span class="who"><bdi>'+esc(prefs.teacher)+'</bdi></span>':'')+'</div>';}
 function langSwitch(){var h='<div class="langs">';[['he','עב'],['en','EN'],['ru','RU']].forEach(function(x){h+='<button class="'+(prefs.lang===x[0]?'on':'')+'" data-act="lang" data-id="'+x[0]+'">'+x[1]+'</button>';});return h+'</div>';}
@@ -364,8 +405,9 @@ function card(x,mark,after,toP){
     (tags?'<div class="tags">'+tags+'</div>':'')+(after||'')+'</div></li>';
 }
 function renderDay(){
-  var d=ui.date,today=todayISO(),wd=wday(d),h=top();
+  var d=ui.date,today=todayISO(),wd=wday(d),h=top(),cm=!!prefs.myClass&&ui.dMode==='class';
   if(ui.offline)h+='<div class="notice plain small">'+esc(t('offline'))+'</div>';
+  if(prefs.myClass)h+='<div class="langs seg2">'+[['me',t('meTab')],['class',classLabel(prefs.myClass)]].map(function(x){return '<button class="'+((x[0]==='class')===cm?'on':'')+'" data-act="dmode" data-id="'+x[0]+'"><bdi>'+esc(x[1])+'</bdi></button>';}).join('')+'</div>';
   h+='<div class="dayhead"><button class="icon-btn" data-act="day" data-n="-1" aria-label="'+esc(t('prevDay'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+
     esc(d===today?t('today'):d===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wd])+'</p><div class="dt">'+esc((d===today||d===addDays(today,1)?DAYS[prefs.lang][wd]+', ':'')+fmtDate(d))+'</div></div>'+
     '<button class="icon-btn" data-act="day" data-n="1" aria-label="'+esc(t('nextDay'))+'">'+chev(1)+'</button></div>';
@@ -373,11 +415,12 @@ function renderDay(){
   for(var i=0;i<5;i++){var di=addDays(sun,i);h+='<button class="chip'+(di===d?' on':'')+(di===today?' today':'')+'" data-act="goto" data-id="'+di+'"><b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}
   h+='</div>';
   if(schoolDay(today)!==d&&Math.abs(parse(d)-parse(schoolDay(today)))>6*864e5)h+='<div class="center"><button class="link" data-act="goto" data-id="'+schoolDay(today)+'">'+esc(t('backToday'))+'</button></div>';
-  var off=dayOff(d);
-  eventsFor(d).forEach(function(e){h+='<div class="notice">'+esc(e.text)+(e.from?' · '+esc(e.from===e.to?t('period')+' '+e.from:t('periods')+' '+e.from+'–'+e.to):'')+(e.room?' · <bdi>'+esc(e.room)+'</bdi>':'')+'</div>';});
+  var off=cm?classEvents(d).some(function(e){return e.off&&!e.from;}):dayOff(d);
+  (cm?classEvents(d):eventsFor(d)).forEach(function(e){h+='<div class="notice">'+esc(e.text)+(e.from?' · '+esc(e.from===e.to?t('period')+' '+e.from:t('periods')+' '+e.from+'–'+e.to):'')+(e.room?' · <bdi>'+esc(e.room)+'</bdi>':'')+'</div>';});
   if(off)return h+'<div class="empty">'+esc(t('noSchool'))+'</div>';
-  var ls=myLessons(d);
-  if(!ls.length)return h+'<div class="empty">'+esc(t('noLessons'))+'</div>';
+  var ls=cm?classLessons(d):myLessons(d);
+  if(!ls)return h+'<div class="empty">'+esc(t('loading'))+'</div>';
+  if(!ls.length)return h+'<div class="empty">'+esc(t(cm?'whoNoDay':'noLessons'))+'</div>';
   // текущий и следующий урок — только сегодня
   var nowP=0,nextP=0,nm_=nowMins();
   if(d===today){ls.forEach(function(x){var p=per(x.l.period);if(!p||x.ch.some(function(c){return c.type==='cancel';}))return;
@@ -390,7 +433,7 @@ function renderDay(){
       var after='';if(mark==='now'){var p=per(n);after='<div class="left">'+esc(t('minLeft').replace('{n}',mins(p.end)-nm_))+'</div>';}
       h+=card(x,mark,after);});
   }
-  return h+'</ul><div class="foot">'+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';
+  return h+'</ul><div class="foot">'+(cm?esc(t(classCid()?'classNote':'whoNote'))+'<br>':'')+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';
 }
 function renderTests(){
   var h=top()+'<h2>'+esc(t('testsTitle'))+'</h2><p class="sub">'+esc(t('testsSub'))+'</p>',days=upcomingTests(),today=todayISO();
@@ -402,7 +445,7 @@ function renderTests(){
 }
 function renderMore(){
   var h=top()+'<h2>'+esc(t('navMore'))+'</h2><div class="field"><label>'+esc(t('language'))+'</label>'+langSwitch()+'</div>';
-  h+='<div class="stack">';
+  h+=classPicker()+'<div class="stack">';
   if(API){h+=pushOn()?'<div class="notice">'+esc(t('pushIsOn'))+'</div>':'<button class="primary" data-act="push">'+esc(t('pushBtn'))+'</button>';
     if(ui.msg)h+='<div class="notice plain small">'+esc(ui.msg)+'</div>';
     h+='<p class="muted small" style="margin:0 4px">'+esc(t('pushNote'))+'</p>';}
@@ -442,6 +485,9 @@ root.addEventListener('click',function(e){
     case 'goto':ui.date=id;render();break;
     case 'rday':ui.rDate=id;render();break;
     case 'rmode':ui.rMode=id;render();break;
+    case 'dmode':ui.dMode=id;render();break;
+    case 'cg':ui.cg=+id;render();break;
+    case 'cls':prefs.myClass=id||null;savePrefs();if(!id)ui.dMode='me';else{ui.dMode='class';if(!CLS||CLS.k!==id)loadClass();}render();break;
     case 'who':ui.who=id;ui.wq='';render();break;
     case 'rp':ui.rP=+id;render();break;
     case 'retry':load();break;
