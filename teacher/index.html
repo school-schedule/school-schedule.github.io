@@ -133,7 +133,9 @@ ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column
 .glist{list-style:none;margin:4px 0 0;padding:0;border-top:1px solid var(--line)}
 .glist li{display:flex;flex-direction:column;gap:2px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
 .glist li:last-child{border-bottom:0}
-.glist li b{font-weight:600}.glist li span{color:var(--muted)}
+.glist li b{font-weight:600}
+/* учитель и кабинет — отдельными кусками в ряд: порядок «учитель · кабинет» в любом направлении письма */
+.glist .gm{display:flex;flex-wrap:wrap;gap:0 6px;color:var(--muted)}.glist .gm i{font-style:normal}
 @media (prefers-reduced-motion:no-preference){.glist{animation:cardin .4s cubic-bezier(.34,1.25,.64,1) both}}
 bdi{unicode-bidi:isolate}
 [hidden]{display:none!important}
@@ -469,7 +471,7 @@ function renderDay(){
       var after='';if(mark==='now'){var p=per(n);after='<div class="left">'+esc(t('minLeft').replace('{n}',mins(p.end)-nm_))+'</div>';}
       if(x.groups){var op=!!(ui.openG||{})[n];
         after+='<button class="gtoggle" data-act="grp" data-id="'+n+'" aria-expanded="'+op+'">'+esc(t(op?'hideGroups':'showGroups'))+' '+(op?'▴':'▾')+'</button>';
-        if(op){after+='<ul class="glist">';x.groups.forEach(function(g){after+='<li><b>'+esc(g.s)+'</b><span>'+(g.t?'<bdi>'+esc(g.t)+'</bdi>':'')+(g.r?' · <bdi>'+esc(g.r)+'</bdi>':'')+'</span></li>';});after+='</ul>';}}
+        if(op){after+='<ul class="glist">';x.groups.forEach(function(g){after+='<li><b>'+esc(g.s)+'</b><span class="gm">'+[g.t,g.r].filter(Boolean).map(function(v){return '<bdi>'+esc(v)+'</bdi>';}).join('<i>·</i>')+'</span></li>';});after+='</ul>';}}
       h+=card(x,mark,after);});
   }
   return h+'</ul><div class="foot">'+(cm?esc(t(classCid()?'classNote':'whoNote'))+'<br>':'')+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';
