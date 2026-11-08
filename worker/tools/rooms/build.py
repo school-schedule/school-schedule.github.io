@@ -106,6 +106,17 @@ def main():
     index.sort(key=lambda x: (x['g'], x['n']))
     with open('teacher/classes/index.json', 'w', encoding='utf-8') as f:
         json.dump({'updated': today, 'classes': index}, f, ensure_ascii=False, separators=(',', ':'))
+    # предметы без перевода: в данных Skedy (index.html) и в teacher/subjects.json — добавь их в subjects.json
+    try:
+        page = open('index.html', encoding='utf-8').read()
+        i = page.index('id="app-state">') + len('id="app-state">')
+        known = {x['he'] for x in json.loads(page[i:page.index('</script>', i)])['subjects']}
+        known |= set(json.load(open('teacher/subjects.json', encoding='utf-8')))
+        miss = sorted(({subj for (_, _, _, subj, _) in tl} | {x[2] for ls in cl.values() for x in ls}) - known)
+        if miss:
+            print('нет перевода (добавь в teacher/subjects.json):', ', '.join(miss))
+    except (OSError, ValueError, KeyError) as e:
+        print('проверка переводов пропущена:', e)
     print('классов:', len(opts), 'кабинетов:', len(rooms), 'пропущено:', len(busy) - len(rooms), 'учителей:', len(T), 'уроков:', len(tl))
 
 main()
