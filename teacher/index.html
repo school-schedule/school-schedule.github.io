@@ -187,7 +187,11 @@ var STATE=sGet('skedyT.data');
 var ROOMS=sGet('skedyT.rooms');
 var WHO=sGet('skedyT.who');
 var CLS=sGet('skedyT.class');    // «Мой класс»: {k: '10-2', d: файл classes/10-2.json}
-var CIDX=sGet('skedyT.cindex');  // список классов школы (classes/index.json) // уроки всех учителей школы (teachers.json, тот же build.py) // занятость кабинетов всей школы (rooms.json, собирает worker/tools/rooms/build.py)
+var CIDX=sGet('skedyT.cindex');  // список классов школы (classes/index.json)
+var SUBJ=sGet('skedyT.subj');     // переводы названий предметов из расписания всей школы (subjects.json)
+// название предмета на языке интерфейса: из данных Skedy, иначе из subjects.json, иначе на иврите
+function trS(he){if(!he)return {he:''};var r=null;(STATE.subjects||[]).forEach(function(x){if(!r&&x.he===he)r=x;});
+  if(!r&&SUBJ&&SUBJ[he])r={he:he,en:SUBJ[he].en,ru:SUBJ[he].ru};return r||{he:he};} // уроки всех учителей школы (teachers.json, тот же build.py) // занятость кабинетов всей школы (rooms.json, собирает worker/tools/rooms/build.py)
 var ui={screen:'day',date:null,q:'',offline:false,loading:false,failed:false};
 var API=(function(){var u=String(window.SCHEDULE_API||'').trim();return /^(https:\/\/|http:\/\/localhost)/.test(u)?u.replace(/\/+$/,''):'';})();
 function t(k){return (T[prefs.lang]||T.he)[k]||T.he[k]||k;}
@@ -280,6 +284,8 @@ function load(){
   fetch('rooms.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.rooms){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
   loadClass();
+  fetch('subjects.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&typeof j==='object'){var was=JSON.stringify(SUBJ);SUBJ=j;sSet('skedyT.subj',j);if(was!==JSON.stringify(j)&&prefs.lang!=='he')render();}},function(){});
   fetch('teachers.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.t){WHO=j;sSet('skedyT.who',j);render();}},function(){});
 }
@@ -403,7 +409,7 @@ function classLessons(date){
     var names=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
     // все группы этого урока — раскрываются по нажатию: предмет, учитель, кабинет
     gs.sort(function(a,b){return a.s.localeCompare(b.s,'he')||a.t.localeCompare(b.t,'he');});
-    return {l:{id:'c'+p,period:p,room:'',subjectName:names.slice(0,3).join(' · ')+(names.length>3?' …':'')},ch:[],aud:[t('groupsN').replace('{n}',xs.length)],groups:gs};});
+    return {l:{id:'c'+p,period:p,room:'',subjectName:names.slice(0,3).map(function(n){return nm(trS(n));}).join(' · ')+(names.length>3?' …':'')},ch:[],aud:[t('groupsN').replace('{n}',xs.length)],groups:gs};});
 }
 function classPicker(){
   var h='<div class="field"><label>'+esc(t('myClass'))+'</label><p class="muted small" style="margin:0 4px 8px">'+esc(t('myClassHint'))+'</p>';
@@ -431,7 +437,7 @@ function renderPick(){
   return h+'<div class="center"><a class="link" href="../">'+esc(t('studentApp'))+'</a></div>';
 }
 function card(x,mark,after,toP){
-  var l=x.l,s=(l.subjectId&&byId(STATE.subjects,l.subjectId))||{he:l.subjectName||''},cls=[],tags='',roomHtml=esc(l.room||'');
+  var l=x.l,s=(l.subjectId&&byId(STATE.subjects,l.subjectId))||trS(l.subjectName),cls=[],tags='',roomHtml=esc(l.room||'');
   if(mark){cls.push('is-'+mark);tags+='<span class="tag '+mark+'">'+esc(t(mark+'Tag'))+'</span>';}
   x.ch.forEach(function(c){cls.push('is-'+c.type);
     if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag">'+esc(t('roomChanged'))+'</span>';}
@@ -471,7 +477,7 @@ function renderDay(){
       var after='';if(mark==='now'){var p=per(n);after='<div class="left">'+esc(t('minLeft').replace('{n}',mins(p.end)-nm_))+'</div>';}
       if(x.groups){var op=!!(ui.openG||{})[n];
         after+='<button class="gtoggle" data-act="grp" data-id="'+n+'" aria-expanded="'+op+'">'+esc(t(op?'hideGroups':'showGroups'))+' '+(op?'▴':'▾')+'</button>';
-        if(op){after+='<ul class="glist">';x.groups.forEach(function(g){after+='<li><b>'+esc(g.s)+'</b><span class="gm">'+[g.t,g.r].filter(Boolean).map(function(v){return '<bdi>'+esc(v)+'</bdi>';}).join('<i>·</i>')+'</span></li>';});after+='</ul>';}}
+        if(op){after+='<ul class="glist">';x.groups.forEach(function(g){after+='<li><b>'+esc(nm(trS(g.s)))+'</b><span class="gm">'+[g.t,g.r].filter(Boolean).map(function(v){return '<bdi>'+esc(v)+'</bdi>';}).join('<i>·</i>')+'</span></li>';});after+='</ul>';}}
       h+=card(x,mark,after);});
   }
   return h+'</ul><div class="foot">'+(cm?esc(t(classCid()?'classNote':'whoNote'))+'<br>':'')+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';
