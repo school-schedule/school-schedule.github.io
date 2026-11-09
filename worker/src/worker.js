@@ -5,7 +5,8 @@
  *  1. Хранит расписание (GET /data — прочитать, POST /data — сохранить из редактора).
  *     Расписание всей школы для Skedy Admin (/admin/): GET /tt, POST /tt (по коду редактора),
  *     прошлые версии: GET /tt/backups, POST /tt/restore (по коду редактора);
- *     изменения на даты для уроков всей школы: GET /ttch, POST /ttch (+ уведомления учителям).
+ *     изменения на даты для уроков всей школы: GET /ttch, POST /ttch (+ уведомления учителям);
+ *     сообщения всем учителям: GET /tmsg, POST /tmsg, POST /tmsg/delete (+ уведомление).
  *  2. Хранит подписки на уведомления (POST /subscribe, POST /unsubscribe).
  *  3. Когда редактор сохраняет новую отмену / смену кабинета / контрольную,
  *     отправляет push-уведомление только тем ученикам, кого это касается.
@@ -72,6 +73,7 @@ export default {
       try {
         const m = msg.body;
         if (m.t === "plan") await planPushes(env, m.ds);
+        else if (m.t === "bc") await planBroadcast(env, m);
         else if (m.t === "push") await sendJobs(env, m.jobs);
       } catch (e) {}
       msg.ack();
@@ -112,6 +114,9 @@ export default {
         return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
       }
       if (path === "/ttch" && req.method === "POST") return await saveTTCh(req, env, ctx);
+      // сообщения всем учителям (Skedy Admin → Skedy Teachers): читать — всем, отправить/удалить — по коду
+      if (path === "/tmsg" && req.method === "GET") return json((await env.DB.get("tmsg", "json")) || { msgs: [] });
+      if ((path === "/tmsg" || path === "/tmsg/delete") && req.method === "POST") return await tmsgPost(req, env, ctx, path === "/tmsg/delete");
       if (path === "/backups" || path === "/restore") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
         if (auth.status !== 200) return json(auth.body, auth.status);
@@ -437,6 +442,46 @@ async function saveTTCh(req, env, ctx) {
     period: c.p, aud: { type: "tt" }, t: normName(c.t), name: { he: c.s, en: c.s, ru: c.s },
   }))));
   return json({ ok: true, updatedAt: out.updatedAt, changes: fresh.length });
+}
+
+/* ---------------- сообщения всем учителям (Skedy Admin) ---------------- */
+// Ключ KV "tmsg": {msgs:[{id, at, text}]} — последние 20, не старше 30 дней. Новое сообщение — push всем
+// подписчикам-учителям (rec.t) через очередь. Сообщения видит каждый, кто открывает Skedy Teachers: без личных данных.
+const TMSG_MAX = 300, TMSG_KEEP = 20;
+const TB = { he: "הודעה מבית הספר", en: "Message from school", ru: "Сообщение от школы" };
+async function tmsgPost(req, env, ctx, del) {
+  const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+  if (auth.status !== 200) return json(auth.body, auth.status);
+  const b = await req.json().catch(() => ({}));
+  const cur = (await env.DB.get("tmsg", "json")) || { msgs: [] };
+  const old = Date.now() - 30 * 864e5;
+  let msgs = cur.msgs.filter((m) => Date.parse(m.at) > old);
+  if (del) {
+    msgs = msgs.filter((m) => m.id !== b.id);
+    await env.DB.put("tmsg", JSON.stringify({ msgs }));
+    return json({ ok: true, msgs });
+  }
+  const text = typeof b.text === "string" ? b.text.replace(/\s+/g, " ").trim() : "";
+  if (!text || text.length > TMSG_MAX) return json({ error: "bad_text" }, 400);
+  const m = { id: "m" + Date.now().toString(36), at: new Date().toISOString(), text };
+  msgs = [m].concat(msgs).slice(0, TMSG_KEEP);
+  await env.DB.put("tmsg", JSON.stringify({ msgs }));
+  if (env.PUSHQ) ctx.waitUntil(env.PUSHQ.send({ t: "bc", text, id: m.id }));
+  else ctx.waitUntil(planBroadcast(env, { text, id: m.id }));
+  return json({ ok: true, msgs });
+}
+async function planBroadcast(env, m) {
+  const jobs = [];
+  for await (const { key, rec } of allSubs(env)) {
+    if (!rec.t) continue; // только учителя
+    const L = T[rec.l] || T.he;
+    jobs.push({ key, s: rec.s, p: { title: TB[rec.l] || TB.he, body: m.text, tag: "msg-" + m.id, dir: L.dir, lang: rec.l } });
+  }
+  if (!jobs.length) return;
+  if (!env.PUSHQ) return sendJobs(env, jobs);
+  const msgs = [];
+  for (let i = 0; i < jobs.length; i += PER_MESSAGE) msgs.push({ body: { t: "push", jobs: jobs.slice(i, i + PER_MESSAGE) } });
+  for (let i = 0; i < msgs.length; i += 100) await env.PUSHQ.sendBatch(msgs.slice(i, i + 100));
 }
 
 // новые или изменённые отметки на сегодня и дальше

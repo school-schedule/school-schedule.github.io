@@ -68,6 +68,7 @@ ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column
 .lesson.free{background:none;border:0;padding:4px 15px;color:var(--muted)}
 .lesson.free .num{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .left{color:var(--acc);font-size:14px;font-weight:600;margin-top:6px}
+.notice.msg{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.notice.msg small{opacity:.7;font-weight:400}.notice.msg button{color:inherit;min-width:36px;min-height:36px;flex:none}
 .notice{background:#1f2a00;border:1px solid rgba(198,255,0,.5);color:var(--acc);border-radius:16px;padding:11px 14px;margin-bottom:12px;font-weight:500}
 .notice.plain{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:400}
 .empty{color:var(--muted);text-align:center;padding:40px 10px}
@@ -282,6 +283,8 @@ function load(){
     render();
   },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
   // расписание, сохранённое в Skedy Admin, главнее файлов שחף (rooms.json, teachers.json, classes/)
+  fetch(API+'/tmsg',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&Array.isArray(j.msgs)){TMSG=j;sSet('skedyT.tmsg',j);render();}},function(){});
   fetch(API+'/ttch',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&Array.isArray(j.ch)){TTCH=j;sSet('skedyT.ttch',j);render();}},function(){});
   fetch(API+'/tt',{cache:'no-store'}).then(function(r){if(r.status===404){TTSEEN=null;sSet('skedyT.tt',null);}return r.ok?r.json():null;}).then(ttApply,function(){});
@@ -301,6 +304,12 @@ function load(){
 var TT=null,TTSEEN=sGet('skedyT.tt');
 // изменения на даты из Skedy Admin (GET /ttch): {updatedAt, ch:[{date, p, s, t, c, type, room?, note?}]}
 var TTCH=sGet('skedyT.ttch');
+// сообщения всем учителям из Skedy Admin (GET /tmsg): на экране дня — за последние 3 дня, ✕ прячет (skedyT.hidMsg)
+var TMSG=sGet('skedyT.tmsg'),HIDMSG=sGet('skedyT.hidMsg')||[];
+function msgsHtml(){if(!TMSG)return '';var old=Date.now()-3*864e5,h='';
+  TMSG.msgs.forEach(function(m){if(Date.parse(m.at)<old||HIDMSG.indexOf(m.id)>=0)return;
+    h+='<div class="notice msg"><span>📣 <bdi>'+esc(m.text)+'</bdi><small> · '+esc(fmtStamp(m.at))+'</small></span><button data-act="hidemsg" data-id="'+esc(m.id)+'" aria-label="✕">✕</button></div>';});
+  return h;}
 // изменения урока на дату: по номеру урока, предмету и учителю (и по классу, если учителя нет)
 function ttChFor(date,p,s,teacher,cls){if(!TTCH)return [];var k=normT(teacher);
   return TTCH.ch.filter(function(c){return c.date===date&&c.p===p&&c.s===s&&(k?normT(c.t)===k:(!cls||c.c.indexOf(cls)>=0));})
@@ -497,6 +506,7 @@ function card(x,mark,after,toP){
 function renderDay(){
   var d=ui.date,today=todayISO(),wd=wday(d),h=top(),cm=!!prefs.myClass&&ui.dMode==='class';
   if(ui.offline)h+='<div class="notice plain small">'+esc(t('offline'))+'</div>';
+  h+=msgsHtml();
   if(prefs.myClass)h+='<div class="langs seg2">'+[['me',t('meTab')],['class',classLabel(prefs.myClass)]].map(function(x){return '<button class="'+((x[0]==='class')===cm?'on':'')+'" data-act="dmode" data-id="'+x[0]+'"><bdi>'+esc(x[1])+'</bdi></button>';}).join('')+'</div>';
   h+='<div class="dayhead"><button class="icon-btn" data-act="day" data-n="-1" aria-label="'+esc(t('prevDay'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+
     esc(d===today?t('today'):d===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wd])+'</p><div class="dt">'+esc((d===today||d===addDays(today,1)?DAYS[prefs.lang][wd]+', ':'')+fmtDate(d))+'</div></div>'+
@@ -610,6 +620,7 @@ root.addEventListener('click',function(e){
     case 'dmode':ui.dMode=id;render();break;
     case 'grp':ui.openG=ui.openG||{};ui.openG[id]=!ui.openG[id];render();break;
     case 'cg':ui.cg=+id;render();break;
+    case 'hidemsg':HIDMSG.push(id);HIDMSG=HIDMSG.slice(-50);sSet('skedyT.hidMsg',HIDMSG);render();break;
     case 'cls':prefs.myClass=id||null;savePrefs();if(!id)ui.dMode='me';else{ui.dMode='class';if(!CLS||CLS.k!==id)loadClass();}render();break;
     case 'who':ui.who=id;ui.wq='';render();break;
     case 'rp':ui.rP=+id;render();break;
