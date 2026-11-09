@@ -64,6 +64,18 @@ table.grid{border-collapse:collapse;width:100%;min-width:760px;table-layout:fixe
 .chips button.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
 .note{color:var(--muted);font-size:13px;margin:14px 2px;line-height:1.5}
 .state{padding:60px 16px;text-align:center;color:var(--muted)}
+:root{--bad:#FF5A5F}
+.cellb.bad{box-shadow:inset 0 0 0 2px var(--bad)}.cellb.bad.sel{box-shadow:inset 0 0 0 2px var(--acc),inset 0 0 0 4px var(--bad)}
+.tabs .n{display:inline-block;min-width:20px;padding:0 6px;margin-inline-start:6px;border-radius:999px;background:var(--bad);color:#fff;font-size:12px;line-height:20px}
+.warn{border:1px solid var(--bad);border-radius:14px;padding:8px 12px;margin:0 0 10px;color:var(--ink);font-size:14px}
+.warn b{color:var(--bad)}
+.iss{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.iss.bad{border-color:var(--bad)}
+.iss h3{margin:0 0 6px;font-size:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.iss h3 .k{color:var(--bad);font-size:14px;font-weight:600}
+.iss .li{color:var(--muted);font-size:14px;padding:3px 0}
+.iss .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+details.ign summary{cursor:pointer;color:var(--muted);padding:10px 2px;min-height:44px}
 .ebtn{padding:8px 16px;border-radius:999px;border:1px solid var(--line);min-height:40px;white-space:nowrap}
 .ebtn.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
 .ebtn:disabled{opacity:.45;cursor:default}
@@ -100,7 +112,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 /* ---------- texts ---------- */
 var T={
- he:{title:'מערכת שעות',classes:'כיתות',teachers:'מורים',rooms:'חדרים',grade:'שכבה',search:'חיפוש',hrs:'ש׳',
+ he:{title:'מערכת שעות',problems:'בעיות',tTwice:'מורה בשני מקומות',rTwice:'חדר תפוס פעמיים',open:'לפתוח',okBtn:'זה בסדר',unOk:'להחזיר לבעיות',ignored:'סומנו „זה בסדר“: {n}',noProblems:'אין בעיות 🎉',okNeedEdit:'כדי לסמן „זה בסדר“ צריך להיכנס לעריכה.',probNote:'נבדק: מורה שבאותו שיעור רשום בכמה חדרים, וחדר שבאותו שיעור רשום אצל כמה מורים. חדר אוכל, אולם ספורט, חנ״ג וחדרים פרטניים לא נבדקים.',classes:'כיתות',teachers:'מורים',rooms:'חדרים',grade:'שכבה',search:'חיפוש',hrs:'ש׳',
   days:['יום א׳','יום ב׳','יום ג׳','יום ד׳','יום ה׳'],loading:'טוען את המערכת של כל בית הספר…',failed:'לא הצלחנו לטעון. בדקו את האינטרנט ונסו שוב.',
   retry:'לנסות שוב',groups:'קבוצות',pick:'בחרו מהרשימה',lessons:'שיעורים בשבוע',noLessons:'אין שיעורים',
   subject:'מקצוע',teacher:'מורה',room:'חדר',cls:'כיתות',layer:'שכבת ',period:'שיעור',close:'סגירה',
@@ -111,7 +123,7 @@ var T={
   conflict:'מישהו אחר שמר לפניכם. בטלו את השינויים (הדף ייטען מחדש) ונסו שוב.',noServer:'השרת עוד לא עודכן – אי אפשר לשמור כרגע.',
   saveFail:'לא הצלחנו לשמור. בדקו את האינטרנט ונסו שוב.',addLesson:'+ שיעור',del:'מחיקה',delQ:'למחוק את השיעור?',addCls:'+ כיתה',
   day:'יום',needSubj:'בכל שיעור צריך מקצוע וכיתה אחת לפחות.',discardQ:'למחוק את כל השינויים שלא נשמרו?',editHint:'לחצו על משבצת כדי לערוך אותה.'},
- en:{title:'Timetable',classes:'Classes',teachers:'Teachers',rooms:'Rooms',grade:'Grade',search:'Search',hrs:'h',
+ en:{title:'Timetable',problems:'Problems',tTwice:'Teacher in two places',rTwice:'Room booked twice',open:'Open',okBtn:'It’s fine',unOk:'Back to problems',ignored:'Marked as fine: {n}',noProblems:'No problems 🎉',okNeedEdit:'To mark as fine, start editing first.',probNote:'Checked: a teacher listed in several rooms in the same period, and a room listed for several teachers in the same period. Dining hall, gym, PE and one-on-one rooms are not checked.',classes:'Classes',teachers:'Teachers',rooms:'Rooms',grade:'Grade',search:'Search',hrs:'h',
   days:['Sun','Mon','Tue','Wed','Thu'],loading:'Loading the whole school timetable…',failed:'Could not load. Check the internet and try again.',
   retry:'Try again',groups:'groups',pick:'Pick from the list',lessons:'lessons a week',noLessons:'No lessons',
   subject:'Subject',teacher:'Teacher',room:'Room',cls:'Classes',layer:'Grade ',period:'Period',close:'Close',
@@ -122,7 +134,7 @@ var T={
   conflict:'Someone else saved before you. Discard your changes (the page reloads) and try again.',noServer:'The server is not updated yet, so saving does not work for now.',
   saveFail:'Could not save. Check the internet and try again.',addLesson:'+ Lesson',del:'Delete',delQ:'Delete this lesson?',addCls:'+ Class',
   day:'Day',needSubj:'Every lesson needs a subject and at least one class.',discardQ:'Discard all unsaved changes?',editHint:'Click a slot to edit it.'},
- ru:{title:'Расписание школы',classes:'Классы',teachers:'Учителя',rooms:'Кабинеты',grade:'Параллель',search:'Поиск',hrs:'ч',
+ ru:{title:'Расписание школы',problems:'Проблемы',tTwice:'Учитель в двух местах',rTwice:'Кабинет занят дважды',open:'Открыть',okBtn:'Это нормально',unOk:'Вернуть в проблемы',ignored:'Отмечено «нормально»: {n}',noProblems:'Проблем нет 🎉',okNeedEdit:'Чтобы отметить «нормально», сначала войди в редактирование.',probNote:'Проверяется: учитель на одном уроке в нескольких кабинетах и кабинет на одном уроке у нескольких учителей. Столовая, спортзал, физкультура и кабинеты для индивидуальных занятий не проверяются.',classes:'Классы',teachers:'Учителя',rooms:'Кабинеты',grade:'Параллель',search:'Поиск',hrs:'ч',
   days:['Вс','Пн','Вт','Ср','Чт'],loading:'Загружаю расписание всей школы…',failed:'Не удалось загрузить. Проверь интернет и попробуй ещё раз.',
   retry:'Ещё раз',groups:'групп',pick:'Выбери в списке',lessons:'уроков в неделю',noLessons:'Уроков нет',
   subject:'Предмет',teacher:'Учитель',room:'Кабинет',cls:'Классы',layer:'Параллель ',period:'Урок',close:'Закрыть',
@@ -136,7 +148,7 @@ var T={
 };
 var prefs=sGet('skedyA.prefs')||{};
 if(!T[prefs.lang])prefs.lang='he';
-if(['class','teacher','room','grade'].indexOf(prefs.mode)<0)prefs.mode='class';
+if(['class','teacher','room','grade','issues'].indexOf(prefs.mode)<0)prefs.mode='class';
 prefs.sel=prefs.sel||{};
 function gName(g){return t('layer')+(prefs.lang==='he'?(GL[g]||g):g);}
 function t(k){return T[prefs.lang][k]!=null?T[prefs.lang][k]:T.he[k];}
@@ -146,7 +158,7 @@ function save(){sSet('skedyA.prefs',prefs);}
 var API=(function(){var u=String(window.SCHEDULE_API||'').trim();return /^(https:\/\/|http:\/\/localhost)/.test(u)?u.replace(/\/+$/,''):'';})();
 var DEF_P=[['07:45','08:30'],['08:30','09:15'],['09:35','10:20'],['10:20','11:00'],['11:10','11:55'],['11:55','12:35'],['12:45','13:30'],['13:30','14:10'],['14:15','14:55'],['15:00','15:40'],['15:40','16:20']]
   .map(function(x,i){return {n:i+1,start:x[0],end:x[1]};});
-var D={ok:false,failed:false,cls:[],les:[],byC:{},byT:{},byR:{},updated:'',periods:DEF_P,subj:{},skedy:[],base:null,src:'sh',dirty:0};
+var D={ok:false,failed:false,cls:[],les:[],byC:{},byT:{},byR:{},updated:'',periods:DEF_P,subj:{},skedy:[],base:null,src:'sh',dirty:0,okK:[],ver:0};
 var ui={q:'',slot:null,gradeDay:0,login:false,msg:'',msgK:'',busy:false};
 // редактор: код живёт до закрытия вкладки (sessionStorage), черновик — в localStorage, пока не сохранён
 var ED={code:ssGet('skedyA.code')};
@@ -157,7 +169,7 @@ function getJ(u){return fetch(u,{cache:'no-cache'}).then(function(r){if(!r.ok)th
 function load(){
   D.ok=false;D.failed=false;render();
   var fromFiles=function(){return getJ('../teacher/classes/index.json').then(function(ix){
-    D.cls=ix.classes||[];D.updated=ix.updated||'';D.base=null;D.src='sh';
+    D.cls=ix.classes||[];D.updated=ix.updated||'';D.base=null;D.src='sh';D.okK=[];
     return Promise.all(D.cls.map(function(c){return getJ('../teacher/classes/'+c.k+'.json').then(function(j){return [c.k,j];});}));
   }).then(build);};
   (API?getJ(API+'/tt').then(fromTT).catch(fromFiles):fromFiles()).then(function(){applyDraft();D.ok=true;render();}).catch(function(){D.failed=true;render();});
@@ -179,16 +191,17 @@ function fromTT(j){
   if(!j||!j.cls||!j.l)throw new Error('bad');
   D.cls=j.cls;D.base=j.updatedAt||null;D.updated=String(j.updatedAt||'').slice(0,10);D.src='sk';
   D.les=j.l.map(function(a){return {id:++SEQ,d:a[0],p:a[1],s:j.s[a[2]]||'',r:j.r[a[3]]||'',t:j.t[a[4]]||'',c:a[5].slice()};});
+  D.okK=Array.isArray(j.ok)?j.ok.slice():[];
   reindex();
 }
 // сжатый вид для сервера: строки предметов, кабинетов и учителей — в списках, в уроке только их номера
 function toTT(){
   var S=[],R=[],Tn=[],ix=function(l,v){var i=l.indexOf(v);if(i<0){l.push(v);i=l.length-1;}return i;};
   var l=D.les.map(function(L){return [L.d,L.p,ix(S,L.s),ix(R,L.r),ix(Tn,L.t),L.c.slice()];});
-  return {cls:D.cls,s:S,r:R,t:Tn,l:l};
+  return {cls:D.cls,s:S,r:R,t:Tn,l:l,ok:D.okK.slice()};
 }
 function reindex(){
-  D.byC={};D.byT={};D.byR={};
+  D.ver++;D.byC={};D.byT={};D.byR={};
   D.les.forEach(function(L){if(L.t)(D.byT[L.t]=D.byT[L.t]||[]).push(L);if(L.r)(D.byR[L.r]=D.byR[L.r]||[]).push(L);
     L.c.forEach(function(k){(D.byC[k]=D.byC[k]||[]).push(L);});});
 }
@@ -197,6 +210,50 @@ function saveDraft(){D.dirty++;sSet('skedyA.draft',{base:D.base,n:D.dirty,tt:toT
 function applyDraft(){var dr=sGet('skedyA.draft');if(!dr||!dr.tt)return;
   if(dr.base!==D.base){sDel('skedyA.draft');return;}
   try{var keepB=D.base,keepU=D.updated,keepS=D.src;fromTT(dr.tt);D.base=keepB;D.updated=keepU;D.src=keepS;D.dirty=dr.n||1;}catch(e){sDel('skedyA.draft');}}
+/* ---------- проверки: учитель или кабинет заняты дважды ---------- */
+// учитель: на одном уроке в разных кабинетах; кабинет: на одном уроке у разных учителей.
+// Не кабинеты (столовая, спортзал…) не проверяются — как SKIP в build.py.
+// «Это нормально» — ключ проблемы в D.okK (хранится вместе с расписанием); ключ зависит от уроков,
+// поэтому если уроки в этой клетке поменяются, проблема покажется снова.
+var SKIPR=/חדר אוכל|אולם ספורט|חנ"ג|גן מקלט|יועצת|רכזת|פרטני|מרכז למידה/;
+function hsh(x){var h=5381;for(var i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))|0;return (h>>>0).toString(36);}
+function sig(L){return [L.d,L.p,L.s,L.r,L.t,L.c.join(',')].join('|');}
+function issues(){
+  if(issues.v===D.ver)return issues.r;var T={},R={},out=[],ids={};
+  D.les.forEach(function(L){var k=L.d+'|'+L.p;
+    if(L.t)(T[k+'|'+L.t]=T[k+'|'+L.t]||[]).push(L);
+    if(L.r&&!SKIPR.test(L.r))(R[k+'|'+L.r]=R[k+'|'+L.r]||[]).push(L);});
+  var add=function(type,key,ls,distinct){var seen={},n=0;ls.forEach(function(L){var v=L[distinct];if(v&&!seen[v]){seen[v]=1;n++;}});if(n<2)return;
+    var pts=key.split('|'),it={type:type,d:+pts[0],p:+pts[1],name:pts.slice(2).join('|'),ls:ls};
+    it.key=type+'|'+key+'|'+hsh(ls.map(sig).sort().join('#'));it.ok=D.okK.indexOf(it.key)>=0;out.push(it);
+    if(!it.ok)ls.forEach(function(L){ids[L.id]=1;});};
+  Object.keys(T).forEach(function(k){add('t',k,T[k],'r');});
+  Object.keys(R).forEach(function(k){add('r',k,R[k],'t');});
+  out.sort(function(a,b){return a.d-b.d||a.p-b.p||a.type.localeCompare(b.type)||a.name.localeCompare(b.name,'he');});
+  issues.v=D.ver;issues.r={list:out,ids:ids,open:out.filter(function(x){return !x.ok;}).length};return issues.r;
+}
+function lsBad(ls){var ids=issues().ids;for(var i=0;i<ls.length;i++)if(ids[ls[i].id])return true;return false;}
+function issueHtml(it){
+  var h='<div class="iss'+(it.ok?'':' bad')+'"><h3><span>'+esc(t('days')[it.d])+' · '+esc(t('period'))+' '+it.p+'</span><span class="k">'+esc(t(it.type==='t'?'tTwice':'rTwice'))+'</span><bdi>'+esc(it.name)+'</bdi></h3>';
+  it.ls.forEach(function(L){h+='<div class="li"><bdi>'+esc(trS(L.s))+'</bdi> · <bdi>'+esc(L.t||'—')+'</bdi> · <bdi>'+esc(L.r||'—')+'</bdi> · <bdi>'+esc(audLabel(L.c))+'</bdi></div>';});
+  h+='<div class="acts"><button class="ebtn" data-act="jump" data-m="'+(it.type==='t'?'teacher':'room')+'" data-v="'+esc(it.name)+'" data-d="'+it.d+'" data-p="'+it.p+'">'+esc(t('open'))+'</button>';
+  if(ED.code)h+='<button class="ebtn" data-act="okIss" data-v="'+esc(it.key)+'">'+esc(t(it.ok?'unOk':'okBtn'))+'</button>';
+  return h+'</div></div>';
+}
+function issuesView(){
+  var I=issues(),open=I.list.filter(function(x){return !x.ok;}),ok=I.list.filter(function(x){return x.ok;});
+  var h='<h1>'+esc(t('problems'))+'</h1><p class="sub">'+esc(t('probNote'))+(ED.code?'':' '+esc(t('okNeedEdit')))+'</p>';
+  h+=open.length?open.map(issueHtml).join(''):'<div class="state">'+esc(t('noProblems'))+'</div>';
+  if(ok.length)h+='<details class="ign"><summary>'+esc(t('ignored').replace('{n}',ok.length))+'</summary>'+ok.map(issueHtml).join('')+'</details>';
+  return h;
+}
+// проблемы в открытой клетке: предупреждение сверху панели
+function slotWarn(list){var ids={},h='';at(list,ui.slot.d,ui.slot.p).forEach(function(L){ids[L.id]=1;});
+  issues().list.forEach(function(it){if(it.ok||it.d!==ui.slot.d||it.p!==ui.slot.p)return;
+    if(!it.ls.some(function(L){return ids[L.id];}))return;
+    h+='<div class="warn"><b>'+esc(t(it.type==='t'?'tTwice':'rTwice'))+':</b> <bdi>'+esc(it.name)+'</bdi> — '+
+      it.ls.map(function(L){return '<bdi>'+esc(it.type==='t'?L.r:L.t||'—')+'</bdi>';}).join(', ')+'</div>';});
+  return h;}
 function byIdL(id){for(var i=0;i<D.les.length;i++)if(D.les[i].id===id)return D.les[i];return null;}
 function msg(k,kind){ui.msg=k;ui.msgK=kind||'';}
 function login(code){
@@ -209,11 +266,14 @@ function login(code){
     render();
   }).catch(function(){ui.busy=false;msg('saveFail','bad');render();});
 }
+// на сервер — только отметки «это нормально», которые ещё относятся к какой-то проблеме
+function ttForSave(){var tt=toTT(),keys={};issues().list.forEach(function(it){keys[it.key]=1;});
+  tt.ok=tt.ok.filter(function(k){return keys[k];});return tt;}
 function saveTT(){
   for(var i=0;i<D.les.length;i++)if(!D.les[i].s.trim()||!D.les[i].c.length){msg('needSubj','bad');render();return;}
   ui.busy=true;msg('saving');render();
   fetch(API+'/tt',{method:'POST',headers:{'Content-Type':'application/json','X-Editor-Code':encodeURIComponent(ED.code)},
-    body:JSON.stringify({tt:toTT(),base:D.base})}).then(function(r){
+    body:JSON.stringify({tt:ttForSave(),base:D.base})}).then(function(r){
     return r.json().catch(function(){return {};}).then(function(j){
       ui.busy=false;
       if(r.ok&&j.updatedAt){D.base=j.updatedAt;D.updated=j.updatedAt.slice(0,10);D.src='sk';D.dirty=0;sDel('skedyA.draft');msg('saved','ok');}
@@ -242,8 +302,9 @@ function per(n){for(var i=0;i<D.periods.length;i++)if(D.periods[i].n===n)return 
 /* ---------- render ---------- */
 function header(){
   var h='<div class="top"><div class="brand">sk<i>.</i><small>'+esc(t('title'))+'</small></div><div class="tabs">';
-  [['class','classes'],['teacher','teachers'],['room','rooms'],['grade','grade']].forEach(function(x){
-    h+='<button class="'+(prefs.mode===x[0]?'on':'')+'" data-act="mode" data-v="'+x[0]+'">'+esc(t(x[1]))+'</button>';});
+  var nI=D.ok?issues().open:0;
+  [['class','classes'],['teacher','teachers'],['room','rooms'],['grade','grade'],['issues','problems']].forEach(function(x){
+    h+='<button class="'+(prefs.mode===x[0]?'on':'')+'" data-act="mode" data-v="'+x[0]+'">'+esc(t(x[1]))+(x[0]==='issues'&&nI?'<span class="n">'+nI+'</span>':'')+'</button>';});
   h+='</div><div class="langs">';
   if(D.ok&&!ED.code&&!ui.login)h+='<button class="ebtn" data-act="editOn">✏️ '+esc(t('edit'))+'</button>';
   [['he','עב'],['en','EN'],['ru','RU']].forEach(function(x){h+='<button class="'+(prefs.lang===x[0]?'on':'')+'" data-act="lang" data-v="'+x[0]+'">'+x[1]+'</button>';});
@@ -289,7 +350,7 @@ function weekGrid(list,mode){
   for(var p=1,mp=maxP();p<=mp;p++){var pr=per(p);
     h+='<tr><th class="pn">'+p+(pr?'<small>'+esc(pr.start)+'<br>'+esc(pr.end)+'</small>':'')+'</th>';
     for(d=0;d<5;d++){var ls=at(list,d,p),sel=ui.slot&&ui.slot.d===d&&ui.slot.p===p;
-      h+='<td><button class="cellb'+(sel?' sel':'')+'" data-act="slot" data-d="'+d+'" data-p="'+p+'">'+cellHtml(ls,mode)+'</button></td>';}
+      h+='<td><button class="cellb'+(sel?' sel':'')+(lsBad(ls)?' bad':'')+'" data-act="slot" data-d="'+d+'" data-p="'+p+'">'+cellHtml(ls,mode)+'</button></td>';}
     h+='</tr>';}
   return h+'</tbody></table></div>';
 }
@@ -303,7 +364,7 @@ function editPanel(list,mode){
   for(var p=1,mp=Math.max(maxP(),11);p<=mp;p++)ps.push([String(p),String(p)]);
   D.les.forEach(function(L){if(L.s)subs[L.s]=1;});
   var h='<div class="panel"><h3><span>'+esc(t('days')[ui.slot.d])+' · '+esc(t('period'))+' '+ui.slot.p+'</span><button data-act="unslot" aria-label="'+esc(t('close'))+'">×</button></h3>'+
-    dl('dlS',subs)+dl('dlT',D.byT)+dl('dlR',D.byR)+
+    slotWarn(list)+dl('dlS',subs)+dl('dlT',D.byT)+dl('dlR',D.byR)+
     '<div class="elbl"><span>'+esc(t('day'))+'</span><span>'+esc(t('period'))+'</span><span>'+esc(t('subject'))+'</span><span>'+esc(t('teacher'))+'</span><span>'+esc(t('room'))+'</span></div>';
   ls.forEach(function(L){var id=L.id;
     h+='<div class="erow" data-id="'+id+'"><select class="inp" data-f="d">'+opts(days,String(L.d))+'</select><select class="inp" data-f="p">'+opts(ps,String(L.p))+'</select>'+
@@ -318,6 +379,7 @@ function panel(list,mode){
   if(!ui.slot)return '';if(ED.code)return editPanel(list,mode);var ls=at(list,ui.slot.d,ui.slot.p);if(!ls.length)return '';
   ls=ls.slice().sort(function(a,b){return a.s.localeCompare(b.s,'he')||a.t.localeCompare(b.t,'he');});
   var h='<div class="panel"><h3><span>'+esc(t('days')[ui.slot.d])+' · '+esc(t('period'))+' '+ui.slot.p+'</span><button data-act="unslot" aria-label="'+esc(t('close'))+'">×</button></h3>';
+  h+=slotWarn(list);
   h+='<div class="row muted"><b>'+esc(t('subject'))+'</b><b>'+esc(t('teacher'))+'</b><b>'+esc(t('room'))+'</b><b>'+esc(t('cls'))+'</b></div>';
   ls.forEach(function(L){
     h+='<div class="row"><span>'+esc(trS(L.s))+'</span>'+
@@ -338,11 +400,12 @@ function gradeView(){
   D.cls.filter(function(c){return +c.g===+g;}).forEach(function(c){
     h+='<tr><th class="pn"><button class="go" data-act="jump" data-m="class" data-v="'+esc(c.k)+'"><bdi>'+esc(c.he)+'</bdi></button></th>';
     for(p=1;p<=mp;p++){var ls=at(D.byC[c.k]||[],ui.gradeDay,p);
-      h+='<td><button class="cellb" data-act="gcell" data-k="'+esc(c.k)+'" data-p="'+p+'">'+cellHtml(ls,'grade')+'</button></td>';}
+      h+='<td><button class="cellb'+(lsBad(ls)?' bad':'')+'" data-act="gcell" data-k="'+esc(c.k)+'" data-p="'+p+'">'+cellHtml(ls,'grade')+'</button></td>';}
     h+='</tr>';});
   return h+'</tbody></table></div>';
 }
 function mainHtml(){
+  if(prefs.mode==='issues')return issuesView();
   if(prefs.mode==='grade')return '<h1>'+esc(gName(prefs.sel.grade||10))+'</h1><p class="sub">'+esc(t('days')[ui.gradeDay])+'</p>'+gradeView();
   var k=prefs.sel[prefs.mode],list=listFor(prefs.mode,k);
   if(!k||(!list.length&&!ED.code))return '<div class="state">'+esc(k?t('noLessons'):t('pick'))+'</div>';
@@ -356,7 +419,7 @@ function render(){
   if(!D.ok)h+='<div class="state">'+esc(D.failed?t('failed'):t('loading'))+(D.failed?'<p><button class="go" data-act="retry">'+esc(t('retry'))+'</button></p>':'')+'</div>';
   else{
     h+='<div class="app">';
-    if(prefs.mode!=='grade')h+='<div class="side"><input id="q" type="search" placeholder="'+esc(t('search'))+'" value="'+esc(ui.q)+'" autocomplete="off"><div class="items">'+sideItems()+'</div></div>';
+    if(prefs.mode!=='grade'&&prefs.mode!=='issues')h+='<div class="side"><input id="q" type="search" placeholder="'+esc(t('search'))+'" value="'+esc(ui.q)+'" autocomplete="off"><div class="items">'+sideItems()+'</div></div>';
     h+='<div class="main">'+mainHtml()+'<p class="note">'+esc(t('note').replace('{d}',D.updated).replace('{src}',t(D.src==='sk'?'srcSk':'srcSh')))+
       (ED.code||D.src==='sk'?'<br>'+esc(t('notLive')):'')+'</p></div></div>';
   }
@@ -373,7 +436,8 @@ document.addEventListener('click',function(e){
     case 'lang':prefs.lang=v;break;
     case 'pick':prefs.sel[prefs.mode]=prefs.mode==='grade'?+v:v;ui.slot=null;break;
     case 'jump':prefs.mode=b.getAttribute('data-m');prefs.sel[prefs.mode]=v;ui.q='';
-      if(!ui.slot)ui.slot=null;window.scrollTo(0,0);break;
+      if(b.hasAttribute('data-d'))ui.slot={d:+b.getAttribute('data-d'),p:+b.getAttribute('data-p')};window.scrollTo(0,0);break;
+    case 'okIss':if(!ED.code)return;var oi=D.okK.indexOf(v);if(oi>=0)D.okK.splice(oi,1);else D.okK.push(v);D.ver++;saveDraft();msg('');break;
     case 'slot':var d=+b.getAttribute('data-d'),p=+b.getAttribute('data-p');
       ui.slot=ui.slot&&ui.slot.d===d&&ui.slot.p===p?null:{d:d,p:p};break;
     case 'unslot':ui.slot=null;break;
