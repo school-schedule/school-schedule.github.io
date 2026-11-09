@@ -3,7 +3,8 @@
  *
  * Что делает:
  *  1. Хранит расписание (GET /data — прочитать, POST /data — сохранить из редактора).
- *     Расписание всей школы для Skedy Admin (/admin/): GET /tt, POST /tt (по коду редактора).
+ *     Расписание всей школы для Skedy Admin (/admin/): GET /tt, POST /tt (по коду редактора);
+ *     изменения на даты для уроков всей школы: GET /ttch, POST /ttch (+ уведомления учителям).
  *  2. Хранит подписки на уведомления (POST /subscribe, POST /unsubscribe).
  *  3. Когда редактор сохраняет новую отмену / смену кабинета / контрольную,
  *     отправляет push-уведомление только тем ученикам, кого это касается.
@@ -96,6 +97,13 @@ export default {
         return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
       }
       if (path === "/tt" && req.method === "POST") return await saveTT(req, env);
+      // изменения на даты для уроков всей школы (Skedy Admin): отмена, другой кабинет, контрольная
+      if (path === "/ttch" && req.method === "GET") {
+        const s = await env.DB.get("ttch");
+        if (!s) return json({ updatedAt: null, ch: [] });
+        return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
+      }
+      if (path === "/ttch" && req.method === "POST") return await saveTTCh(req, env, ctx);
       if (path === "/backups" || path === "/restore") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
         if (auth.status !== 200) return json(auth.body, auth.status);
@@ -358,6 +366,51 @@ async function saveTT(req, env) {
   }
   await env.DB.put("tt", JSON.stringify(out));
   return json({ ok: true, updatedAt: out.updatedAt, lessons: out.l.length });
+}
+
+/* ---------------- изменения на даты для всей школы (Skedy Admin) ---------------- */
+// Ключ KV "ttch": {updatedAt, ch:[{id, date, p, s, t, c:[классы], type: cancel|room|test, room?, note?}]}.
+// Урок узнаём по дню (из даты), номеру урока, предмету, учителю и классам — так же, как в /tt.
+// Старше 30 дней — выбрасываются. Новые и изменённые на сегодня и дальше — уведомления учителям этих уроков
+// (у учеников Skedy свои изменения в "state", им эти не отправляются: aud.type "tt").
+const CH_TYPES = ["cancel", "room", "test"];
+function validCh(ch) {
+  if (!Array.isArray(ch) || ch.length > 5000) return false;
+  const str = (x, n) => typeof x === "string" && x.length <= n;
+  return ch.every((c) => c && str(c.id, 40) && c.id && /^\d{4}-\d{2}-\d{2}$/.test(c.date) && Number.isInteger(c.p) && c.p >= 0 && c.p <= 15 &&
+    str(c.s, 200) && c.s && str(c.t || "", 200) && CH_TYPES.includes(c.type) && str(c.room || "", 200) && str(c.note || "", 200) &&
+    (c.type !== "room" || c.room) && Array.isArray(c.c) && c.c.length <= 100 && c.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
+}
+function chSig(c) {
+  return [c.date, c.p, c.s, c.t || "", c.c.join(","), c.type, c.room || "", c.note || ""].join("|");
+}
+async function saveTTCh(req, env, ctx) {
+  const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+  if (auth.status !== 200) return json(auth.body, auth.status);
+  const text = await req.text();
+  if (text.length > TT_MAX_BYTES) return json({ error: "too_big" }, 413);
+  let body;
+  try { body = JSON.parse(text); } catch (e) { return json({ error: "bad_data" }, 400); }
+  if (!body || !validCh(body.ch)) return json({ error: "bad_data" }, 400);
+  const prevRaw = await env.DB.get("ttch");
+  const prev = prevRaw ? JSON.parse(prevRaw) : { updatedAt: null, ch: [] };
+  if ((body.base || null) !== (prev.updatedAt || null)) return json({ error: "conflict", updatedAt: prev.updatedAt }, 409);
+  const oldest = israelDate(-30), today = israelDate(0);
+  const ch = body.ch.filter((c) => c.date >= oldest).map((c) => {
+    const o = { id: c.id, date: c.date, p: c.p, s: c.s, t: c.t || "", c: c.c, type: c.type };
+    if (c.type === "room") o.room = c.room;
+    if (c.note) o.note = c.note;
+    return o;
+  });
+  const out = { updatedAt: new Date().toISOString(), ch };
+  await env.DB.put("ttch", JSON.stringify(out));
+  const old = new Map(prev.ch.map((c) => [c.id, chSig(c)]));
+  const fresh = ch.filter((c) => c.date >= today && c.t && old.get(c.id) !== chSig(c));
+  if (fresh.length) ctx.waitUntil(notifyAll(env, fresh.map((c) => ({
+    k: c.date + "|" + String(c.p).padStart(2, "0"), date: c.date, type: c.type, room: c.room || "", note: c.note || "",
+    period: c.p, aud: { type: "tt" }, t: normName(c.t), name: { he: c.s, en: c.s, ru: c.s },
+  }))));
+  return json({ ok: true, updatedAt: out.updatedAt, changes: fresh.length });
 }
 
 // новые или изменённые отметки на сегодня и дальше
@@ -943,6 +996,7 @@ function mergeTests(list) {
 }
 function concerns(d, rec) {
   if (rec.t) return !!d.t && d.t === normName(rec.t); // учитель: изменения в его уроках
+  if (d.aud.type === "tt") return false; // изменения из Skedy Admin (/ttch) — только учителям
   if (d.aud.type === "class") return d.aud.id === rec.c;
   return rec.g.includes(d.aud.id);
 }
