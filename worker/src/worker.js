@@ -400,17 +400,30 @@ async function ttRestore(env, id) {
 }
 
 /* ---------------- изменения на даты для всей школы (Skedy Admin) ---------------- */
-// Ключ KV "ttch": {updatedAt, ch:[{id, date, p, s, t, c:[классы], type: cancel|room|test, room?, note?}]}.
+// Ключ KV "ttch": {updatedAt, ch:[{id, date, p, s, t, c:[классы], type: cancel|room|test, room?, note?}], off:[дни без учёбы]}.
 // Урок узнаём по дню (из даты), номеру урока, предмету, учителю и классам — так же, как в /tt.
 // Старше 30 дней — выбрасываются. Новые и изменённые на сегодня и дальше — уведомления учителям этих уроков
 // (у учеников Skedy свои изменения в "state", им эти не отправляются: aud.type "tt").
 const CH_TYPES = ["cancel", "room", "test"];
+// настоящая дата «ГГГГ-ММ-ДД» (не «2026-13-01»)
+function isDate(x) {
+  if (typeof x !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(x)) return false;
+  const d = new Date(x + "T00:00:00Z");
+  return !isNaN(d) && d.toISOString().slice(0, 10) === x;
+}
 function validCh(ch) {
   if (!Array.isArray(ch) || ch.length > 5000) return false;
   const str = (x, n) => typeof x === "string" && x.length <= n;
-  return ch.every((c) => c && str(c.id, 40) && c.id && /^\d{4}-\d{2}-\d{2}$/.test(c.date) && Number.isInteger(c.p) && c.p >= 0 && c.p <= 15 &&
+  return ch.every((c) => c && str(c.id, 40) && c.id && isDate(c.date) && Number.isInteger(c.p) && c.p >= 0 && c.p <= 15 &&
     str(c.s, 200) && c.s && str(c.t || "", 200) && CH_TYPES.includes(c.type) && str(c.room || "", 200) && str(c.note || "", 200) &&
     (c.type !== "room" || c.room) && Array.isArray(c.c) && c.c.length <= 100 && c.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
+}
+// дни без учёбы: {id, date, to?, text, g:[параллели 7–12; пусто — вся школа]}
+function validOff(off) {
+  if (!Array.isArray(off) || off.length > 500) return false;
+  const d = isDate;
+  return off.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && d(o.date) && (o.to == null || (d(o.to) && o.to >= o.date)) &&
+    typeof o.text === "string" && o.text.length <= 200 && Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12));
 }
 function chSig(c) {
   return [c.date, c.p, c.s, c.t || "", c.c.join(","), c.type, c.room || "", c.note || ""].join("|");
@@ -422,7 +435,7 @@ async function saveTTCh(req, env, ctx) {
   if (text.length > TT_MAX_BYTES) return json({ error: "too_big" }, 413);
   let body;
   try { body = JSON.parse(text); } catch (e) { return json({ error: "bad_data" }, 400); }
-  if (!body || !validCh(body.ch)) return json({ error: "bad_data" }, 400);
+  if (!body || !validCh(body.ch) || (body.off != null && !validOff(body.off))) return json({ error: "bad_data" }, 400);
   const prevRaw = await env.DB.get("ttch");
   const prev = prevRaw ? JSON.parse(prevRaw) : { updatedAt: null, ch: [] };
   if ((body.base || null) !== (prev.updatedAt || null)) return json({ error: "conflict", updatedAt: prev.updatedAt }, 409);
@@ -433,15 +446,31 @@ async function saveTTCh(req, env, ctx) {
     if (c.note) o.note = c.note;
     return o;
   });
-  const out = { updatedAt: new Date().toISOString(), ch };
+  const off = (body.off != null ? body.off : prev.off || []).filter((o) => (o.to || o.date) >= oldest)
+    .map((o) => { const x = { id: o.id, date: o.date, text: o.text, g: o.g }; if (o.to && o.to !== o.date) x.to = o.to; return x; });
+  const out = { updatedAt: new Date().toISOString(), ch, off };
   await env.DB.put("ttch", JSON.stringify(out));
   const old = new Map(prev.ch.map((c) => [c.id, chSig(c)]));
   const fresh = ch.filter((c) => c.date >= today && c.t && old.get(c.id) !== chSig(c));
-  if (fresh.length) ctx.waitUntil(notifyAll(env, fresh.map((c) => ({
-    k: c.date + "|" + String(c.p).padStart(2, "0"), date: c.date, type: c.type, room: c.room || "", note: c.note || "",
-    period: c.p, aud: { type: "tt" }, t: normName(c.t), name: { he: c.s, en: c.s, ru: c.s },
-  }))));
+  if (fresh.length) ctx.waitUntil(ttchNotify(env, fresh));
   return json({ ok: true, updatedAt: out.updatedAt, changes: fresh.length });
+}
+// Урок י׳, который есть в Skedy (тот же день недели, номер урока и учитель), — уведомление как у изменений Skedy:
+// и ученикам этого урока, и учителю. Остальные — только учителю (aud.type "tt").
+async function ttchNotify(env, fresh) {
+  const raw = await env.DB.get("state");
+  const st = raw ? JSON.parse(raw) : null;
+  const ds = [];
+  for (const c of fresh) {
+    const les = st ? st.lessons.filter((l) => l.day === weekday(c.date) && l.period === c.p && normName(l.teacher) === normName(c.t)) : [];
+    if (les.length) {
+      for (const l of les) { const d = describe(st, { date: c.date, lessonId: l.id, type: c.type, room: c.room, note: c.note }); if (d) ds.push(d); }
+      continue;
+    }
+    ds.push({ k: c.date + "|" + String(c.p).padStart(2, "0"), date: c.date, type: c.type, room: c.room || "", note: c.note || "",
+      period: c.p, aud: { type: "tt" }, t: normName(c.t), name: { he: c.s, en: c.s, ru: c.s } });
+  }
+  if (ds.length) await notifyAll(env, ds);
 }
 
 /* ---------------- сообщения всем учителям (Skedy Admin) ---------------- */
