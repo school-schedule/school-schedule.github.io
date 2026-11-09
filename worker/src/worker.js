@@ -3,6 +3,7 @@
  *
  * Что делает:
  *  1. Хранит расписание (GET /data — прочитать, POST /data — сохранить из редактора).
+ *     Расписание всей школы для Skedy Admin (/admin/): GET /tt, POST /tt (по коду редактора).
  *  2. Хранит подписки на уведомления (POST /subscribe, POST /unsubscribe).
  *  3. Когда редактор сохраняет новую отмену / смену кабинета / контрольную,
  *     отправляет push-уведомление только тем ученикам, кого это касается.
@@ -88,6 +89,13 @@ export default {
         return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
       }
       if (path === "/data" && req.method === "POST") return await saveData(req, env, ctx);
+      // расписание всей школы (Skedy Admin, /admin/): читать может каждый, сохранять — по коду редактора
+      if (path === "/tt" && req.method === "GET") {
+        const s = await env.DB.get("tt");
+        if (!s) return json({ error: "empty" }, 404);
+        return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
+      }
+      if (path === "/tt" && req.method === "POST") return await saveTT(req, env);
       if (path === "/backups" || path === "/restore") {
         const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
         if (auth.status !== 200) return json(auth.body, auth.status);
@@ -304,6 +312,50 @@ async function saveData(req, env, ctx) {
   const fresh = prev ? newChanges(prev, next) : [];
   if (fresh.length) ctx.waitUntil(notifyAll(env, fresh.map((c) => describe(next, c)).filter(Boolean)));
   return json({ ok: true, updatedAt: next.updatedAt, changes: fresh.length });
+}
+
+/* ---------------- расписание всей школы (Skedy Admin) ---------------- */
+// Ключ KV "tt": {updatedAt, cls:[{k,he,g,n}], s:[предметы], r:[кабинеты], t:[учителя],
+//   l:[[день 0–4, урок, s, r, t, [ключи классов]]]} — один урок у нескольких классов хранится один раз.
+// Перед сохранением прошлая версия копируется в "ttbak:<время>" (последние 5).
+// Каждое сохранение — 2–3 записи KV (бесплатно 1000 в день), поэтому сайт сохраняет пачкой, по кнопке.
+const TT_MAX_BYTES = 2e6, TT_KEEP = 5;
+function validTT(tt) {
+  if (!tt || !Array.isArray(tt.cls) || !Array.isArray(tt.l) || tt.l.length > 20000) return false;
+  const strs = (a) => Array.isArray(a) && a.length < 5000 && a.every((x) => typeof x === "string" && x.length <= 200);
+  if (!strs(tt.s) || !strs(tt.r) || !strs(tt.t) || tt.cls.length > 500) return false;
+  const keys = new Set();
+  for (const c of tt.cls) {
+    if (!c || typeof c.k !== "string" || !/^\d{1,2}-\d{1,2}$/.test(c.k) || typeof c.he !== "string") return false;
+    keys.add(c.k);
+  }
+  const idx = (i, a) => Number.isInteger(i) && i >= 0 && i < a.length;
+  return tt.l.every((x) => Array.isArray(x) && x.length === 6 && Number.isInteger(x[0]) && x[0] >= 0 && x[0] <= 4 &&
+    Number.isInteger(x[1]) && x[1] >= 0 && x[1] <= 15 && idx(x[2], tt.s) && idx(x[3], tt.r) && idx(x[4], tt.t) &&
+    Array.isArray(x[5]) && x[5].length > 0 && x[5].length <= 100 && x[5].every((k) => keys.has(k)));
+}
+async function saveTT(req, env) {
+  const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+  if (auth.status !== 200) return json(auth.body, auth.status);
+  const text = await req.text();
+  if (text.length > TT_MAX_BYTES) return json({ error: "too_big" }, 413);
+  let body;
+  try { body = JSON.parse(text); } catch (e) { return json({ error: "bad_data" }, 400); }
+  const tt = body && body.tt;
+  if (!validTT(tt)) return json({ error: "bad_data" }, 400);
+  const prevRaw = await env.DB.get("tt");
+  const prevAt = prevRaw ? JSON.parse(prevRaw).updatedAt : null;
+  // кто-то другой успел сохранить раньше (base — версия, с которой начинал этот редактор)
+  if (prevRaw && (body.base || null) !== prevAt) return json({ error: "conflict", updatedAt: prevAt }, 409);
+  const out = { updatedAt: new Date().toISOString(), cls: tt.cls.map((c) => ({ k: c.k, he: c.he, g: +c.g || 0, n: +c.n || 0 })), s: tt.s, r: tt.r, t: tt.t, l: tt.l };
+  if (prevRaw) {
+    await env.DB.put("ttbak:" + prevAt, prevRaw);
+    const page = await env.DB.list({ prefix: "ttbak:" });
+    const names = page.keys.map((k) => k.name).sort();
+    for (const old of names.slice(0, Math.max(0, names.length - TT_KEEP))) await env.DB.delete(old);
+  }
+  await env.DB.put("tt", JSON.stringify(out));
+  return json({ ok: true, updatedAt: out.updatedAt, lessons: out.l.length });
 }
 
 // новые или изменённые отметки на сегодня и дальше
