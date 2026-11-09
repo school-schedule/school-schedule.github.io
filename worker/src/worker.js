@@ -3,7 +3,8 @@
  *
  * Что делает:
  *  1. Хранит расписание (GET /data — прочитать, POST /data — сохранить из редактора).
- *     Расписание всей школы для Skedy Admin (/admin/): GET /tt, POST /tt (по коду редактора);
+ *     Расписание всей школы для Skedy Admin (/admin/): GET /tt, POST /tt (по коду редактора),
+ *     прошлые версии: GET /tt/backups, POST /tt/restore (по коду редактора);
  *     изменения на даты для уроков всей школы: GET /ttch, POST /ttch (+ уведомления учителям).
  *  2. Хранит подписки на уведомления (POST /subscribe, POST /unsubscribe).
  *  3. Когда редактор сохраняет новую отмену / смену кабинета / контрольную,
@@ -97,6 +98,13 @@ export default {
         return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
       }
       if (path === "/tt" && req.method === "POST") return await saveTT(req, env);
+      // прошлые версии расписания всей школы: список и восстановление (по коду редактора)
+      if (path === "/tt/backups" || path === "/tt/restore") {
+        const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+        if (auth.status !== 200) return json(auth.body, auth.status);
+        if (path === "/tt/backups") return json({ backups: await ttBackups(env) });
+        if (req.method === "POST") { const b = await req.json().catch(() => ({})); return await ttRestore(env, b.id); }
+      }
       // изменения на даты для уроков всей школы (Skedy Admin): отмена, другой кабинет, контрольная
       if (path === "/ttch" && req.method === "GET") {
         const s = await env.DB.get("ttch");
@@ -358,14 +366,32 @@ async function saveTT(req, env) {
   // кто-то другой успел сохранить раньше (base — версия, с которой начинал этот редактор)
   if (prevRaw && (body.base || null) !== prevAt) return json({ error: "conflict", updatedAt: prevAt }, 409);
   const out = { updatedAt: new Date().toISOString(), cls: tt.cls.map((c) => ({ k: c.k, he: c.he, g: +c.g || 0, n: +c.n || 0 })), s: tt.s, r: tt.r, t: tt.t, l: tt.l, ok: tt.ok || [] };
-  if (prevRaw) {
-    await env.DB.put("ttbak:" + prevAt, prevRaw);
-    const page = await env.DB.list({ prefix: "ttbak:" });
-    const names = page.keys.map((k) => k.name).sort();
-    for (const old of names.slice(0, Math.max(0, names.length - TT_KEEP))) await env.DB.delete(old);
-  }
+  if (prevRaw) await ttBackup(env, prevRaw, prevAt);
   await env.DB.put("tt", JSON.stringify(out));
   return json({ ok: true, updatedAt: out.updatedAt, lessons: out.l.length });
+}
+// копия версии в "ttbak:<её updatedAt>", хранятся последние TT_KEEP
+async function ttBackup(env, raw, at) {
+  await env.DB.put("ttbak:" + at, raw);
+  const page = await env.DB.list({ prefix: "ttbak:" });
+  const names = page.keys.map((k) => k.name).sort();
+  for (const old of names.slice(0, Math.max(0, names.length - TT_KEEP))) await env.DB.delete(old);
+}
+async function ttBackups(env) {
+  const page = await env.DB.list({ prefix: "ttbak:" });
+  return page.keys.map((k) => ({ id: k.name, at: k.name.slice(6) })).sort((a, b) => b.at.localeCompare(a.at));
+}
+// восстановить прошлую версию: текущая сначала уходит в копии, так что восстановление тоже можно отменить
+async function ttRestore(env, id) {
+  if (typeof id !== "string" || !id.startsWith("ttbak:")) return json({ error: "bad_id" }, 400);
+  const raw = await env.DB.get(id);
+  if (!raw) return json({ error: "not_found" }, 404);
+  const curRaw = await env.DB.get("tt");
+  if (curRaw) await ttBackup(env, curRaw, JSON.parse(curRaw).updatedAt);
+  const tt = JSON.parse(raw);
+  tt.updatedAt = new Date().toISOString();
+  await env.DB.put("tt", JSON.stringify(tt));
+  return json({ ok: true, updatedAt: tt.updatedAt });
 }
 
 /* ---------------- изменения на даты для всей школы (Skedy Admin) ---------------- */
