@@ -111,18 +111,21 @@ const base = path.basename(file);
 const text = fs.readFileSync(file, 'utf8');
 const errors = [];
 
-// приложение для учителей (teacher/index.html): без встроенных данных, проверяем код и <head>
-function checkTeacher(html, errors) {
+// приложения без встроенных данных: teacher/index.html (Skedy Teachers) и admin/index.html (расписание всей школы)
+// проверяем код и <head>; manifest нужен только учителям (admin — не PWA)
+function checkApp(html, errors, label, must) {
   const jOpen = '<script id="app-js">';
   const ji = html.indexOf(jOpen), je = html.indexOf('</script>', ji);
-  if (ji < 0 || je < ji) errors.push('teacher/index.html: не найден <script id="app-js"> с кодом');
-  else checkJs('\n'.repeat(lineOf(html, ji) - 1) + html.slice(ji + jOpen.length, je), 'teacher/index.html', errors);
+  if (ji < 0 || je < ji) errors.push(`${label}: не найден <script id="app-js"> с кодом`);
+  else checkJs('\n'.repeat(lineOf(html, ji) - 1) + html.slice(ji + jOpen.length, je), label, errors);
   const head = (html.match(/<head>([\s\S]*?)<\/head>/) || [])[1] || '';
-  for (const must of ['config.js', 'manifest.webmanifest'])
-    if (!head.includes(must)) errors.push(`teacher/index.html: в <head> нет "${must}"`);
+  for (const m of must)
+    if (!head.includes(m)) errors.push(`${label}: в <head> нет "${m}"`);
 }
 
-if (base === 'index.html' && path.basename(path.dirname(path.resolve(file))) === 'teacher') checkTeacher(text, errors);
+const dir = path.basename(path.dirname(path.resolve(file)));
+if (base === 'index.html' && dir === 'teacher') checkApp(text, errors, 'teacher/index.html', ['config.js', 'manifest.webmanifest']);
+else if (base === 'index.html' && dir === 'admin') checkApp(text, errors, 'admin/index.html', ['config.js']);
 else if (base === 'index.html') checkIndex(text, errors);
 // код Cloudflare Worker (worker/) — тоже модуль
 else if (ext === '.mjs' || (ext === '.js' && /(^|[\\/])worker[\\/]/.test(path.resolve(file)))) checkModule(file, base, errors);
