@@ -794,14 +794,24 @@ function sortClasses(st){st.classes.sort(function(a,b){return gradeIdx(a.letter)
 function findClass(st,letter,num){for(var i=0;i<st.classes.length;i++){var c=st.classes[i];if(c.letter===letter&&c.num===num)return c;}return null;}
 function applyLang(){document.documentElement.lang=prefs.lang;document.documentElement.dir=prefs.lang==='he'?'rtl':'ltr';document.title=t('app');}
 
-function changesFor(st,date,lessonId){return st.changes.filter(function(c){return c.date===date&&c.lessonId===lessonId;});}
+function changesFor(st,date,lessonId){var r=st.changes.filter(function(c){return c.date===date&&c.lessonId===lessonId;});
+  if(st===STATE)extChanges(date,lessonId).forEach(function(x){if(!r.some(function(y){return y.type===x.type;}))r.push(x);});return r;}
+// изменения и дни без учёбы из Skedy Admin (GET /ttch, localStorage «sched.ttch»): урок Skedy — тот же день недели,
+// номер урока и учитель. Только для показа: в редакторе их нет, в данные Skedy они не попадают.
+var TTCH=sGet('localStorage','sched.ttch');
+function extChanges(date,lessonId){if(!TTCH||!TTCH.ch||ui.screen==='editor')return [];var l=byId(STATE.lessons,lessonId);if(!l||wday(date)!==l.day)return [];
+  var k=normT(l.teacher);if(!k)return [];
+  return TTCH.ch.filter(function(c){return c.date===date&&c.p===l.period&&normT(c.t)===k;}).map(function(c){
+    var x={id:'x'+c.id,date:date,lessonId:lessonId,type:c.type};if(c.room)x.room=c.room;if(c.note)x.note=c.note;return x;});}
+function extOff(date){if(!TTCH||!TTCH.off)return [];
+  return TTCH.off.filter(function(o){return date>=o.date&&date<=(o.to||o.date)&&(!o.g.length||o.g.indexOf(10)>=0);}).map(function(o){return {date:date,text:o.text,off:true};});}
 // события из שחף (вкладка «אירועים»): для всей параллели или для отдельных классов
 // событие для одной группы («בקבוצה של …») показываем, только если этот учитель ведёт у ученика уроки
 function normT(s){return String(s||'').replace(/[״"'׳`\-–]/g,' ').replace(/\s+/g,' ').trim();}
 function myTeachers(){var k=prefs.classId+'|'+JSON.stringify(prefs.groups)+'|'+STATE.updatedAt;if(myTeachers.k===k)return myTeachers.v;
   var set={},sun=addDays(todayISO(),-wday(todayISO()));for(var i=0;i<5;i++)studentLessons(addDays(sun,i)).forEach(function(x){set[normT(x.l.teacher)]=1;});
   myTeachers.k=k;myTeachers.v=set;return set;}
-function eventsFor(date){return (STATE.events||[]).filter(function(e){return e.date===date&&(!e.cls||e.cls.indexOf(prefs.classId)>=0)&&(!e.teacher||myTeachers()[normT(e.teacher)]);});}
+function eventsFor(date){return (STATE.events||[]).filter(function(e){return e.date===date&&(!e.cls||e.cls.indexOf(prefs.classId)>=0)&&(!e.teacher||myTeachers()[normT(e.teacher)]);}).concat(extOff(date));}
 function dayOff(date){var e=eventsFor(date).filter(function(x){return x.off&&!x.from;});return e.length?e[0]:null;}
 // уроки события (HTML): диапазон номеров всегда слева направо, иначе в иврите «4–1»
 function evWhen(e){if(!e.from)return '';return esc(e.from===e.to?t('period'):t('periodsRange'))+' <bdi dir="ltr">'+esc(e.from===e.to?e.from:e.from+'–'+e.to)+'</bdi>';}
@@ -1879,6 +1889,9 @@ function loadRemote(){
     if(ui.screen==='editor'&&!dirty)draft=clone(STATE);
     if(ui.screen==='day'&&!prefsValid())startSetup();
     render();syncPush();
+  }).catch(function(){});
+  fetch(API+'/ttch',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(!j||!Array.isArray(j.ch)||(TTCH&&TTCH.updatedAt===j.updatedAt))return;TTCH=j;sSet('localStorage','sched.ttch',j);if(ui.screen!=='editor')render();
   }).catch(function(){});
 }
 function publishRemote(){

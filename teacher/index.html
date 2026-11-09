@@ -260,7 +260,12 @@ function myLessonsSkedy(date){
 function myClasses(){var me=normT(prefs.teacher),s={};STATE.lessons.forEach(function(l){if(normT(l.teacher)===me&&l.aud.type==='class')s[l.aud.id]=1;});return s;}
 function eventsFor(date){var mc=myClasses(),me=normT(prefs.teacher);
   return (STATE.events||[]).filter(function(e){if(e.date!==date)return false;if(e.teacher)return normT(e.teacher)===me;
-    return !e.cls||e.cls.some(function(c){return mc[c];});});}
+    return !e.cls||e.cls.some(function(c){return mc[c];});}).concat(ttOff(date,0));}
+// дни без учёбы из Skedy Admin (TTCH.off): для всей школы — «Учёбы нет»; для отдельных параллелей — плашка
+// (в «Моём классе» — «Учёбы нет», если параллель класса в списке)
+function ttOff(date,g){if(!TTCH||!TTCH.off)return [];
+  return TTCH.off.filter(function(o){return date>=o.date&&date<=(o.to||o.date);}).map(function(o){var all=!o.g.length,hit=all||(g&&o.g.indexOf(g)>=0);
+    return {date:date,text:o.text+(all||hit?'':' · '+o.g.map(function(x){return GR[x]||x;}).join(', ')),off:hit};});}
 function dayOff(date){var e=eventsFor(date).filter(function(x){return x.off&&!x.from&&!x.cls;});return e.length?e[0]:null;}
 function kind(x){var k='';x.ch.forEach(function(c){if(c.type==='test'||c.type==='exam')k=c.type;});return k;}
 // контрольная одного предмета на несколько уроков подряд — одна карточка
@@ -449,8 +454,8 @@ function loadIndex(){if(ttOn())return;fetch('classes/index.json',{cache:'no-cach
     if(j&&j.classes){CIDX=j;sSet('skedyT.cindex',j);if(ui.screen==='more')render();}},function(){});}
 // класс י׳ — есть в данных Skedy: оттуда отмены, контрольные и события
 function classCid(){var m=/^10-(\d+)$/.exec(prefs.myClass||''),c=null;if(m)STATE.classes.forEach(function(x){if(x.letter==='י'&&x.num===+m[1])c=x.id;});return c;}
-function classEvents(date){var cid=classCid();if(!cid)return [];
-  return (STATE.events||[]).filter(function(e){return e.date===date&&!e.teacher&&(!e.cls||e.cls.indexOf(cid)>=0);});}
+function classEvents(date){var cid=classCid(),g=+String(prefs.myClass||'').split('-')[0]||0;
+  return (cid?(STATE.events||[]).filter(function(e){return e.date===date&&!e.teacher&&(!e.cls||e.cls.indexOf(cid)>=0);}):[]).concat(ttOff(date,g));}
 // уроки класса в этот день: один урок — предмет, учитель и кабинет; деление на группы — одна строка «N групп»
 function classLessons(date){
   if(!CLS||CLS.k!==prefs.myClass)return null;
