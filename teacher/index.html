@@ -281,14 +281,49 @@ function load(){
     else{ui.offline=!!STATE;ui.failed=!STATE;}
     render();
   },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
+  // расписание, сохранённое в Skedy Admin, главнее файлов שחף (rooms.json, teachers.json, classes/)
+  fetch(API+'/tt',{cache:'no-store'}).then(function(r){if(r.status===404){TTSEEN=null;sSet('skedyT.tt',null);}return r.ok?r.json():null;}).then(ttApply,function(){});
   fetch('rooms.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
-    if(j&&j.rooms){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
+    if(j&&j.rooms&&!ttOn()){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
   loadClass();
   fetch('subjects.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&typeof j==='object'){var was=JSON.stringify(SUBJ);SUBJ=j;sSet('skedyT.subj',j);if(was!==JSON.stringify(j)&&prefs.lang!=='he')render();}},function(){});
   fetch('teachers.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
-    if(j&&j.t){WHO=j;sSet('skedyT.who',j);render();}},function(){});
+    if(j&&j.t&&!ttOn()){WHO=j;sSet('skedyT.who',j);render();}},function(){});
 }
+
+/* ---------- расписание из Skedy Admin (GET /tt) ---------- */
+// Если расписание сохраняли в /admin/, из него собираем то же, что build.py кладёт в файлы:
+// WHO (teachers.json), ROOMS (rooms.json), CIDX (classes/index.json) и CLS («Мой класс»).
+// TTSEEN — версия, которую уже видели: без интернета старые файлы из кэша её не перебьют.
+var TT=null,TTSEEN=sGet('skedyT.tt');
+var SKIPR=/חדר אוכל|אולם ספורט|חנ"ג|גן מקלט|יועצת|רכזת|פרטני|מרכז למידה/; // не кабинеты (как SKIP в build.py)
+function ttOn(){return !!(TT||TTSEEN);}
+function ttIx(l,v){var i=l.indexOf(v);if(i<0){l.push(v);i=l.length-1;}return i;}
+// «י״א2, י״א5»; больше трёх классов одной параллели — «שכבת י״א» (как aud_label в build.py)
+function ttAud(cs){var by={},out=[];cs.forEach(function(k){var m=/^(\d+)-(\d+)$/.exec(k);if(m)(by[m[1]]=by[m[1]]||[]).push(+m[2]);});
+  Object.keys(by).sort(function(a,b){return a-b;}).forEach(function(g){var ns=by[g].sort(function(a,b){return a-b;});
+    out.push(ns.length>3?'שכבת '+(GR[g]||g):ns.map(function(n){return (GR[g]||g)+n;}).join(', '));});
+  return out.join(', ');}
+function ttApply(j){
+  if(!j||!Array.isArray(j.l)||!Array.isArray(j.cls))return;
+  TT=j;TTSEEN=j.updatedAt||'1';sSet('skedyT.tt',TTSEEN);
+  var up=String(j.updatedAt||'').slice(0,10),S=[],R=[],A=[],W={},busy={},rooms={};
+  j.l.slice().sort(function(a,b){return a[0]-b[0]||a[1]-b[1];}).forEach(function(x){
+    var sn=j.s[x[2]]||'',rn=j.r[x[3]]||'',tn=j.t[x[4]]||'';
+    if(rn){var b=busy[rn]=busy[rn]||[0,0,0,0,0];b[x[0]]|=1<<x[1];}
+    if(tn)(W[tn]=W[tn]||[]).push([x[0],x[1],ttIx(S,sn),ttIx(R,rn),ttIx(A,ttAud(x[5]))]);});
+  Object.keys(busy).sort().forEach(function(r){if(!SKIPR.test(r))rooms[r]=busy[r];});
+  WHO={updated:j.updatedAt,s:S,r:R,a:A,t:W};sSet('skedyT.who',WHO);
+  ROOMS={updated:up,classes:j.cls.length,rooms:rooms};sSet('skedyT.rooms',ROOMS);
+  CIDX={updated:up,classes:j.cls};sSet('skedyT.cindex',CIDX);
+  ttClass();render();
+}
+// «Мой класс» из сохранённого расписания: уроки, где есть этот класс
+function ttClass(){var k=prefs.myClass;if(!TT||!k)return;var S=[],R=[],Tn=[],l=[];
+  TT.l.forEach(function(x){if(x[5].indexOf(k)>=0)l.push([x[0],x[1],ttIx(S,TT.s[x[2]]||''),ttIx(R,TT.r[x[3]]||''),ttIx(Tn,TT.t[x[4]]||'')]);});
+  l.sort(function(a,b){return a[0]-b[0]||a[1]-b[1];});
+  CLS={k:k,d:{updated:String(TT.updatedAt||'').slice(0,10),s:S,r:R,t:Tn,l:l}};sSet('skedyT.class',CLS);}
 
 /* ---------- push ---------- */
 // своя регистрация service worker на /teacher/ — значит своя подписка, отдельная от ученического Skedy
@@ -387,10 +422,10 @@ function renderRooms(){
 /* ---------- my class (для мехнехим) ---------- */
 var GR={7:'ז׳',8:'ח׳',9:'ט׳',10:'י׳',11:'י״א',12:'י״ב'};
 function classLabel(k){var m=/^(\d+)-(\d+)$/.exec(k||'');return m?(GR[m[1]]||'')+m[2]:'';}
-function loadClass(){if(!prefs.myClass)return;var k=prefs.myClass;
+function loadClass(){if(!prefs.myClass)return;var k=prefs.myClass;if(TT){ttClass();render();return;}if(TTSEEN)return;
   fetch('classes/'+k+'.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.l&&prefs.myClass===k){CLS={k:k,d:j};sSet('skedyT.class',CLS);render();}},function(){});}
-function loadIndex(){fetch('classes/index.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+function loadIndex(){if(ttOn())return;fetch('classes/index.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.classes){CIDX=j;sSet('skedyT.cindex',j);if(ui.screen==='more')render();}},function(){});}
 // класс י׳ — есть в данных Skedy: оттуда отмены, контрольные и события
 function classCid(){var m=/^10-(\d+)$/.exec(prefs.myClass||''),c=null;if(m)STATE.classes.forEach(function(x){if(x.letter==='י'&&x.num===+m[1])c=x.id;});return c;}
