@@ -244,7 +244,7 @@ function myLessons(date){
     var sname=WHO.s[x[2]],m=null;own.forEach(function(o){if(!m&&o.l.period===x[1])m=o;});
     // урок есть и в Skedy — берём оттуда изменения и перевод предмета
     var l={id:m?m.l.id:'w'+x[1],period:x[1],room:WHO.r[x[3]],subjectName:sname,subjectId:m?m.l.subjectId:'w:'+sname};
-    return {l:l,ch:m?m.ch:[],aud:[WHO.a[x[4]]]};
+    return {l:l,ch:mergeCh(m?m.ch:[],ttChFor(date,x[1],sname,wn)),aud:[WHO.a[x[4]]]};
   }).sort(function(a,b){return a.l.period-b.l.period;});
 }
 function myLessonsSkedy(date){
@@ -282,6 +282,8 @@ function load(){
     render();
   },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
   // расписание, сохранённое в Skedy Admin, главнее файлов שחף (rooms.json, teachers.json, classes/)
+  fetch(API+'/ttch',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&Array.isArray(j.ch)){TTCH=j;sSet('skedyT.ttch',j);render();}},function(){});
   fetch(API+'/tt',{cache:'no-store'}).then(function(r){if(r.status===404){TTSEEN=null;sSet('skedyT.tt',null);}return r.ok?r.json():null;}).then(ttApply,function(){});
   fetch('rooms.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.rooms&&!ttOn()){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
@@ -297,6 +299,14 @@ function load(){
 // WHO (teachers.json), ROOMS (rooms.json), CIDX (classes/index.json) и CLS («Мой класс»).
 // TTSEEN — версия, которую уже видели: без интернета старые файлы из кэша её не перебьют.
 var TT=null,TTSEEN=sGet('skedyT.tt');
+// изменения на даты из Skedy Admin (GET /ttch): {updatedAt, ch:[{date, p, s, t, c, type, room?, note?}]}
+var TTCH=sGet('skedyT.ttch');
+// изменения урока на дату: по номеру урока, предмету и учителю (и по классу, если учителя нет)
+function ttChFor(date,p,s,teacher,cls){if(!TTCH)return [];var k=normT(teacher);
+  return TTCH.ch.filter(function(c){return c.date===date&&c.p===p&&c.s===s&&(k?normT(c.t)===k:(!cls||c.c.indexOf(cls)>=0));})
+    .map(function(c){return {type:c.type,room:c.room||'',note:c.note||''};});}
+// изменения из Skedy (уроки י׳) и из Skedy Admin вместе, без повторов одного типа
+function mergeCh(a,b){var out=a.slice();b.forEach(function(c){if(!out.some(function(x){return x.type===c.type;}))out.push(c);});return out;}
 var SKIPR=/חדר אוכל|אולם ספורט|חנ"ג|גן מקלט|יועצת|רכזת|פרטני|מרכז למידה/; // не кабинеты (как SKIP в build.py)
 function ttOn(){return !!(TT||TTSEEN);}
 function ttIx(l,v){var i=l.indexOf(v);if(i<0){l.push(v);i=l.length-1;}return i;}
@@ -363,6 +373,7 @@ function freeRooms(date,p){
   // изменения, которые знает Skedy: другой кабинет, событие в кабинете
   (STATE.changes||[]).forEach(function(c){if(c.date!==date||c.type!=='room'||!c.room)return;var l=byId(STATE.lessons,c.lessonId);if(l&&l.period===p)taken[c.room]=1;});
   (STATE.events||[]).forEach(function(e){if(e.date===date&&e.room&&e.from&&p>=e.from&&p<=e.to)taken[e.room]=1;});
+  if(TTCH)TTCH.ch.forEach(function(c){if(c.date===date&&c.p===p&&c.type==='room'&&c.room)taken[c.room]=1;});
   return Object.keys(ROOMS.rooms).filter(function(r){return !(ROOMS.rooms[r][wd]&(1<<p))&&!taken[r];});
 }
 // вкладка «Поиск»: свободные кабинеты или где учитель
@@ -378,7 +389,7 @@ function whoList(){if(whoList.k===WHO.updated)return whoList.v;whoList.k=WHO.upd
 function whoDay(name,date){var wd=wday(date),k=normT(name);
   return (WHO.t[name]||[]).filter(function(x){return x[0]===wd;}).map(function(x){
     var l=null;STATE.lessons.forEach(function(y){if(!l&&y.day===wd&&y.period===x[1]&&normT(y.teacher)===k)l=y;});
-    return {p:x[1],s:WHO.s[x[2]],r:WHO.r[x[3]],a:WHO.a[x[4]],ch:l?changesFor(date,l.id):[]};}).sort(function(a,b){return a.p-b.p;});}
+    return {p:x[1],s:WHO.s[x[2]],r:WHO.r[x[3]],a:WHO.a[x[4]],ch:mergeCh(l?changesFor(date,l.id):[],ttChFor(date,x[1],WHO.s[x[2]],name))};}).sort(function(a,b){return a.p-b.p;});}
 function renderWho(){
   var h='<h2>'+esc(t('modeWho'))+'</h2><p class="sub">'+esc(t('whoSub'))+'</p>';
   if(!WHO)return h+'<div class="empty">'+esc(t('loading'))+'</div>';
@@ -438,7 +449,7 @@ function classLessons(date){
   D.l.forEach(function(x){if(x[0]===wd)(byP[x[1]]=byP[x[1]]||[]).push(x);});
   return Object.keys(byP).map(Number).sort(function(a,b){return a-b;}).map(function(p){var xs=byP[p],ch=[];
     if(cid)STATE.lessons.forEach(function(l){if(l.day===wd&&l.period===p&&l.aud.type==='class'&&l.aud.id===cid)ch=ch.concat(changesFor(date,l.id));});
-    if(xs.length===1){var x=xs[0];return {l:{id:'c'+p,period:p,room:D.r[x[3]],subjectName:D.s[x[2]]},ch:ch,aud:[D.t[x[4]]].filter(Boolean)};}
+    if(xs.length===1){var x=xs[0];return {l:{id:'c'+p,period:p,room:D.r[x[3]],subjectName:D.s[x[2]]},ch:mergeCh(ch,ttChFor(date,p,D.s[x[2]],D.t[x[4]],prefs.myClass)),aud:[D.t[x[4]]].filter(Boolean)};}
     var cnt={},seen={},gs=[];xs.forEach(function(x){var n=D.s[x[2]];cnt[n]=(cnt[n]||0)+1;
       var g={s:n,t:D.t[x[4]]||'',r:D.r[x[3]]||''},k=g.s+'|'+g.t+'|'+g.r;if(!seen[k]){seen[k]=1;gs.push(g);}});
     var names=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
@@ -475,7 +486,7 @@ function card(x,mark,after,toP){
   var l=x.l,s=(l.subjectId&&byId(STATE.subjects,l.subjectId))||trS(l.subjectName),cls=[],tags='',roomHtml=esc(l.room||'');
   if(mark){cls.push('is-'+mark);tags+='<span class="tag '+mark+'">'+esc(t(mark+'Tag'))+'</span>';}
   x.ch.forEach(function(c){cls.push('is-'+c.type);
-    if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag">'+esc(t('roomChanged'))+'</span>';}
+    if(c.type==='room'){roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag">'+esc(t('roomChanged'))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';}
     else tags+='<span class="tag '+esc(c.type)+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';});
   var p=per(l.period),pe=toP&&toP>l.period?per(toP):null,time=p?(p.start+'–'+(pe||p).end):'';
   return '<li class="lesson '+esc(cls.join(' '))+'"><div class="num">'+esc(pe?l.period+'–'+toP:l.period)+'</div><div class="body">'+
