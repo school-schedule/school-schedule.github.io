@@ -15,6 +15,10 @@ preview_urls = false
 [triggers]
 crons = ["*/5 * * * *"]
 
+# Workers AI — бесплатный помощник в Skedy Admin (POST /ai), 10 000 «нейронов» в день.
+[ai]
+binding = "AI"
+
 [[kv_namespaces]]
 binding = "DB"
 id = "f3a6798ded224574b51316a4f046d17e"
