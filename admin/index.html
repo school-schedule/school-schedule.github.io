@@ -580,7 +580,7 @@ function aiView(){var A=ui.ai,h='<div class="panel hist ai"><h3><span>🤖 '+esc
   if(A.err)h+='<p class="sub" style="color:var(--bad)">'+esc(t(A.err))+'</p>';
   if(A.res){if(A.res.text)h+='<div class="say"><bdi>'+esc(A.res.text)+'</bdi></div>';
     if(!A.res.plans.length&&!A.res.text)h+='<p class="sub">'+esc(t('aiNothing'))+'</p>';
-    A.res.plans.forEach(function(P,i){h+='<label class="act"><input type="checkbox" data-ai="'+i+'"'+(P.on?' checked':'')+(P.apply?'':' disabled')+'><span class="d"><b>'+esc(t(P.kind))+'</b> · <bdi>'+esc(P.who)+'</bdi><br>'+P.desc+
+    A.res.plans.forEach(function(P,i){h+='<label class="act"><input type="checkbox" data-ai="'+i+'"'+(P.on?' checked':'')+(P.apply?'':' disabled')+'><span class="d"><b>'+esc(t(P.kind))+'</b>'+(P.who?' · <bdi>'+esc(P.who)+'</bdi>':'')+'<br>'+P.desc+
       (P.n!=null?'<br><span class="n'+(P.n?'':' w')+'">'+esc(P.n?t('aiN').replace('{n}',P.n):t('aiNo'))+'</span>':'')+'</span></label>';});
     if(A.res.plans.some(function(P){return P.apply;}))h+='<div class="row2"><button class="ebtn pri" data-act="aiApply">'+esc(t('aiApply'))+'</button></div>';}
   return h+'</div>';}
