@@ -14,8 +14,8 @@
  * Настройки в Cloudflare (Settings):
  *  - KV namespace с именем переменной  DB
  *  - Secret  EDITOR_CODE  = код редактора
- *  - (необязательно) Secret  ANTHROPIC_API_KEY = ключ Claude API для помощника в Skedy Admin (POST /ai);
- *    без него /ai отвечает 503 {error:"no_ai_key"}
+ *  - Workers AI (binding AI в wrangler.toml) — бесплатный помощник в Skedy Admin (POST /ai);
+ *  - (необязательно) Secret  ANTHROPIC_API_KEY = ключ Claude API: если задан, помощник работает на Claude
  *  - (необязательно) Variable  CONTACT  = mailto:твоя@почта
  *  - (необязательно) Variable  SHAHAF_URL = адрес сайта שחף школы
  *    (по умолчанию https://kfaryarok.shahaf.site). Cron Trigger: каждые 5 минут
@@ -483,6 +483,8 @@ async function ttchNotify(env, fresh) {
 // Сервер ничего не меняет. Отправляется: текст админа, сегодняшняя дата и списки учителей, классов,
 // кабинетов, предметов и уроков (без данных учеников). Лимит — AI_MAX запросов в час с одного адреса.
 const AI_MAX = 60, AI_WINDOW_SEC = 3600, AI_MODEL = "claude-opus-5-5";
+// бесплатно: Workers AI (10 000 «нейронов» в день на бесплатном тарифе; кончились — ошибка до завтра, без счёта)
+const WAI_MODEL = "@cf/zai-org/glm-4.7-flash";
 const nul = (t) => ({ anyOf: [t, { type: "null" }] });
 const STR = { type: "string" }, INT = { type: "integer" }, DATE = { type: "string", format: "date" };
 const WHO = (types) => ({ who_type: { type: "string", enum: types }, who: { type: "string", description: "Exact teacher name, class name (e.g. י״א2) or grade number (7-12) from the lists" } });
@@ -515,7 +517,7 @@ const AI_RULES = [
 async function aiAsk(req, env) {
   const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
   if (auth.status !== 200) return json(auth.body, auth.status);
-  if (!env.ANTHROPIC_API_KEY) return json({ error: "no_ai_key" }, 503);
+  if (!env.ANTHROPIC_API_KEY && !env.AI) return json({ error: "no_ai_key" }, 503);
   let lim;
   try { lim = await limiter(env, "ai", req).hit(AI_MAX, AI_WINDOW_SEC); } catch (e) { return json({ error: "try_later" }, 503); }
   if (!lim.ok) return json({ error: "limit", retryAfter: lim.retryAfter }, 429);
@@ -533,13 +535,15 @@ async function aiAsk(req, env) {
     "\n\nPeriods:\n" + list(ctx.periods).join("\n");
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], cal = [];
   for (let i = 0; i < 21; i++) { const d = new Date(Date.parse(b.today + "T12:00:00Z") + i * 864e5); cal.push(d.toISOString().slice(0, 10) + " " + days[d.getUTCDay()]); }
+  const userText = "Today: " + cal[0] + "\nCalendar:\n" + cal.join("\n") + "\n\nRequest:\n" + ask;
+  if (!env.ANTHROPIC_API_KEY) return await aiWorkers(env, lists, userText);
   const body = {
     model: AI_MODEL, max_tokens: 16000,
     output_config: { effort: "medium" },
     fallbacks: "default", // если модель откажется по правилам безопасности — ответит запасная (beta server-side-fallback)
     system: [{ type: "text", text: AI_RULES }, { type: "text", text: lists, cache_control: { type: "ephemeral" } }],
     tools: AI_TOOLS, tool_choice: { type: "auto" },
-    messages: [{ role: "user", content: "Today: " + cal[0] + "\nCalendar:\n" + cal.join("\n") + "\n\nRequest:\n" + ask }],
+    messages: [{ role: "user", content: userText }],
   };
   let r;
   try {
@@ -558,6 +562,33 @@ async function aiAsk(req, env) {
     actions: blocks.filter((x) => x.type === "tool_use").map((x) => ({ name: x.name, input: x.input })),
     stop: out.stop_reason, model: out.model,
   });
+}
+
+// Workers AI: те же правила и инструменты в формате «chat completions»; ответ разбираем осторожно —
+// вызовы бывают в choices[0].message.tool_calls (arguments — строка JSON) или в tool_calls (arguments — объект).
+async function aiWorkers(env, lists, userText) {
+  const tools = AI_TOOLS.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.input_schema } }));
+  let r;
+  try {
+    r = await env.AI.run(WAI_MODEL, {
+      messages: [{ role: "system", content: AI_RULES + "\n\n" + lists }, { role: "user", content: userText }],
+      tools, tool_choice: "auto", max_completion_tokens: 4096, temperature: 0.2,
+    });
+  } catch (e) {
+    const m = String((e && e.message) || e);
+    return json({ error: /neuron|4006|daily|quota|allocation/i.test(m) ? "ai_quota" : "ai_error", message: m.slice(0, 200) }, /neuron|4006|daily|quota|allocation/i.test(m) ? 429 : 502);
+  }
+  const msg = (r && r.choices && r.choices[0] && r.choices[0].message) || {};
+  const calls = Array.isArray(msg.tool_calls) ? msg.tool_calls : Array.isArray(r && r.tool_calls) ? r.tool_calls : [];
+  const names = new Set(AI_TOOLS.map((t) => t.name));
+  const actions = calls.map((c) => {
+    const f = c.function || c;
+    let a = f.arguments;
+    if (typeof a === "string") { try { a = JSON.parse(a); } catch (e) { a = null; } }
+    return { name: f.name, input: a };
+  }).filter((x) => names.has(x.name) && x.input && typeof x.input === "object");
+  const text = typeof msg.content === "string" ? msg.content : typeof (r && r.response) === "string" ? r.response : "";
+  return json({ text: text.trim(), actions, model: WAI_MODEL });
 }
 
 /* ---------------- сообщения всем учителям (Skedy Admin) ---------------- */
