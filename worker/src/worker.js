@@ -341,7 +341,7 @@ async function saveData(req, env, ctx) {
 
 /* ---------------- расписание всей школы (Skedy Admin) ---------------- */
 // Ключ KV "tt": {updatedAt, cls:[{k,he,g,n}], s:[предметы], r:[кабинеты], t:[учителя],
-//   l:[[день 0–4, урок, s, r, t, [ключи классов]]]}, ok:[ключи проблем «это нормально»] — один урок у нескольких классов хранится один раз.
+//   l:[[день 0–4, урок, s, r, t, [ключи классов]]], ok:[ключи проблем «это нормально»], q:[нормы часов]} — один урок у нескольких классов хранится один раз.
 // Перед сохранением прошлая версия копируется в "ttbak:<время>" (последние 5).
 // Каждое сохранение — 2–3 записи KV (бесплатно 1000 в день), поэтому сайт сохраняет пачкой, по кнопке.
 const TT_MAX_BYTES = 2e6, TT_KEEP = 5;
@@ -357,6 +357,10 @@ function validTT(tt) {
     keys.add(c.k);
   }
   const idx = (i, a) => Number.isInteger(i) && i >= 0 && i < a.length;
+  // q — нормы часов (תקן): {id, s: предмет, t: учитель или "", c: [классы], h: часов в неделю 0–40}
+  if (tt.q != null && !(Array.isArray(tt.q) && tt.q.length <= 5000 && tt.q.every((q) => q && typeof q.id === "string" && q.id && q.id.length <= 40 &&
+    typeof q.s === "string" && q.s && q.s.length <= 200 && typeof q.t === "string" && q.t.length <= 200 && Number.isInteger(q.h) && q.h >= 0 && q.h <= 40 &&
+    Array.isArray(q.c) && q.c.length > 0 && q.c.length <= 100 && q.c.every((k) => keys.has(k))))) return false;
   return tt.l.every((x) => Array.isArray(x) && x.length === 6 && Number.isInteger(x[0]) && x[0] >= 0 && x[0] <= 4 &&
     Number.isInteger(x[1]) && x[1] >= 0 && x[1] <= 15 && idx(x[2], tt.s) && idx(x[3], tt.r) && idx(x[4], tt.t) &&
     Array.isArray(x[5]) && x[5].length > 0 && x[5].length <= 100 && x[5].every((k) => keys.has(k)));
@@ -374,7 +378,8 @@ async function saveTT(req, env) {
   const prevAt = prevRaw ? JSON.parse(prevRaw).updatedAt : null;
   // кто-то другой успел сохранить раньше (base — версия, с которой начинал этот редактор)
   if (prevRaw && (body.base || null) !== prevAt) return json({ error: "conflict", updatedAt: prevAt }, 409);
-  const out = { updatedAt: new Date().toISOString(), cls: tt.cls.map((c) => ({ k: c.k, he: c.he, g: +c.g || 0, n: +c.n || 0 })), s: tt.s, r: tt.r, t: tt.t, l: tt.l, ok: tt.ok || [] };
+  const out = { updatedAt: new Date().toISOString(), cls: tt.cls.map((c) => ({ k: c.k, he: c.he, g: +c.g || 0, n: +c.n || 0 })), s: tt.s, r: tt.r, t: tt.t, l: tt.l, ok: tt.ok || [],
+    q: (tt.q || []).map((q) => ({ id: q.id, s: q.s, t: q.t, c: q.c, h: q.h })) };
   if (prevRaw) await ttBackup(env, prevRaw, prevAt);
   await env.DB.put("tt", JSON.stringify(out));
   return json({ ok: true, updatedAt: out.updatedAt, lessons: out.l.length });
