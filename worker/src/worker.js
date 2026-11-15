@@ -415,11 +415,12 @@ async function ttRestore(env, id) {
 }
 
 /* ---------------- изменения на даты для всей школы (Skedy Admin) ---------------- */
-// Ключ KV "ttch": {updatedAt, ch:[{id, date, p, s, t, c:[классы], type: cancel|room|test, room?, note?}], off:[дни без учёбы]}.
+// Ключ KV "ttch": {updatedAt, ch:[{id, date, p, s, t, c:[классы], type: cancel|room|test|sub, room?, sub?, note?}], off:[дни без учёбы]}.
+// sub — замена: урок ведёт другой учитель (имя в sub; room — если и кабинет другой).
 // Урок узнаём по дню (из даты), номеру урока, предмету, учителю и классам — так же, как в /tt.
 // Старше 30 дней — выбрасываются. Новые и изменённые на сегодня и дальше — уведомления учителям этих уроков
 // (у учеников Skedy свои изменения в "state", им эти не отправляются: aud.type "tt").
-const CH_TYPES = ["cancel", "room", "test"];
+const CH_TYPES = ["cancel", "room", "test", "sub"];
 // настоящая дата «ГГГГ-ММ-ДД» (не «2026-13-01»)
 function isDate(x) {
   if (typeof x !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(x)) return false;
@@ -431,7 +432,7 @@ function validCh(ch) {
   const str = (x, n) => typeof x === "string" && x.length <= n;
   return ch.every((c) => c && str(c.id, 40) && c.id && isDate(c.date) && Number.isInteger(c.p) && c.p >= 0 && c.p <= 15 &&
     str(c.s, 200) && c.s && str(c.t || "", 200) && CH_TYPES.includes(c.type) && str(c.room || "", 200) && str(c.note || "", 200) &&
-    (c.type !== "room" || c.room) && Array.isArray(c.c) && c.c.length <= 100 && c.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
+    (c.type !== "room" || c.room) && (c.type !== "sub" || (str(c.sub, 200) && c.sub && c.sub !== c.t)) && Array.isArray(c.c) && c.c.length <= 100 && c.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
 }
 // дни без учёбы: {id, date, to?, text, g:[параллели 7–12; пусто — вся школа]}
 function validOff(off) {
@@ -441,7 +442,7 @@ function validOff(off) {
     typeof o.text === "string" && o.text.length <= 200 && Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12));
 }
 function chSig(c) {
-  return [c.date, c.p, c.s, c.t || "", c.c.join(","), c.type, c.room || "", c.note || ""].join("|");
+  return [c.date, c.p, c.s, c.t || "", c.c.join(","), c.type, c.room || "", c.note || "", c.sub || ""].join("|");
 }
 async function saveTTCh(req, env, ctx) {
   const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
@@ -457,7 +458,8 @@ async function saveTTCh(req, env, ctx) {
   const oldest = israelDate(-30), today = israelDate(0);
   const ch = body.ch.filter((c) => c.date >= oldest).map((c) => {
     const o = { id: c.id, date: c.date, p: c.p, s: c.s, t: c.t || "", c: c.c, type: c.type };
-    if (c.type === "room") o.room = c.room;
+    if (c.type === "room" || (c.type === "sub" && c.room)) o.room = c.room;
+    if (c.type === "sub") o.sub = c.sub;
     if (c.note) o.note = c.note;
     return o;
   });
@@ -466,26 +468,43 @@ async function saveTTCh(req, env, ctx) {
   const out = { updatedAt: new Date().toISOString(), ch, off };
   await env.DB.put("ttch", JSON.stringify(out));
   const old = new Map(prev.ch.map((c) => [c.id, chSig(c)]));
-  const fresh = ch.filter((c) => c.date >= today && c.t && old.get(c.id) !== chSig(c));
-  if (fresh.length) ctx.waitUntil(ttchNotify(env, fresh));
+  const fresh = ch.filter((c) => c.date >= today && (c.t || c.sub) && old.get(c.id) !== chSig(c));
+  // замена убрана или отдана другому учителю — прежнему заменяющему сообщаем, что её больше нет
+  const now = new Map(ch.map((c) => [c.id, c]));
+  const gone = prev.ch.filter((c) => c.type === "sub" && c.sub && c.date >= today &&
+    (!now.has(c.id) || normName(now.get(c.id).type === "sub" ? now.get(c.id).sub : "") !== normName(c.sub)));
+  if (fresh.length || gone.length) ctx.waitUntil(ttchNotify(env, fresh, gone));
   return json({ ok: true, updatedAt: out.updatedAt, changes: fresh.length });
 }
 // Урок י׳, который есть в Skedy (тот же день недели, номер урока и учитель), — уведомление как у изменений Skedy:
 // и ученикам этого урока, и учителю. Остальные — только учителю (aud.type "tt").
-async function ttchNotify(env, fresh) {
+// Замена (sub): заменяющий получает своё уведомление («Вы заменяете …»), прежний заменяющий — «замена отменена» (gone).
+async function ttchNotify(env, fresh, gone = []) {
   const raw = await env.DB.get("state");
   const st = raw ? JSON.parse(raw) : null;
   const ds = [];
+  const tt = (c, type, t, who) => ({ k: c.date + "|" + String(c.p).padStart(2, "0"), date: c.date, type, room: c.room || "", note: c.note || "",
+    period: c.p, aud: { type: "tt" }, t: normName(t), name: { he: c.s, en: c.s, ru: c.s }, who: who || "", cls: clsLabel(c.c) });
   for (const c of fresh) {
+    if (c.type === "sub") ds.push(tt(c, "subMe", c.sub, c.t));
+    if (!c.t) continue;
     const les = st ? st.lessons.filter((l) => l.day === weekday(c.date) && l.period === c.p && normName(l.teacher) === normName(c.t)) : [];
     if (les.length) {
-      for (const l of les) { const d = describe(st, { date: c.date, lessonId: l.id, type: c.type, room: c.room, note: c.note }); if (d) ds.push(d); }
+      for (const l of les) { const d = describe(st, { date: c.date, lessonId: l.id, type: c.type, room: c.room, note: c.note, sub: c.sub }); if (d) ds.push(d); }
       continue;
     }
-    ds.push({ k: c.date + "|" + String(c.p).padStart(2, "0"), date: c.date, type: c.type, room: c.room || "", note: c.note || "",
-      period: c.p, aud: { type: "tt" }, t: normName(c.t), name: { he: c.s, en: c.s, ru: c.s } });
+    ds.push(tt(c, c.type, c.t, c.sub));
   }
+  for (const c of gone) ds.push(tt(c, "subOff", c.sub, c.t));
   if (ds.length) await notifyAll(env, ds);
+}
+// классы урока для текста уведомления: «10-2» → «י׳2»; больше трёх классов одной параллели — «שכבת י׳»
+const GRADE_HE = { 7: "ז׳", 8: "ח׳", 9: "ט׳", 10: "י׳", 11: "י״א", 12: "י״ב" };
+function clsLabel(cs) {
+  const by = {};
+  for (const k of cs || []) { const [g, n] = k.split("-"); (by[g] = by[g] || []).push(+n); }
+  return Object.keys(by).sort((a, b) => a - b).map((g) => by[g].length > 3 ? "שכבת " + (GRADE_HE[g] || g)
+    : by[g].sort((a, b) => a - b).map((n) => (GRADE_HE[g] || g) + n).join(", ")).join(", ");
 }
 
 /* ---------------- помощник Skedy Admin (Claude API) ---------------- */
@@ -1162,9 +1181,9 @@ async function* allSubs(env) {
 /* ---------------- уведомления ---------------- */
 
 const T = {
-  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
-  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
-  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
+  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
+  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
+  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
 };
 const DAYS = {
   he: ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"],
@@ -1200,11 +1219,15 @@ function describe(st, c) {
     aud: les.aud,
     t: normName(les.teacher),
     name: { he: sub.he || "", en: sub.en || sub.he || "", ru: sub.ru || sub.he || "" },
+    who: c.sub || "",
   };
 }
 function line(d, lang) {
   const L = T[lang];
-  let what = d.type === "cancel" ? L.cancel : d.type === "room" ? L.room + ": " + d.room : d.type === "test" ? L.test : L.exam;
+  let what = d.type === "cancel" ? L.cancel : d.type === "room" ? L.room + ": " + d.room : d.type === "test" ? L.test :
+    d.type === "sub" ? L.sub + ": " + d.who + (d.room ? ", " + L.room + ": " + d.room : "") :
+    d.type === "subMe" ? L.subMe + " " + (d.who || "—") + (d.cls ? " · " + d.cls : "") + (d.room ? " · " + d.room : "") :
+    d.type === "subOff" ? L.subOff + (d.cls ? " · " + d.cls : "") : L.exam;
   if (d.note) what += " (" + d.note + ")";
   const p = d.to > d.period ? L.periods + " " + d.period + "–" + d.to : L.period + " " + d.period;
   return dayWord(d.date, lang) + ", " + p + ", " + d.name[lang] + ": " + what;
