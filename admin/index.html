@@ -849,7 +849,7 @@ function weekGrid(list,mode){
   for(var p=1,mp=maxP();p<=mp;p++){var pr=per(p);
     h+='<tr><th class="pn">'+p+(pr?'<small>'+esc(pr.start)+'<br>'+esc(pr.end)+'</small>':'')+'</th>';
     for(d=0;d<5;d++){var ls=at(list,d,p),sel=ui.slot&&ui.slot.d===d&&ui.slot.p===p;
-      h+='<td><div class="cellb'+(sel?' sel':'')+(lsBad(ls)?' bad':'')+'" role="button" tabindex="0" data-act="slot" data-d="'+d+'" data-p="'+p+'">'+cellHtml(ls,mode)+'</div></td>';}
+      h+='<td><div class="cellb'+(sel?' sel':'')+'" role="button" tabindex="0" data-act="slot" data-d="'+d+'" data-p="'+p+'">'+cellHtml(ls,mode)+'</div></td>';}
     h+='</tr>';}
   return h+'</tbody></table></div>';
 }
@@ -899,7 +899,7 @@ function gradeView(){
   D.cls.filter(function(c){return +c.g===+g;}).forEach(function(c){
     h+='<tr><th class="pn"><button class="go" data-act="jump" data-m="class" data-v="'+esc(c.k)+'"><bdi>'+esc(c.he)+'</bdi></button></th>';
     for(p=1;p<=mp;p++){var ls=at(D.byC[c.k]||[],ui.gradeDay,p);
-      h+='<td><div class="cellb'+(lsBad(ls)?' bad':'')+'" role="button" tabindex="0" data-act="gcell" data-d="'+ui.gradeDay+'" data-k="'+esc(c.k)+'" data-p="'+p+'">'+cellHtml(ls,'grade')+'</div></td>';}
+      h+='<td><div class="cellb" role="button" tabindex="0" data-act="gcell" data-d="'+ui.gradeDay+'" data-k="'+esc(c.k)+'" data-p="'+p+'">'+cellHtml(ls,'grade')+'</div></td>';}
     h+='</tr>';});
   return h+'</tbody></table></div>';
 }
