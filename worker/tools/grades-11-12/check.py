@@ -1,6 +1,7 @@
-import json,re,collections
-A=json.load(open('/tmp/sh/all.json'));N=json.load(open('/tmp/sh/new.json'))['add']
-s=open('/home/user/school-schedule.github.io/index.html',encoding='utf-8').read()
+import os,json,re,collections
+SH=os.environ.get('SH','/tmp/sh');ROOT=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..','..')) # SH — папка со скачанными страницами
+A=json.load(open(SH+'/all.json'));N=json.load(open(SH+'/new.json'))['add']
+s=open(os.path.join(ROOT,'index.html'),encoding='utf-8').read()
 i=s.index('id="app-state">')+15;j=s.index('</script>',i);base=json.loads(s[i:j])
 SKIP=re.compile(r'הוראה מתקנת|ארוחת צהריים|פרטני')
 subj={x['id']:x['he'] for x in base['subjects']+N['subjects']}

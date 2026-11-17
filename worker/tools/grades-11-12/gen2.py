@@ -1,7 +1,8 @@
-import json,collections,re,sys
-sys.path.insert(0,'/tmp/scripts')
+import os,json,collections,re,sys
+SH=os.environ.get('SH','/tmp/sh');ROOT=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..','..')) # SH — папка со скачанными страницами
+sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 from gen import build,norm
-s=open('/home/user/school-schedule.github.io/index.html',encoding='utf-8').read()
+s=open(os.path.join(ROOT,'index.html'),encoding='utf-8').read()
 i=s.index('id="app-state">')+15;j=s.index('</script>',i);base=json.loads(s[i:j])
 TR={'ביולוגיה חקלאית':('Agricultural biology','Агробиология'),'ביולוגיה חקלאית - בעלי חיים':('Agricultural biology: animals','Агробиология: животные'),
 'הלחנה':('Composition','Композиция'),'הנדסת תוכנה התמחות':('Software engineering (specialization)','Программная инженерия (специализация)'),
@@ -101,7 +102,7 @@ for g in out['groups']:
         ex=[c for c in allc if c not in cl]
         if ex: g['exceptClasses']=ex
 oldExcept={g['id']:[c for c in newc] for g in base['groups'] if not g.get('classId')}
-json.dump({'add':out,'exceptOld':newc},open('/tmp/sh/new.json','w'),ensure_ascii=False)
+json.dump({'add':out,'exceptOld':newc},open(SH+'/new.json','w'),ensure_ascii=False)
 print({k:len(v) for k,v in out.items()})
 for x in out['subjects']:
     if x['id'].startswith('cat'): print(x['id'],x['he'],'multi' if x['multi'] else '', sum(1 for g in out['groups'] if g['subjectId']==x['id']),'groups')

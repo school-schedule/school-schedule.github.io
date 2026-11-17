@@ -1,7 +1,8 @@
-import re,html,json,sys
+import os,re,html,json,sys
+SH=os.environ.get('SH','/tmp/sh');ROOT=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..','..')) # SH — папка со скачанными страницами
 SIDS={'י':[24,25,26,27,28,29,30,31,52,56,59,86],'יא':[33,34,35,36,37,38,39,48,57,58,60],'יב':[40,41,42,43,44,45,50,54,61,62,66]}
 def parse(sid):
-    s=open(f'/tmp/sh/tt_{sid}.html',encoding='utf-8').read()
+    s=open(f'{SH}/tt_{sid}.html',encoding='utf-8').read()
     t=s[s.find('<table'):s.find('</table>')]
     out=[]
     for row in re.findall(r'<tr>([\s\S]*?)</tr>',t):
@@ -17,5 +18,5 @@ def parse(sid):
     return out
 if __name__=='__main__':
     all={g:{i+1:parse(s) for i,s in enumerate(v)} for g,v in SIDS.items()}
-    json.dump(all,open('/tmp/sh/all.json','w'),ensure_ascii=False)
+    json.dump(all,open(SH+'/all.json','w'),ensure_ascii=False)
     for g in all: print(g,[len(x) for x in all[g].values()])

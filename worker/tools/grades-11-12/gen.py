@@ -1,5 +1,6 @@
-import json,collections,re,sys
-A=json.load(open('/tmp/sh/all.json'))
+import os,json,collections,re,sys
+SH=os.environ.get('SH','/tmp/sh');ROOT=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..','..')) # SH — папка со скачанными страницами
+A=json.load(open(SH+'/all.json'))
 SKIP=re.compile(r'הוראה מתקנת|ארוחת צהריים|פרטני')
 LET={'יא':('יא','י״א','11'),'יב':('יב','י״ב','12')}
 def norm(s): return re.sub(r'\s+',' ',s).strip()
