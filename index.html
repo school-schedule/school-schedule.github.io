@@ -934,7 +934,9 @@ function filterGroups(q){ui.gq=q;var nq=normQ(q),n=0;
   var none=document.getElementById('gnone');if(none)none.hidden=n>0;}
 // группы по уровню: 5+ יח״ל, 5, 4, 3…, без уровня — в конце (внутри уровня — как в данных)
 function groupLevel(g){var m=/(\d)\s*(\+?)\s*יח/.exec(g.he||'');return m?+m[1]+(m[2]?.5:0):-1;}
-function byLevel(list){return list.map(function(g,i){return {g:g,i:i,l:groupLevel(g)};}).sort(function(a,b){return b.l-a.l||a.i-b.i;}).map(function(x){return x.g;});}
+// «свободный урок» — первым, потом по уровню, внутри — по алфавиту на языке интерфейса (мегамот), потом по учителю
+function byLevel(list){var cmp=function(x,y){try{return x.localeCompare(y,LOC[prefs.lang]);}catch(e){return x<y?-1:x>y?1:0;}};
+  return list.map(function(g,i){return {g:g,i:i,l:groupLevel(g),f:g.free?1:0,n:nm(g)};}).sort(function(a,b){return b.f-a.f||b.l-a.l||cmp(a.n,b.n)||cmp(a.g.teacher||'',b.g.teacher||'')||a.i-b.i;}).map(function(x){return x.g;});}
 function renderSetup(){
   var st=STATE,subs=subjectsFor(st,ui.tmpClass),fs=firstStep(),total=1+subs.length-fs,h='';
   h+=topbar();
