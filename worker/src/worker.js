@@ -358,7 +358,8 @@ function validTT(tt) {
   }
   const idx = (i, a) => Number.isInteger(i) && i >= 0 && i < a.length;
   // q — нормы часов (תקן): {id, s: предмет, t: учитель или "", c: [классы], h: часов в неделю 0–40,
-  //   n?: примечание/уровень («שאלון E», «571»), r?: кабинет группы, k?: число учеников (только число)}
+  //   n?: примечание/уровень («שאלון E», «571»), r?: кабинет группы, k?: число учеников (только число),
+  //   gn?: название группы («הקבצה א׳»), b?: אשכול — блок параллельных групп («אשכול ב׳»)}
   // th — часы учителей по договору (Новый год): {имя: часов в неделю 0–60}
   if (tt.th != null && !(tt.th && typeof tt.th === "object" && !Array.isArray(tt.th) && Object.keys(tt.th).length <= 3000 &&
     Object.keys(tt.th).every((k) => k.length > 0 && k.length <= 200 && Number.isInteger(tt.th[k]) && tt.th[k] >= 0 && tt.th[k] <= 60))) return false;
@@ -366,6 +367,7 @@ function validTT(tt) {
     typeof q.s === "string" && q.s && q.s.length <= 200 && typeof q.t === "string" && q.t.length <= 200 && Number.isInteger(q.h) && q.h >= 0 && q.h <= 40 &&
     (q.n == null || (typeof q.n === "string" && q.n.length <= 100)) && (q.r == null || (typeof q.r === "string" && q.r.length <= 200)) &&
     (q.k == null || (Number.isInteger(q.k) && q.k >= 0 && q.k <= 300)) &&
+    (q.gn == null || (typeof q.gn === "string" && q.gn.length <= 100)) && (q.b == null || (typeof q.b === "string" && q.b.length <= 100)) &&
     Array.isArray(q.c) && q.c.length > 0 && q.c.length <= 100 && q.c.every((k) => keys.has(k))))) return false;
   if (tt.co != null && !validCo(tt.co, keys)) return false;
   return tt.l.every((x) => Array.isArray(x) && x.length === 6 && Number.isInteger(x[0]) && x[0] >= 0 && x[0] <= 4 &&
@@ -407,7 +409,7 @@ async function saveTT(req, env) {
   // кто-то другой успел сохранить раньше (base — версия, с которой начинал этот редактор)
   if (prevRaw && (body.base || null) !== prevAt) return json({ error: "conflict", updatedAt: prevAt }, 409);
   const out = { updatedAt: new Date().toISOString(), cls: tt.cls.map((c) => ({ k: c.k, he: c.he, g: +c.g || 0, n: +c.n || 0 })), s: tt.s, r: tt.r, t: tt.t, l: tt.l, ok: tt.ok || [],
-    q: (tt.q || []).map((q) => { const o = { id: q.id, s: q.s, t: q.t, c: q.c, h: q.h }; if (q.n) o.n = q.n; if (q.r) o.r = q.r; if (q.k != null) o.k = q.k; return o; }), th: tt.th || {},
+    q: (tt.q || []).map((q) => { const o = { id: q.id, s: q.s, t: q.t, c: q.c, h: q.h }; if (q.n) o.n = q.n; if (q.r) o.r = q.r; if (q.k != null) o.k = q.k; if (q.gn) o.gn = q.gn; if (q.b) o.b = q.b; return o; }), th: tt.th || {},
     co: (tt.co || []).map((o) => { const x = {}; for (const k of CO_KEYS) if (o[k] != null) x[k] = o[k]; return x; }) };
   if (prevRaw) await ttBackup(env, prevRaw, prevAt);
   await env.DB.put("tt", JSON.stringify(out));
