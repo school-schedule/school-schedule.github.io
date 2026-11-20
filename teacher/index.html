@@ -280,8 +280,12 @@ function upcomingTests(){var d=todayISO(),end=addDays(d,21),out=[];
   return out;}
 
 /* ---------- data from server ---------- */
-function load(){
+// light — только изменения (данные Skedy, /ttch, /tmsg): так раз в 5 минут, пока приложение на экране.
+// Расписание школы (/tt, ~сотни КБ) и файлы — при запуске и не чаще раза в 30 минут (бережём бесплатные лимиты Cloudflare).
+function load(light){
   if(!API){ui.failed=!STATE;render();return;}
+  if(light&&Date.now()-(load.full||0)>18e5)light=false;
+  if(!light)load.full=Date.now();
   ui.loading=!STATE;render();
   fetch(API+'/data',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     ui.loading=false;
@@ -294,6 +298,7 @@ function load(){
     if(j&&Array.isArray(j.msgs)){TMSG=j;sSet('skedyT.tmsg',j);render();}},function(){});
   fetch(API+'/ttch',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&Array.isArray(j.ch)){TTCH=j;sSet('skedyT.ttch',j);render();}},function(){});
+  if(light)return;
   fetch(API+'/tt',{cache:'no-store'}).then(function(r){if(r.status===404){TTSEEN=null;sSet('skedyT.tt',null);}return r.ok?r.json():null;}).then(ttApply,function(){});
   fetch('rooms.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
     if(j&&j.rooms&&!ttOn()){ROOMS=j;sSet('skedyT.rooms',j);if(ui.screen==='rooms')render();}},function(){});
@@ -664,8 +669,8 @@ root.addEventListener('touchend',function(e){if(sx==null||!STATE||!meOk())return
 render();load();
 // раз в минуту обновляем «сейчас» и «осталось», раз в 5 минут — данные
 setInterval(function(){if(ui.screen==='day'&&STATE&&meOk())render();},60000);
-setInterval(load,300000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden)load();});
+setInterval(function(){if(!document.hidden)load(true);},300000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-(load.at||0)>6e4){load.at=Date.now();load(true);}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js',{scope:'./'}).then(syncPush,function(){});
 })();
 </script>

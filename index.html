@@ -1370,10 +1370,9 @@ function palAddSave(){
   palFetch(a.code).then(function(x){
     if(ui.palAdd)ui.palAdd.busy=false;
     if(x.s===200&&x.j.classId){var nf={code:a.code,name:a.name,classId:x.j.classId,groups:x.j.groups||[]},k=palKey(nf);
-      // тот же человек с другим кодом: это я сам или он уже есть в списке под именем
-      if(k===palKey({classId:prefs.classId,groups:myGroupIds()})){toast(t('palSelf'),true);render();return;}
-      if(pals().some(function(f){return f.name&&palKey(f)===k;})){toast(t('palExists'),true);render();return;}
-      var all=pals().filter(function(f){return palKey(f)!==k;});all.push(nf);savePals(all);palLink(a.code);ui.palAdd=null;render();achCheck();}
+      // одноклассник с таким же выбором — другой человек, его можно добавить; безымянный повтор с тем же выбором
+      // (тот же человек со вторым кодом, пришёл сам через /pal/inbox) заменяем этим, с именем
+      var all=pals().filter(function(f){return f.name||palKey(f)!==k;});all.push(nf);savePals(all);palLink(a.code);ui.palAdd=null;render();achCheck();}
     else toast(t(x.s===404||x.s===400?'palNotFound':x.s===0?'netBlocked':'reportFailed'),true);
   });
 }
@@ -1889,6 +1888,8 @@ function loadRemote(){
   if(!API)return;
   fetch(API+'/data',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
     if(!d||!Array.isArray(d.lessons)||d.updatedAt===STATE.updatedAt)return;
+    // у редактора неопубликованные правки: не меняем базу — иначе публикация молча затрёт чужие изменения (409 не сработает)
+    if(ui.screen==='editor'&&dirty)return;
     STATE=d;sSet('localStorage','sched.data',d);
     if(ui.screen==='editor'&&!dirty)draft=clone(STATE);
     if(ui.screen==='day'&&!prefsValid())startSetup();
@@ -2024,7 +2025,7 @@ function render(){
   var af=document.activeElement&&document.activeElement.id;
   root.innerHTML=h;
   // поле сообщения не теряет фокус, когда приходят новые сообщения
-  if(af==='cText'||af==='eReply'){var fe=document.getElementById(af);if(fe){fe.focus();try{fe.setSelectionRange(fe.value.length,fe.value.length);}catch(x){}}}
+  if(af==='cText'||af==='eReply'||af==='sq'||af==='tq'||af==='gsearch'){var fe=document.getElementById(af);if(fe){fe.focus();try{fe.setSelectionRange(fe.value.length,fe.value.length);}catch(x){}}}
   syncNav();
   slideAll();slideAll.only=null;
   if(ui.screen==='day'){tickCd();cheerCheck();}
@@ -2111,7 +2112,7 @@ root.addEventListener('click',function(e){
       else{ui.installOpen=true;render();}
       break;
     case 'pushOn':enablePush();break;
-    case 'syncAll':dirty=true;publish();break;
+    case 'syncAll':dirty=true;if(!ui.busy)publishRemote();break;
     case 'loadStats':loadStats();break;
     case 'loadReports':loadReports();break;
     case 'chatOpen':ui.eReply='';chatOpenEd(id);window.scrollTo(0,0);break;
@@ -2275,7 +2276,7 @@ setInterval(function(){if(ui.screen==='day'&&document.visibilityState==='visible
 // раз в минуту обновляем экран дня, чтобы подсветка урока шла за временем
 window.addEventListener('online',function(){if(ui.screen==='day')render();loadRemote();});
 window.addEventListener('offline',function(){if(ui.screen==='day')render();});
-setInterval(function(){if(ui.screen==='day'&&!ui.installOpen&&ui.date===todayISO())render();},60000);
+setInterval(function(){if(ui.screen==='day'&&!ui.installOpen&&!ui.search&&ui.date===todayISO())render();},60000);
 if(API){loadRemote();pingStats();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){loadRemote();pingStats();}});}
