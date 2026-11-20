@@ -367,9 +367,31 @@ function validTT(tt) {
     (q.n == null || (typeof q.n === "string" && q.n.length <= 100)) && (q.r == null || (typeof q.r === "string" && q.r.length <= 200)) &&
     (q.k == null || (Number.isInteger(q.k) && q.k >= 0 && q.k <= 300)) &&
     Array.isArray(q.c) && q.c.length > 0 && q.c.length <= 100 && q.c.every((k) => keys.has(k))))) return false;
+  if (tt.co != null && !validCo(tt.co, keys)) return false;
   return tt.l.every((x) => Array.isArray(x) && x.length === 6 && Number.isInteger(x[0]) && x[0] >= 0 && x[0] <= 4 &&
     Number.isInteger(x[1]) && x[1] >= 0 && x[1] <= 15 && idx(x[2], tt.s) && idx(x[3], tt.r) && idx(x[4], tt.t) &&
     Array.isArray(x[5]) && x[5].length > 0 && x[5].length <= 100 && x[5].every((k) => keys.has(k)));
+}
+// co — ограничения (אילוצים) для робота и проверок в /admin/, «Новый год»:
+//   {id, type: "t" — учитель не может (t, d:[дни 0–4], from?/to? — уроки, иначе весь день),
+//              "late" — не позже урока p (кому: c:[классы] и/или g:[параллели 7–12], s? — предмет; без c и g — вся школа),
+//              "dbl" — уроки предмета s парами (два урока подряд), c? — только у этих классов,
+//    n? — примечание}
+const CO_TYPES = ["t", "late", "dbl"];
+const CO_KEYS = ["id", "type", "t", "s", "c", "g", "d", "from", "to", "p", "n"];
+function validCo(co, keys) {
+  if (!Array.isArray(co) || co.length > 500) return false;
+  const str = (x, n) => typeof x === "string" && x.length > 0 && x.length <= n;
+  const ints = (a, lo, hi, max) => Array.isArray(a) && a.length > 0 && a.length <= max && a.every((x) => Number.isInteger(x) && x >= lo && x <= hi);
+  const per = (x) => Number.isInteger(x) && x >= 0 && x <= 15;
+  return co.every((o) => o && typeof o === "object" && !Array.isArray(o) && Object.keys(o).every((k) => CO_KEYS.includes(k)) &&
+    str(o.id, 40) && CO_TYPES.includes(o.type) &&
+    (o.t == null || str(o.t, 200)) && (o.s == null || str(o.s, 200)) && (o.n == null || (typeof o.n === "string" && o.n.length <= 100)) &&
+    (o.c == null || (Array.isArray(o.c) && o.c.length > 0 && o.c.length <= 100 && o.c.every((k) => keys.has(k)))) &&
+    (o.g == null || ints(o.g, 7, 12, 6)) && (o.d == null || ints(o.d, 0, 4, 5)) &&
+    (o.from == null || per(o.from)) && (o.to == null || per(o.to)) && (o.p == null || per(o.p)) &&
+    (o.from == null || o.to == null || o.from <= o.to) &&
+    (o.type !== "t" || (o.t && o.d)) && (o.type !== "late" || o.p != null) && (o.type !== "dbl" || o.s));
 }
 async function saveTT(req, env) {
   const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
@@ -385,7 +407,8 @@ async function saveTT(req, env) {
   // кто-то другой успел сохранить раньше (base — версия, с которой начинал этот редактор)
   if (prevRaw && (body.base || null) !== prevAt) return json({ error: "conflict", updatedAt: prevAt }, 409);
   const out = { updatedAt: new Date().toISOString(), cls: tt.cls.map((c) => ({ k: c.k, he: c.he, g: +c.g || 0, n: +c.n || 0 })), s: tt.s, r: tt.r, t: tt.t, l: tt.l, ok: tt.ok || [],
-    q: (tt.q || []).map((q) => { const o = { id: q.id, s: q.s, t: q.t, c: q.c, h: q.h }; if (q.n) o.n = q.n; if (q.r) o.r = q.r; if (q.k != null) o.k = q.k; return o; }), th: tt.th || {} };
+    q: (tt.q || []).map((q) => { const o = { id: q.id, s: q.s, t: q.t, c: q.c, h: q.h }; if (q.n) o.n = q.n; if (q.r) o.r = q.r; if (q.k != null) o.k = q.k; return o; }), th: tt.th || {},
+    co: (tt.co || []).map((o) => { const x = {}; for (const k of CO_KEYS) if (o[k] != null) x[k] = o[k]; return x; }) };
   if (prevRaw) await ttBackup(env, prevRaw, prevAt);
   await env.DB.put("tt", JSON.stringify(out));
   return json({ ok: true, updatedAt: out.updatedAt, lessons: out.l.length });
