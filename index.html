@@ -1580,7 +1580,7 @@ function renderHolidays(){
   if(!list.length)return h+'<div class="empty">'+esc(t('holNone'))+'</div>';
   h+='<div class="hols">';
   list.forEach(function(x){var one=x.from===x.to,soon=x.from<=stepDay(today,5);
-    var sameM=x.from.slice(0,7)===x.to.slice(0,7),rng=one?fmtDate(x.from,opt):sameM?(+x.from.slice(8))+'–'+fmtDate(x.to,opt):fmtDate(x.from,opt)+' – '+fmtDate(x.to,opt);
+    var sameM=x.from.slice(0,7)===x.to.slice(0,7),rng=one?fmtDate(x.from,opt):sameM?'\u2066'+(+x.from.slice(8))+'–'+(+x.to.slice(8))+'\u2069 '+fmtDate(x.to,opt).replace(/^\d+\s*/,''):fmtDate(x.from,opt)+' – '+fmtDate(x.to,opt); // «6–10» всегда слева направо (иначе в иврите «10–6»)
     h+='<div class="card hol'+(soon?' soon':'')+'"><div class="hd"><b><bdi>'+esc(rng)+'</bdi></b>'+
       '<span class="hn">'+esc(t(x.n===1?'holDay1':'holDays').replace('{n}',x.n))+'</span></div>'+
       '<div class="muted small"><bdi>'+esc(DAYS[prefs.lang][wday(x.from)]+(one?'':' – '+DAYS[prefs.lang][wday(x.to)]))+'</bdi></div>'+
