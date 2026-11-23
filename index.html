@@ -409,6 +409,16 @@ html[data-look="p2"] .toast{background:#0D0D0D;border:1px solid rgba(255,255,255
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 @keyframes toastin{from{opacity:0;transform:translate(-50%,-16px) scale(.92)}to{opacity:1;transform:translate(-50%,0)}}
 @media (prefers-reduced-motion:reduce){.slider{transition:none}}
+/* заставка при запуске */
+.splash{position:fixed;inset:0;z-index:9999;background:#171717;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;animation:spOut .28s ease .44s forwards}
+.splash .sl{position:relative;display:grid;place-items:center}
+.splash .sl .logo{width:104px;height:104px;border-radius:28px;animation:spPop .46s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 0 26px rgba(198,255,0,.35))}
+.splash .sl i{position:absolute;inset:0;border-radius:30px;border:2px solid #C6FF00;animation:spRing .62s ease-out .12s both}
+.splash b{font:700 30px Rubik,system-ui,sans-serif;color:#F2F2F2;letter-spacing:.2px;animation:spTxt .32s ease .14s both}
+@keyframes spPop{from{transform:scale(.5) rotate(-10deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes spRing{from{transform:scale(.85);opacity:.9}to{transform:scale(1.9);opacity:0}}
+@keyframes spTxt{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes spOut{to{opacity:0;transform:scale(1.03)}}
 
 /* ===== Друзья, кто свободен, найти учителя ===== */
 .wide{width:100%;margin:10px 0}
@@ -2307,6 +2317,17 @@ if(prefsValid())setTimeout(palInbox,1500);
 palFromHash();
 window.addEventListener('hashchange',function(){if(palFromHash())render();});
 render();
+// заставка при запуске (~0,7 с): логотип с пружинкой и лаймовой волной, «Skedy», потом карточки въезжают по очереди.
+// Экран под ней уже готов — заставка ничего не задерживает; нажатие пропускает; при «уменьшить движение» её нет.
+(function(){
+  try{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;}catch(e){}
+  var d=document.createElement('div');d.className='splash';d.setAttribute('aria-hidden','true');
+  d.innerHTML='<span class="sl"><i></i>'+LOGO.replace('width="36" height="36"','width="104" height="104"')+'</span><b>'+esc(t('app'))+'</b>';
+  document.body.appendChild(d);
+  var done=function(){if(!d.parentNode)return;d.parentNode.removeChild(d);
+    var w=root.firstChild;if(w){w.classList.remove('enter');void w.offsetWidth;w.classList.add('enter');}};
+  d.addEventListener('click',done);setTimeout(done,720);
+})();
 // статистика посещений (Cloudflare Web Analytics, без cookies), только на нашем сайте
 (function(){
   if(location.hostname!=='school-schedule.github.io')return;
