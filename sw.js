@@ -1,7 +1,9 @@
 // Skedy — service worker: push-уведомления и работа без интернета
-// Файлы сайта: сначала из сети (свежая версия), без сети — из кэша.
+// Файлы сайта (страницы, config.js, иконки): сразу из кэша, свежая версия качается в фоне — приложение
+// открывается мгновенно даже на плохом Wi-Fi, а новая версия сайта видна со следующего открытия.
+// JSON-файлы (teacher/*.json): сначала из сети, без сети или если сеть молчит 4 с — из кэша.
 // Расписание само приложение хранит в localStorage, запросы к серверу (Worker) сюда не попадают.
-var CACHE = 'app-v8';
+var CACHE = 'app-v9';
 var SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png',
   'teacher/', 'teacher/index.html', 'teacher/manifest.webmanifest', 'teacher/icon-192.png', 'teacher/icon-512.png', 'teacher/apple-touch-icon.png', 'teacher/rooms.json', 'teacher/teachers.json', 'teacher/subjects.json']; // teacher/ — Skedy для учителей
 var FONTS = /^https:\/\/fonts\.(googleapis|gstatic)\.com$/;
@@ -43,6 +45,18 @@ function networkFirst(req) {
     });
   });
 }
+// страницы и файлы сайта: сразу из кэша (приложение открывается мгновенно даже на плохом Wi-Fi),
+// а свежая версия качается в фоне и будет при следующем открытии; кэша нет — из сети
+function staleWhileRevalidate(e, req) {
+  return caches.match(req, { ignoreSearch: true }).then(function (hit) {
+    var net = fetch(req).then(function (r) {
+      if (r && r.ok) { var copy = r.clone(); caches.open(CACHE).then(function (c) { return c.put(req, copy); }).catch(function () {}); }
+      return r;
+    });
+    if (hit) { e.waitUntil(net.catch(function () {})); return hit; }
+    return net.catch(function () { return fromCache(req); });
+  });
+}
 // шрифты не меняются: берём из кэша, а в фоне обновляем
 function cacheFirst(req) {
   return caches.match(req).then(function (hit) {
@@ -58,7 +72,7 @@ self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
-  if (url.origin === self.location.origin) e.respondWith(networkFirst(req));
+  if (url.origin === self.location.origin) e.respondWith(/\.json$/.test(url.pathname) ? networkFirst(req) : staleWhileRevalidate(e, req));
   else if (FONTS.test(url.origin)) e.respondWith(cacheFirst(req));
 });
 
