@@ -920,13 +920,13 @@ function topbar(extra){
     (langHere?langSwitch():streakPill())+'</div>';
 }
 /* ---------- streak ---------- */
-// дней подряд, когда открывали приложение; пятница и суббота стрик не обрывают
+// дней подряд, когда открывали приложение; пятница, суббота и дни без учёбы (каникулы, выходные) стрик не обрывают
 function streak(){var s=sGet('localStorage','sched.streak');return s&&s.last&&s.n?s:null;}
 function bumpStreak(){
   var d=todayISO(),s=streak();
   if(s&&s.last===d)return;
   var cont=false;
-  if(s&&s.last<d){var x=addDays(s.last,1);while(x<d&&wday(x)>=5)x=addDays(x,1);cont=x===d;}
+  if(s&&s.last<d){var x=addDays(s.last,1),k=0;while(x<d&&k<400&&(wday(x)>=5||dayOff(x))){x=addDays(x,1);k++;}cont=x===d;}
   var n=cont?s.n+1:1;
   sSet('localStorage','sched.streak',{last:d,n:n,best:Math.max(n,s&&s.best||0)});
   // для итогов месяца: сколько дней открывали и лучший стрик в этом месяце
