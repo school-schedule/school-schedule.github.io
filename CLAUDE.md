@@ -50,6 +50,7 @@
 | `preview/index.html` | **Пробник для י״א и י״ב** (`https://school-schedule.github.io/preview/`, `noindex`, ссылок на него нет): приложение учеников + классы, группы и уроки י״א/י״ב из timetable שחף. Собирается, не правится руками: `worker/tools/grades-11-12/` (`parse.py` → `gen2.py` → `check.py` → `preview.py`, страницы שחף в папке `$SH`, см. README там). Без `config.js` — к серверу не обращается (нет входа редактора, уведомлений, друзей, счётчика), память `localStorage["skedyP.*"]` вместо `sched.*` — не сбивает выбор в настоящем приложении на том же сайте. После изменений в `index.html` пересобрать (`preview.py`), иначе пробник остаётся на старом коде. |
 | `.gitignore` | Исключает `.DS_Store`, `.dev.vars`, `.wrangler`, `node_modules`. |
 | `.claude/settings.json`, `.claude/hooks/check-code.mjs` | Хук проверки кода (см. «Проверка»). |
+| `.claude/skills/`, `skills-lock.json` | Навыки `code-review-and-quality` и `security-and-hardening` из `addyosmani/agent-skills` (поставлены через `npx skills add … -a claude-code --copy`). |
 
 ### Устройство `index.html`
 
@@ -105,6 +106,7 @@ updatedAt, version, gradeName, migrations
 8. **Не трогать без запроса:** адрес API в `config.js`, токен Cloudflare Analytics, хеши кода редактора, логику 409-конфликта при публикации.
 9. **Мобильные первым делом:** крупные кнопки (≥44px), `env(safe-area-inset-*)`, тёмная тема.
 10. Коммиты маленькие и с понятным описанием. Пуш в ветку по умолчанию = публикация для всех учеников.
+11. **Перед каждым Pull Request** проверяй изменения по навыку `code-review-and-quality`, а изменения в `worker/` ещё и по `security-and-hardening`.
 
 ## Проверка
 
