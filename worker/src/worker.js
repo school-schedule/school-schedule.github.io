@@ -120,6 +120,8 @@ export default {
       if (path === "/pmb" || path.startsWith("/pmb/")) return await pmbRoute(req, env, path);
       // запрос родителя на разговор с учителем (уходит классному руководителю) и личные ссылки учителей
       if (path === "/preq" || path.startsWith("/preq/") || path === "/tkey") return await preqRoute(req, env, ctx, path);
+      // разрешения родителей (экскурсии и т. п.): ответ родителя, списки — админу и классному руководителю
+      if (path === "/apr" || path.startsWith("/apr/")) return await aprRoute(req, env, path);
       // сообщения всем учителям (Skedy Admin → Skedy Teachers): читать — всем, отправить/удалить — по коду
       if (path === "/tmsg" && req.method === "GET") return json((await env.DB.get("tmsg", "json")) || { msgs: [] });
       // помощник Skedy Admin: текст админа → предложенные изменения (их применяет и сохраняет сам админ)
@@ -498,6 +500,16 @@ function validPm(pm) {
     // slot — личные встречи: минут на встречу, нужны учитель и время до
     (o.slot == null || (Number.isInteger(o.slot) && o.slot >= 5 && o.slot <= 60 && !!o.t && !!o.to)));
 }
+// разрешения родителей (אישור הורים): {id, date, title, g:[параллели], c:[классы], due?: «ответить до», note?}
+function validAp(ap) {
+  if (!Array.isArray(ap) || ap.length > 300) return false;
+  const str = (x, n) => x == null || (typeof x === "string" && x.length <= n);
+  return ap.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && isDate(o.date) && typeof o.title === "string" && o.title.trim() && o.title.length <= 100 &&
+    (o.due == null || o.due === "" || (isDate(o.due) && o.due <= o.date)) && str(o.note, 200) &&
+    Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12) &&
+    Array.isArray(o.c) && o.c.length <= 100 && o.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
+}
+function apSig(o) { return [o.date, o.title, o.g.join(","), o.c.join(","), o.due || "", o.note || ""].join("|"); }
 function pmSig(o) {
   return [o.date, o.from, o.to || "", o.title || "", o.g.join(","), o.c.join(","), o.t || "", o.room || "", o.note || "", o.slot || ""].join("|");
 }
@@ -511,7 +523,7 @@ async function saveTTCh(req, env, ctx) {
   if (text.length > TT_MAX_BYTES) return json({ error: "too_big" }, 413);
   let body;
   try { body = JSON.parse(text); } catch (e) { return json({ error: "bad_data" }, 400); }
-  if (!body || !validCh(body.ch) || (body.off != null && !validOff(body.off)) || (body.pm != null && !validPm(body.pm))) return json({ error: "bad_data" }, 400);
+  if (!body || !validCh(body.ch) || (body.off != null && !validOff(body.off)) || (body.pm != null && !validPm(body.pm)) || (body.ap != null && !validAp(body.ap))) return json({ error: "bad_data" }, 400);
   const prevRaw = await env.DB.get("ttch");
   const prev = prevRaw ? JSON.parse(prevRaw) : { updatedAt: null, ch: [] };
   if ((body.base || null) !== (prev.updatedAt || null)) return json({ error: "conflict", updatedAt: prev.updatedAt }, 409);
@@ -532,7 +544,13 @@ async function saveTTCh(req, env, ctx) {
     if (o.slot) x.slot = o.slot;
     return x;
   });
-  const out = { updatedAt: new Date().toISOString(), ch, off, pm };
+  const ap = (body.ap != null ? body.ap : prev.ap || []).filter((o) => o.date >= oldest).map((o) => {
+    const x = { id: o.id, date: o.date, title: String(o.title).replace(/\s+/g, " ").trim(), g: o.g, c: o.c };
+    if (o.due) x.due = o.due;
+    if (o.note) x.note = String(o.note).replace(/\s+/g, " ").trim();
+    return x;
+  });
+  const out = { updatedAt: new Date().toISOString(), ch, off, pm, ap };
   await env.DB.put("ttch", JSON.stringify(out));
   const old = new Map(prev.ch.map((c) => [c.id, chSig(c)]));
   const fresh = ch.filter((c) => c.date >= today && (c.t || c.sub) && old.get(c.id) !== chSig(c));
@@ -545,6 +563,10 @@ async function saveTTCh(req, env, ctx) {
   const oldPm = new Map((prev.pm || []).map((o) => [o.id, pmSig(o)]));
   const freshPm = pm.filter((o) => o.date >= today && oldPm.get(o.id) !== pmSig(o));
   if (freshPm.length) ctx.waitUntil(pmNotify(env, freshPm));
+  // новое или изменённое разрешение — push родителям этих классов
+  const oldAp = new Map((prev.ap || []).map((o) => [o.id, apSig(o)]));
+  const freshAp = ap.filter((o) => o.date >= today && oldAp.get(o.id) !== apSig(o));
+  if (freshAp.length) ctx.waitUntil(pmNotify(env, freshAp.map((o) => ({ ...o, from: "", ap: true }))));
   return json({ ok: true, updatedAt: out.updatedAt, changes: fresh.length });
 }
 // Урок י׳, который есть в Skedy (тот же день недели, номер урока и учитель), — уведомление как у изменений Skedy:
@@ -772,6 +794,41 @@ async function preqRoute(req, env, ctx, path) {
   }
   return json({ ok: true, id: r.id, hr: hr.length > 0 });
 }
+// ---------------- разрешения родителей (ttch.ap) ----------------
+// Ответ: POST /apr {aid, ans: yes|no, p, k, c, tok} — имена на иврите, класс должен подходить, «ответить до» не прошло.
+// Хранится в Stats (таблица apr, один ответ на ребёнка с устройства — можно поменять), стирается на следующий день после события.
+// GET /apr/list — с именами: редактору все, классному руководителю (личная ссылка) — его классы.
+async function aprRoute(req, env, path) {
+  if (!env.STATS) return json({ error: "no_stats_binding" }, 500);
+  const db = statsObj(env), today = israelDate(0);
+  if (path === "/apr/list" && req.method === "GET") {
+    let classes = null;
+    if (req.headers.get("X-T-Key")) {
+      const tn = await teacherAuth(req, env);
+      if (!tn) return json({ error: "forbidden" }, 403);
+      const hr = homerooms(await env.DB.get("tt", "json"));
+      classes = Object.keys(hr).filter((c) => hr[c].includes(tn));
+    } else if (!req.headers.get("X-Editor-Code") || (await checkCode(req, env, req.headers.get("X-Editor-Code"))).status !== 200) return json({ error: "forbidden" }, 403);
+    return json({ classes, r: await db.aprList(classes, today) });
+  }
+  if (req.method !== "POST") return json({ error: "not_found" }, 404);
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.tok !== "string" || !/^[0-9a-f]{32}$/.test(b.tok)) return json({ error: "bad_data" }, 400);
+  if (path === "/apr/mine") return json({ r: await db.aprMine(await sha256(b.tok), today) });
+  if (path !== "/apr") return json({ error: "not_found" }, 404);
+  let lim;
+  try { lim = await limiter(env, "apr", req).hit(PMB_MAX, PMB_WINDOW_SEC); } catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const clean = (x) => (typeof x === "string" ? x.replace(/\s+/g, " ").trim() : "");
+  const pn = clean(b.p), kn = clean(b.k);
+  if (!HE_NAME.test(pn) || !HE_NAME.test(kn)) return json({ error: "bad_name" }, 400);
+  if (typeof b.aid !== "string" || !/^[\w-]{1,40}$/.test(b.aid) || !["yes", "no"].includes(b.ans) || typeof b.c !== "string" || !/^\d{1,2}-\d{1,2}$/.test(b.c)) return json({ error: "bad_data" }, 400);
+  const t = await env.DB.get("ttch", "json"), o = t && (t.ap || []).find((x) => x.id === b.aid);
+  if (!o || o.date < today || !pmForClass(o, b.c)) return json({ error: "not_found" }, 404);
+  if (o.due && o.due < today) return json({ error: "late" }, 409);
+  if (!(await db.aprSet(b.aid, await sha256(b.tok), kn, pn, b.c, b.ans, o.date, new Date().toISOString(), today))) return json({ error: "too_many" }, 429);
+  return json({ ok: true });
+}
 // собрание → классы Skedy (id), к которым оно относится: уведомление только родителям детей из них
 const LETTER_GRADE = { "ז": 7, "ח": 8, "ט": 9, "י": 10, "יא": 11, "י״א": 11, "יב": 12, "י״ב": 12 };
 async function pmNotify(env, list) {
@@ -785,6 +842,8 @@ async function pmNotify(env, list) {
       return (!o.g.length && !o.c.length) || o.g.includes(g) || o.c.includes(g + "-" + cl.num);
     }).map((cl) => cl.id);
     const ttl = o.title || "";
+    // разрешение: только родителям, тип "ap", «ответить до» — в note
+    if (o.ap) { if (cids.length) ds.push({ k: o.date + "|00|ap", date: o.date, type: "ap", period: 0, aud: { type: "pm" }, cids, time: "", name: { he: ttl, en: ttl, ru: ttl }, room: "", note: "", who: "", due: o.due || "" }); continue; }
     const base = { k: o.date + "|00|" + o.from, date: o.date, type: "pm", period: 0, aud: { type: "pm" }, time: o.from + (o.to ? "–" + o.to : ""),
       name: { he: ttl, en: ttl, ru: ttl }, room: o.room || "", note: o.note || "" };
     // родителям детей из этих классов (пока только י׳ — классы Skedy)
@@ -1332,6 +1391,25 @@ export class Stats extends DurableObject {
   // c — класс «10-2», tok — sha256 секрета устройства (отменить может только тот, кто записался)
   // запросы родителей на разговор: c — класс, t — учитель, date/per — день и урок (0 — после уроков),
   // pn/kn — имена родителя и ребёнка, topic — тема, tok — sha256 секрета устройства, st — new|done
+  // ответы на разрешения: aid — разрешение, tok — sha256 секрета устройства, kn/pn — имена, c — класс, ans — yes|no, d — дата события
+  aprInit() {
+    if (this.aprReady) return;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS apr (aid TEXT NOT NULL, tok TEXT NOT NULL, kn TEXT NOT NULL, pn TEXT NOT NULL, c TEXT NOT NULL, ans TEXT NOT NULL, d TEXT NOT NULL, at TEXT NOT NULL, PRIMARY KEY (aid, tok, kn)) WITHOUT ROWID");
+    this.aprReady = true;
+  }
+  aprPrune(today) { this.aprInit(); this.sql.exec("DELETE FROM apr WHERE d < ?", today); }
+  aprSet(aid, tok, kn, pn, c, ans, d, at, today) {
+    this.aprPrune(today);
+    if (this.sql.exec("SELECT COUNT(*) AS n FROM apr WHERE tok = ?", tok).one().n >= 40) return false;
+    this.sql.exec("INSERT INTO apr (aid, tok, kn, pn, c, ans, d, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (aid, tok, kn) DO UPDATE SET ans = excluded.ans, pn = excluded.pn, c = excluded.c, at = excluded.at", aid, tok, kn, pn, c, ans, d, at);
+    return true;
+  }
+  aprMine(tok, today) { this.aprPrune(today); return this.sql.exec("SELECT aid, kn, ans FROM apr WHERE tok = ?", tok).toArray(); }
+  aprList(classes, today) {
+    this.aprPrune(today);
+    const rows = this.sql.exec("SELECT aid, kn, pn, c, ans, at FROM apr ORDER BY c, kn").toArray();
+    return classes ? rows.filter((r) => classes.includes(r.c)) : rows;
+  }
   preqInit() {
     if (this.preqReady) return;
     this.sql.exec("CREATE TABLE IF NOT EXISTS preq (id INTEGER PRIMARY KEY AUTOINCREMENT, c TEXT NOT NULL, t TEXT NOT NULL, date TEXT NOT NULL, per INTEGER NOT NULL, pn TEXT NOT NULL, kn TEXT NOT NULL, topic TEXT NOT NULL, tok TEXT NOT NULL, at TEXT NOT NULL, st TEXT NOT NULL DEFAULT 'new')");
@@ -1560,9 +1638,9 @@ async function* allSubs(env) {
 /* ---------------- уведомления ---------------- */
 
 const T = {
-  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", pm: "אסיפת הורים", pr: "בקשה לשיחה", after: "אחרי השיעורים", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
-  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", pm: "Parent meeting", pr: "Request for a talk", after: "after lessons", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
-  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", pm: "Родительское собрание", pr: "Просьба о разговоре", after: "после уроков", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
+  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", pm: "אסיפת הורים", pr: "בקשה לשיחה", after: "אחרי השיעורים", ap: "נדרש אישור הורים", until: "עד", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
+  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", pm: "Parent meeting", pr: "Request for a talk", after: "after lessons", ap: "Parent permission needed", until: "by", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
+  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", pm: "Родительское собрание", pr: "Просьба о разговоре", after: "после уроков", ap: "Нужно разрешение родителей", until: "до", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
 };
 const DAYS = {
   he: ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"],
@@ -1606,6 +1684,7 @@ function line(d, lang) {
   // родительское собрание: «Завтра, 18:00–20:00, Родительское собрание · учитель · кабинет»
   // запрос родителя на разговор: «Завтра, урок 4, הורה של מיכל · י׳2 → כהן (тема)»
   if (d.type === "pr") return dayWord(d.date, lang) + ", " + (d.period ? L.period + " " + d.period : L.after) + ", " + d.who + " → " + d.name[lang] + (d.note ? " (" + d.note + ")" : "");
+  if (d.type === "ap") return dayWord(d.date, lang) + ", " + d.name[lang] + (d.due ? " · " + L.until + " " + d.due.slice(8) + "." + d.due.slice(5, 7) : "");
   if (d.type === "pm") return dayWord(d.date, lang) + ", " + d.time + ", " + (d.name[lang] || L.pm) +
     (d.who ? " · " + d.who : "") + (d.room ? " · " + d.room : "") + (d.note ? " (" + d.note + ")" : "");
   let what = d.type === "cancel" ? L.cancel : d.type === "room" ? L.room + ": " + d.room : d.type === "test" ? L.test :
@@ -1672,7 +1751,7 @@ async function planPushes(env, ds) {
       key,
       s: rec.s,
       p: {
-        title: mine.every((d) => d.type === "pm") ? L.pm : mine.every((d) => d.type === "pr") ? L.pr : mine.length === 1 ? L.one : L.many(mine.length),
+        title: mine.every((d) => d.type === "ap") ? L.ap : mine.every((d) => d.type === "pm") ? L.pm : mine.every((d) => d.type === "pr") ? L.pr : mine.length === 1 ? L.one : L.many(mine.length),
         body: mine.slice(0, 4).map((d) => kidsLabel(d, rec) + line(d, rec.l)).join("\n"),
         tag: "chg-" + mine[0].date,
         dir: L.dir,
