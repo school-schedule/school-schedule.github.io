@@ -40,7 +40,7 @@ import { DurableObject } from "cloudflare:workers";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type,X-Editor-Code,X-Pm-Key",
+  "Access-Control-Allow-Headers": "Content-Type,X-Editor-Code,X-Pm-Key,X-T-Name,X-T-Key",
 };
 
 function json(obj, status = 200) {
@@ -118,6 +118,8 @@ export default {
       if (path === "/ttch" && req.method === "POST") return await saveTTCh(req, env, ctx);
       // запись родителей на личные встречи (Skedy Parents → Skedy Admin / Skedy Teachers)
       if (path === "/pmb" || path.startsWith("/pmb/")) return await pmbRoute(req, env, path);
+      // запрос родителя на разговор с учителем (уходит классному руководителю) и личные ссылки учителей
+      if (path === "/preq" || path.startsWith("/preq/") || path === "/tkey") return await preqRoute(req, env, ctx, path);
       // сообщения всем учителям (Skedy Admin → Skedy Teachers): читать — всем, отправить/удалить — по коду
       if (path === "/tmsg" && req.method === "GET") return json((await env.DB.get("tmsg", "json")) || { msgs: [] });
       // помощник Skedy Admin: текст админа → предложенные изменения (их применяет и сохраняет сам админ)
@@ -592,6 +594,11 @@ async function pmMeeting(env, mid) {
 }
 // кто может видеть имена: редактор (X-Editor-Code) или учитель с ключом этого собрания (X-Pm-Key)
 async function pmbCanSee(req, env, mid) {
+  // личная ссылка учителя (X-T-Name + X-T-Key) — записи его собственных собраний
+  if (req.headers.get("X-T-Key")) {
+    const tn = await teacherAuth(req, env), o = tn && (await pmMeeting(env, mid));
+    return !!o && normName(o.t) === tn;
+  }
   const k = req.headers.get("X-Pm-Key");
   if (k) {
     let lim;
@@ -658,6 +665,112 @@ async function pmbRoute(req, env, path) {
   if (!o || !o.slot || o.date < today || !pmSlots(o).includes(b.at) || !pmForClass(o, b.c)) return json({ error: "not_found" }, 404);
   const r = await db.pmbBook(b.mid, b.at, o.date, p, k, b.c, await sha256(b.tok), today);
   return r.ok ? json({ ok: true }) : json({ error: r.error }, 409);
+}
+// ---------------- личные ссылки учителей и запросы родителей на разговор ----------------
+// Личная ссылка учителя: Skedy Admin (POST /tkey {t}, код редактора) выдаёт ключ, в KV "tkeys" = {имя (normName): sha256 ключа}.
+// Skedy Teachers шлёт X-T-Name (encodeURIComponent) и X-T-Key. По ней учитель видит записи своих личных встреч
+// и запросы на разговор для классов, где он классный руководитель.
+async function teacherAuth(req, env) {
+  let name = req.headers.get("X-T-Name") || "", key = req.headers.get("X-T-Key") || "";
+  try { name = decodeURIComponent(name); } catch (e) { return null; }
+  name = normName(name);
+  if (!name || !key || key.length > 60) return null;
+  let lim;
+  try { lim = await limiter(env, "tkey", req).hit(120, 3600); } catch (e) { return null; }
+  if (!lim.ok) return null;
+  const keys = (await env.DB.get("tkeys", "json")) || {};
+  return keys[name] && safeEqual(await sha256(key), keys[name]) ? name : null;
+}
+// классные руководители по расписанию Skedy Admin (KV "tt"): ручные роли (ro, k "hr") главнее,
+// иначе учитель урока «חינוך» класса — как roAll в /admin/. Возвращает {класс «10-2»: [имена normName]}.
+const RO_HR = /^(חינוך|חינוך וחברה|שעת חינוך|שעת מחנך|מחנך|מחנכת)$/;
+function homerooms(tt) {
+  const out = {};
+  if (!tt) return out;
+  for (const o of tt.ro || []) if (o.k === "hr") for (const c of o.c || []) (out[c] = out[c] || []).push(normName(o.t));
+  const man = new Set(Object.keys(out));
+  for (const x of tt.l || []) {
+    const sn = String(tt.s[x[2]] || "").trim(), tn = normName(tt.t[x[4]] || "");
+    if (!tn || !RO_HR.test(sn) || x[5].length !== 1 || man.has(x[5][0])) continue;
+    const a = out[x[5][0]] = out[x[5][0]] || [];
+    if (!a.includes(tn)) a.push(tn);
+  }
+  return out;
+}
+const PREQ_MAX = 10, PREQ_WINDOW_SEC = 3600;
+async function preqRoute(req, env, ctx, path) {
+  if (!env.STATS) return json({ error: "no_stats_binding" }, 500);
+  const db = statsObj(env), today = israelDate(0);
+  const editor = async () => !!req.headers.get("X-Editor-Code") && (await checkCode(req, env, req.headers.get("X-Editor-Code"))).status === 200;
+  // запросы: классному руководителю — его классов, редактору — все
+  if (path === "/preq/list" && req.method === "GET") {
+    if (req.headers.get("X-T-Key")) {
+      const tn = await teacherAuth(req, env);
+      if (!tn) return json({ error: "forbidden" }, 403);
+      const hr = homerooms(await env.DB.get("tt", "json"));
+      const mine = Object.keys(hr).filter((c) => hr[c].includes(tn));
+      return json({ classes: mine, r: mine.length ? await db.preqList(mine, today) : [] });
+    }
+    if (!(await editor())) return json({ error: "forbidden" }, 403);
+    const hr = homerooms(await env.DB.get("tt", "json"));
+    return json({ r: (await db.preqList(null, today)).map((x) => ({ ...x, hr: hr[x.c] || [] })) });
+  }
+  if (req.method !== "POST") return json({ error: "not_found" }, 404);
+  const b = await req.json().catch(() => null);
+  if (!b) return json({ error: "bad_data" }, 400);
+  // новая личная ссылка учителя (старая перестаёт работать)
+  if (path === "/tkey") {
+    const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+    if (auth.status !== 200) return json(auth.body, auth.status);
+    const t = normName(b.t);
+    if (!t || t.length > 200) return json({ error: "bad_data" }, 400);
+    const key = b64u(crypto.getRandomValues(new Uint8Array(12)));
+    const keys = (await env.DB.get("tkeys", "json")) || {};
+    keys[t] = await sha256(key);
+    await env.DB.put("tkeys", JSON.stringify(keys));
+    return json({ key });
+  }
+  const tokOk = typeof b.tok === "string" && /^[0-9a-f]{32}$/.test(b.tok);
+  // свои запросы родителя (по секрету устройства) — статус
+  if (path === "/preq/mine") {
+    if (!tokOk) return json({ error: "bad_data" }, 400);
+    return json({ r: await db.preqMine(await sha256(b.tok), today) });
+  }
+  if (path === "/preq/cancel") {
+    if (!tokOk || !Number.isInteger(b.id)) return json({ error: "bad_data" }, 400);
+    return json({ ok: await db.preqDel(b.id, await sha256(b.tok), null) });
+  }
+  // классный руководитель (или редактор): «обработано» / вернуть / удалить
+  if (path === "/preq/set") {
+    if (!Number.isInteger(b.id) || !["new", "done", "del"].includes(b.st)) return json({ error: "bad_data" }, 400);
+    let classes = null;
+    if (req.headers.get("X-T-Key")) {
+      const tn = await teacherAuth(req, env);
+      if (!tn) return json({ error: "forbidden" }, 403);
+      const hr = homerooms(await env.DB.get("tt", "json"));
+      classes = Object.keys(hr).filter((c) => hr[c].includes(tn));
+    } else if (!(await editor())) return json({ error: "forbidden" }, 403);
+    return json({ ok: b.st === "del" ? await db.preqDel(b.id, null, classes) : await db.preqSet(b.id, b.st, classes) });
+  }
+  if (path !== "/preq") return json({ error: "not_found" }, 404);
+  let lim;
+  try { lim = await limiter(env, "preq", req).hit(PREQ_MAX, PREQ_WINDOW_SEC); } catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const clean = (x) => (typeof x === "string" ? x.replace(/\s+/g, " ").trim() : "");
+  const pn = clean(b.p), kn = clean(b.k), t = clean(b.t), topic = clean(b.topic).slice(0, 150);
+  if (!HE_NAME.test(pn) || !HE_NAME.test(kn)) return json({ error: "bad_name" }, 400);
+  if (!tokOk || !t || t.length > 200 || typeof b.c !== "string" || !/^\d{1,2}-\d{1,2}$/.test(b.c) || !isDate(b.date) ||
+    b.date < today || b.date > israelDate(45) || !Number.isInteger(b.per) || b.per < 0 || b.per > 15) return json({ error: "bad_data" }, 400);
+  const r = await db.preqAdd({ c: b.c, t, date: b.date, per: b.per, pn, kn, topic, tok: await sha256(b.tok), at: new Date().toISOString() }, today);
+  if (r.error) return json(r, 409);
+  // push классному руководителю (подписка Skedy Teachers на его имя)
+  const hr = homerooms(await env.DB.get("tt", "json"))[b.c] || [];
+  if (hr.length) {
+    const cls = clsLabel([b.c]);
+    ctx.waitUntil(notifyAll(env, hr.map((h) => ({ k: b.date + "|00|pr", date: b.date, type: "pr", period: b.per, aud: { type: "pr" }, t: h, cids: [],
+      name: { he: t, en: t, ru: t }, room: "", note: topic, who: kn + " · " + cls }))));
+  }
+  return json({ ok: true, id: r.id, hr: hr.length > 0 });
 }
 // собрание → классы Skedy (id), к которым оно относится: уведомление только родителям детей из них
 const LETTER_GRADE = { "ז": 7, "ח": 8, "ט": 9, "י": 10, "יא": 11, "י״א": 11, "יב": 12, "י״ב": 12 };
@@ -1217,6 +1330,45 @@ export class Stats extends DurableObject {
   }
   // запись на личные встречи: mid — собрание, at — «18:20», d — дата собрания, p/k — имена родителя и ребёнка,
   // c — класс «10-2», tok — sha256 секрета устройства (отменить может только тот, кто записался)
+  // запросы родителей на разговор: c — класс, t — учитель, date/per — день и урок (0 — после уроков),
+  // pn/kn — имена родителя и ребёнка, topic — тема, tok — sha256 секрета устройства, st — new|done
+  preqInit() {
+    if (this.preqReady) return;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS preq (id INTEGER PRIMARY KEY AUTOINCREMENT, c TEXT NOT NULL, t TEXT NOT NULL, date TEXT NOT NULL, per INTEGER NOT NULL, pn TEXT NOT NULL, kn TEXT NOT NULL, topic TEXT NOT NULL, tok TEXT NOT NULL, at TEXT NOT NULL, st TEXT NOT NULL DEFAULT 'new')");
+    this.preqReady = true;
+  }
+  // на следующий день после выбранного дня запрос стирается
+  preqPrune(today) { this.preqInit(); this.sql.exec("DELETE FROM preq WHERE date < ?", today); }
+  preqAdd(x, today) {
+    this.preqPrune(today);
+    if (this.sql.exec("SELECT COUNT(*) AS n FROM preq WHERE tok = ?", x.tok).one().n >= 10) return { error: "too_many" };
+    if (this.sql.exec("SELECT 1 FROM preq WHERE tok = ? AND t = ? AND date = ? AND kn = ?", x.tok, x.t, x.date, x.kn).toArray().length) return { error: "dup" };
+    this.sql.exec("INSERT INTO preq (c, t, date, per, pn, kn, topic, tok, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", x.c, x.t, x.date, x.per, x.pn, x.kn, x.topic, x.tok, x.at);
+    return { id: this.sql.exec("SELECT last_insert_rowid() AS id").one().id };
+  }
+  preqList(classes, today) {
+    this.preqPrune(today);
+    const rows = this.sql.exec("SELECT id, c, t, date, per, pn, kn, topic, at, st FROM preq ORDER BY date, per, id").toArray();
+    return classes ? rows.filter((r) => classes.includes(r.c)) : rows;
+  }
+  preqMine(tok, today) {
+    this.preqPrune(today);
+    return this.sql.exec("SELECT id, t, date, per, kn, st FROM preq WHERE tok = ? ORDER BY date, per", tok).toArray();
+  }
+  preqSet(id, st, classes) {
+    this.preqInit();
+    const r = this.sql.exec("SELECT c FROM preq WHERE id = ?", id).toArray()[0];
+    if (!r || (classes && !classes.includes(r.c))) return false;
+    this.sql.exec("UPDATE preq SET st = ? WHERE id = ?", st, id);
+    return true;
+  }
+  preqDel(id, tok, classes) {
+    this.preqInit();
+    const r = this.sql.exec("SELECT c, tok FROM preq WHERE id = ?", id).toArray()[0];
+    if (!r || (tok && r.tok !== tok) || (classes && !classes.includes(r.c))) return false;
+    this.sql.exec("DELETE FROM preq WHERE id = ?", id);
+    return true;
+  }
   pmbInit() {
     if (this.pmbReady) return;
     this.sql.exec("CREATE TABLE IF NOT EXISTS pmb (mid TEXT NOT NULL, at TEXT NOT NULL, d TEXT NOT NULL, p TEXT NOT NULL, k TEXT NOT NULL, c TEXT NOT NULL, tok TEXT NOT NULL, PRIMARY KEY (mid, at)) WITHOUT ROWID");
@@ -1408,9 +1560,9 @@ async function* allSubs(env) {
 /* ---------------- уведомления ---------------- */
 
 const T = {
-  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", pm: "אסיפת הורים", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
-  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", pm: "Parent meeting", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
-  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", pm: "Родительское собрание", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
+  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", pm: "אסיפת הורים", pr: "בקשה לשיחה", after: "אחרי השיעורים", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
+  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", pm: "Parent meeting", pr: "Request for a talk", after: "after lessons", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
+  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", pm: "Родительское собрание", pr: "Просьба о разговоре", after: "после уроков", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
 };
 const DAYS = {
   he: ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"],
@@ -1452,6 +1604,8 @@ function describe(st, c) {
 function line(d, lang) {
   const L = T[lang];
   // родительское собрание: «Завтра, 18:00–20:00, Родительское собрание · учитель · кабинет»
+  // запрос родителя на разговор: «Завтра, урок 4, הורה של מיכל · י׳2 → כהן (тема)»
+  if (d.type === "pr") return dayWord(d.date, lang) + ", " + (d.period ? L.period + " " + d.period : L.after) + ", " + d.who + " → " + d.name[lang] + (d.note ? " (" + d.note + ")" : "");
   if (d.type === "pm") return dayWord(d.date, lang) + ", " + d.time + ", " + (d.name[lang] || L.pm) +
     (d.who ? " · " + d.who : "") + (d.room ? " · " + d.room : "") + (d.note ? " (" + d.note + ")" : "");
   let what = d.type === "cancel" ? L.cancel : d.type === "room" ? L.room + ": " + d.room : d.type === "test" ? L.test :
@@ -1480,6 +1634,7 @@ function concerns(d, rec) {
   if (rec.t) return !!d.t && d.t === normName(rec.t); // учитель: изменения в его уроках
   if (d.aud.type === "tt") return false; // изменения из Skedy Admin (/ttch) — только учителям
   if (d.aud.type === "pm") return !!rec.k && rec.k.some((k) => d.cids.includes(k.c)); // собрание — только родителям
+  if (d.aud.type === "pr") return false; // запрос на разговор — только классному руководителю (rec.t выше)
   if (rec.k) return rec.k.some((k) => concernsKid(d, k)); // родитель: урок хотя бы одного ребёнка
   if (d.aud.type === "class") return d.aud.id === rec.c;
   return rec.g.includes(d.aud.id);
@@ -1517,7 +1672,7 @@ async function planPushes(env, ds) {
       key,
       s: rec.s,
       p: {
-        title: mine.every((d) => d.type === "pm") ? L.pm : mine.length === 1 ? L.one : L.many(mine.length),
+        title: mine.every((d) => d.type === "pm") ? L.pm : mine.every((d) => d.type === "pr") ? L.pr : mine.length === 1 ? L.one : L.many(mine.length),
         body: mine.slice(0, 4).map((d) => kidsLabel(d, rec) + line(d, rec.l)).join("\n"),
         tag: "chg-" + mine[0].date,
         dir: L.dir,
