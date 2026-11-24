@@ -560,10 +560,14 @@ async function pmNotify(env, list) {
       const g = LETTER_GRADE[cl.letter];
       return (!o.g.length && !o.c.length) || o.g.includes(g) || o.c.includes(g + "-" + cl.num);
     }).map((cl) => cl.id);
-    if (!cids.length) continue;
     const ttl = o.title || "";
-    ds.push({ k: o.date + "|00|" + o.from, date: o.date, type: "pm", period: 0, aud: { type: "pm" }, cids, time: o.from + (o.to ? "–" + o.to : ""),
-      name: { he: ttl, en: ttl, ru: ttl }, room: o.room || "", note: o.note || "", who: o.t || "" });
+    const base = { k: o.date + "|00|" + o.from, date: o.date, type: "pm", period: 0, aud: { type: "pm" }, time: o.from + (o.to ? "–" + o.to : ""),
+      name: { he: ttl, en: ttl, ru: ttl }, room: o.room || "", note: o.note || "" };
+    // родителям детей из этих классов (пока только י׳ — классы Skedy)
+    if (cids.length) ds.push({ ...base, cids, who: o.t || "" });
+    // учителю собрания (Skedy Teachers): вместо имени учителя — для кого собрание
+    if (o.t) ds.push({ ...base, cids: [], t: normName(o.t),
+      who: [...o.g.map((g) => "שכבת " + (GRADE_HE[g] || g)), clsLabel(o.c)].filter(Boolean).join(", ") || "כל בית הספר" });
   }
   if (ds.length) await notifyAll(env, ds);
 }
