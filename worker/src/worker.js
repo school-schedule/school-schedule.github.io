@@ -40,7 +40,7 @@ import { DurableObject } from "cloudflare:workers";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type,X-Editor-Code",
+  "Access-Control-Allow-Headers": "Content-Type,X-Editor-Code,X-Pm-Key",
 };
 
 function json(obj, status = 200) {
@@ -116,6 +116,8 @@ export default {
         return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
       }
       if (path === "/ttch" && req.method === "POST") return await saveTTCh(req, env, ctx);
+      // запись родителей на личные встречи (Skedy Parents → Skedy Admin / Skedy Teachers)
+      if (path === "/pmb" || path.startsWith("/pmb/")) return await pmbRoute(req, env, path);
       // сообщения всем учителям (Skedy Admin → Skedy Teachers): читать — всем, отправить/удалить — по коду
       if (path === "/tmsg" && req.method === "GET") return json((await env.DB.get("tmsg", "json")) || { msgs: [] });
       // помощник Skedy Admin: текст админа → предложенные изменения (их применяет и сохраняет сам админ)
@@ -490,10 +492,12 @@ function validPm(pm) {
   return pm.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && isDate(o.date) && typeof o.from === "string" && HM.test(o.from) &&
     (o.to == null || o.to === "" || (typeof o.to === "string" && HM.test(o.to) && o.to > o.from)) && str(o.title, 100) && str(o.t, 100) && str(o.room, 100) && str(o.note, 200) &&
     Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12) &&
-    Array.isArray(o.c) && o.c.length <= 100 && o.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
+    Array.isArray(o.c) && o.c.length <= 100 && o.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)) &&
+    // slot — личные встречи: минут на встречу, нужны учитель и время до
+    (o.slot == null || (Number.isInteger(o.slot) && o.slot >= 5 && o.slot <= 60 && !!o.t && !!o.to)));
 }
 function pmSig(o) {
-  return [o.date, o.from, o.to || "", o.title || "", o.g.join(","), o.c.join(","), o.t || "", o.room || "", o.note || ""].join("|");
+  return [o.date, o.from, o.to || "", o.title || "", o.g.join(","), o.c.join(","), o.t || "", o.room || "", o.note || "", o.slot || ""].join("|");
 }
 function chSig(c) {
   return [c.date, c.p, c.s, c.t || "", c.c.join(","), c.type, c.room || "", c.note || "", c.sub || ""].join("|");
@@ -523,6 +527,7 @@ async function saveTTCh(req, env, ctx) {
   const pm = (body.pm != null ? body.pm : prev.pm || []).filter((o) => o.date >= oldest).map((o) => {
     const x = { id: o.id, date: o.date, from: o.from, g: o.g, c: o.c };
     for (const f of ["to", "title", "t", "room", "note"]) if (o[f]) x[f] = String(o[f]).replace(/\s+/g, " ").trim();
+    if (o.slot) x.slot = o.slot;
     return x;
   });
   const out = { updatedAt: new Date().toISOString(), ch, off, pm };
@@ -561,6 +566,98 @@ async function ttchNotify(env, fresh, gone = []) {
   }
   for (const c of gone) ds.push(tt(c, "subOff", c.sub, c.t));
   if (ds.length) await notifyAll(env, ds);
+}
+// ---------------- запись на личные встречи ----------------
+// У собрания в ttch.pm есть slot (минут на встречу): время from–to режется на встречи. Родитель в Skedy Parents
+// выбирает свободное время и пишет своё имя и имя ребёнка (на иврите) — это личные данные: хранятся в Stats
+// (таблица pmb, SQLite — одно время нельзя занять дважды) и стираются на следующий день после собрания.
+// Свободные времена видит каждый, имена — только по коду редактора или ключу учителя этого собрания
+// (KV "pmkeys" = {id собрания: sha256 ключа}; ключ выдаёт Skedy Admin).
+const HE_NAME = /^[\u05D0-\u05EA][\u05D0-\u05EA '"׳״-]{0,39}$/;
+const PMB_MAX = 30, PMB_WINDOW_SEC = 3600, PMB_PER_DEVICE = 4;
+function pmSlots(o) {
+  if (!o || !o.slot || !o.to) return [];
+  const m = (x) => +x.slice(0, 2) * 60 + +x.slice(3), hm = (x) => String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
+  const out = [];
+  for (let x = m(o.from); x + o.slot <= m(o.to) && out.length < 200; x += o.slot) out.push(hm(x));
+  return out;
+}
+function pmForClass(o, key) {
+  const g = +key.split("-")[0];
+  return (!o.g.length && !o.c.length) || o.g.includes(g) || o.c.includes(key);
+}
+async function pmMeeting(env, mid) {
+  const t = await env.DB.get("ttch", "json");
+  return (t && (t.pm || []).find((o) => o.id === mid)) || null;
+}
+// кто может видеть имена: редактор (X-Editor-Code) или учитель с ключом этого собрания (X-Pm-Key)
+async function pmbCanSee(req, env, mid) {
+  const k = req.headers.get("X-Pm-Key");
+  if (k) {
+    let lim;
+    try { lim = await limiter(env, "pmkey", req).hit(60, 3600); } catch (e) { return false; }
+    if (!lim.ok) return false;
+    const keys = (await env.DB.get("pmkeys", "json")) || {};
+    return !!keys[mid] && safeEqual(await sha256(k), keys[mid]);
+  }
+  if (!req.headers.get("X-Editor-Code")) return false;
+  return (await checkCode(req, env, req.headers.get("X-Editor-Code"))).status === 200;
+}
+async function pmbRoute(req, env, path) {
+  if (!env.STATS) return json({ error: "no_stats_binding" }, 500);
+  const db = statsObj(env), today = israelDate(0);
+  // свободные времена собрания (без имён)
+  if (req.method === "GET" && /^\/pmb\/[\w-]{1,40}$/.test(path)) {
+    const mid = path.slice(5), o = await pmMeeting(env, mid);
+    if (!o || !o.slot) return json({ error: "not_found" }, 404);
+    return json({ slots: pmSlots(o), taken: await db.pmbTaken(mid, today) });
+  }
+  // записи с именами — учителю (ключ) и редактору
+  if (req.method === "GET" && /^\/pmb\/list\/[\w-]{1,40}$/.test(path)) {
+    const mid = path.slice(10);
+    if (!(await pmbCanSee(req, env, mid))) return json({ error: "forbidden" }, 403);
+    const o = await pmMeeting(env, mid);
+    return json({ slots: pmSlots(o), b: await db.pmbList(mid, today) });
+  }
+  if (req.method !== "POST") return json({ error: "not_found" }, 404);
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.mid !== "string" || !/^[\w-]{1,40}$/.test(b.mid)) return json({ error: "bad_data" }, 400);
+  // ключ учителя для собрания (новый ключ заменяет старый)
+  if (path === "/pmb/key") {
+    const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+    if (auth.status !== 200) return json(auth.body, auth.status);
+    const key = b64u(crypto.getRandomValues(new Uint8Array(12)));
+    const keys = (await env.DB.get("pmkeys", "json")) || {};
+    keys[b.mid] = await sha256(key);
+    const live = new Set((((await env.DB.get("ttch", "json")) || {}).pm || []).map((o) => o.id));
+    for (const k of Object.keys(keys)) if (!live.has(k) && k !== b.mid) delete keys[k]; // ключи удалённых собраний
+    await env.DB.put("pmkeys", JSON.stringify(keys));
+    return json({ key });
+  }
+  // отменить: своё время (по секрету устройства) или любое — редактор
+  if (path === "/pmb/cancel") {
+    if (typeof b.at !== "string" || !HM.test(b.at)) return json({ error: "bad_data" }, 400);
+    if (req.headers.get("X-Editor-Code")) {
+      const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+      if (auth.status !== 200) return json(auth.body, auth.status);
+      return json({ ok: await db.pmbCancel(b.mid, b.at, null) });
+    }
+    if (typeof b.tok !== "string" || !/^[0-9a-f]{32}$/.test(b.tok)) return json({ error: "bad_data" }, 400);
+    return json({ ok: await db.pmbCancel(b.mid, b.at, await sha256(b.tok)) });
+  }
+  if (path !== "/pmb") return json({ error: "not_found" }, 404);
+  let lim;
+  try { lim = await limiter(env, "pmb", req).hit(PMB_MAX, PMB_WINDOW_SEC); } catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const clean = (x) => (typeof x === "string" ? x.replace(/\s+/g, " ").trim() : "");
+  const p = clean(b.p), k = clean(b.k);
+  if (!HE_NAME.test(p) || !HE_NAME.test(k)) return json({ error: "bad_name" }, 400);
+  if (typeof b.c !== "string" || !/^\d{1,2}-\d{1,2}$/.test(b.c) || typeof b.at !== "string" || !HM.test(b.at) ||
+    typeof b.tok !== "string" || !/^[0-9a-f]{32}$/.test(b.tok)) return json({ error: "bad_data" }, 400);
+  const o = await pmMeeting(env, b.mid);
+  if (!o || !o.slot || o.date < today || !pmSlots(o).includes(b.at) || !pmForClass(o, b.c)) return json({ error: "not_found" }, 404);
+  const r = await db.pmbBook(b.mid, b.at, o.date, p, k, b.c, await sha256(b.tok), today);
+  return r.ok ? json({ ok: true }) : json({ error: r.error }, 409);
 }
 // собрание → классы Skedy (id), к которым оно относится: уведомление только родителям детей из них
 const LETTER_GRADE = { "ז": 7, "ח": 8, "ט": 9, "י": 10, "יא": 11, "י״א": 11, "יב": 12, "י״ב": 12 };
@@ -1117,6 +1214,40 @@ export class Stats extends DurableObject {
       return { code };
     }
     return { error: "busy" };
+  }
+  // запись на личные встречи: mid — собрание, at — «18:20», d — дата собрания, p/k — имена родителя и ребёнка,
+  // c — класс «10-2», tok — sha256 секрета устройства (отменить может только тот, кто записался)
+  pmbInit() {
+    if (this.pmbReady) return;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS pmb (mid TEXT NOT NULL, at TEXT NOT NULL, d TEXT NOT NULL, p TEXT NOT NULL, k TEXT NOT NULL, c TEXT NOT NULL, tok TEXT NOT NULL, PRIMARY KEY (mid, at)) WITHOUT ROWID");
+    this.pmbReady = true;
+  }
+  // на следующий день после собрания записи стираются
+  pmbPrune(today) {
+    this.pmbInit();
+    this.sql.exec("DELETE FROM pmb WHERE d < ?", today);
+  }
+  pmbTaken(mid, today) {
+    this.pmbPrune(today);
+    return this.sql.exec("SELECT at FROM pmb WHERE mid = ? ORDER BY at", mid).toArray().map((r) => r.at);
+  }
+  pmbList(mid, today) {
+    this.pmbPrune(today);
+    return this.sql.exec("SELECT at, p, k, c FROM pmb WHERE mid = ? ORDER BY at", mid).toArray();
+  }
+  pmbBook(mid, at, d, p, k, c, tok, today) {
+    this.pmbPrune(today);
+    if (this.sql.exec("SELECT 1 FROM pmb WHERE mid = ? AND tok = ? AND k = ?", mid, tok, k).toArray().length) return { error: "dup" };
+    if (this.sql.exec("SELECT COUNT(*) AS n FROM pmb WHERE mid = ? AND tok = ?", mid, tok).one().n >= PMB_PER_DEVICE) return { error: "too_many" };
+    if (this.sql.exec("SELECT 1 FROM pmb WHERE mid = ? AND at = ?", mid, at).toArray().length) return { error: "taken" };
+    this.sql.exec("INSERT INTO pmb (mid, at, d, p, k, c, tok) VALUES (?, ?, ?, ?, ?, ?, ?)", mid, at, d, p, k, c, tok);
+    return { ok: true };
+  }
+  pmbCancel(mid, at, tok) {
+    this.pmbInit();
+    if (tok) this.sql.exec("DELETE FROM pmb WHERE mid = ? AND at = ? AND tok = ?", mid, at, tok);
+    else this.sql.exec("DELETE FROM pmb WHERE mid = ? AND at = ?", mid, at);
+    return true;
   }
   palGet(code) {
     const r = this.sql.exec("SELECT cls, grp FROM pals WHERE code = ?", code).toArray()[0];

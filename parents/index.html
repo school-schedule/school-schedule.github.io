@@ -165,6 +165,9 @@ bdi{unicode-bidi:isolate}
 .kdel{flex:none;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-size:14px;font-weight:600}
 .kdel.arm{color:var(--bad);border-color:var(--bad)}
 button[disabled]{opacity:.6}
+.pmb{margin-top:8px;padding-top:8px;border-top:1px solid rgba(198,255,0,.25)}.pmb>small{display:block;color:var(--muted);margin-bottom:6px}.pmb .secondary.small{min-height:44px;padding:8px 14px;width:auto;font-size:15px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-top:6px}.slots button{min-height:44px;border-radius:12px;background:#0D0D0D;border:1px solid var(--line);color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}.slots button:active{border-color:var(--acc);color:var(--acc)}
+.pmok{color:var(--acc);font-weight:600}.pmok .link{padding:6px}
 .notice.pm{color:var(--ink);font-weight:400}.notice.pm b{color:var(--acc)}.notice.pm small{color:var(--muted)}
 .pmsoon{display:block;width:100%;text-align:start;font:inherit;font-size:14px}
 </style>
@@ -182,9 +185,9 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 /* ---------- texts ---------- */
 var T={
-he:{app:'Skedy Parents',pmBtn:'אסיפות הורים',pmSub:'אסיפות הורים קרובות בכיתה ובשכבה של הילד.',pmNone:'עוד אין אסיפות הורים במערכת.',pmDef:'אסיפת הורים',pmSoon:'בקרוב',pmNote:'לפי Skedy Admin של בית הספר.',addTitle:'הוספת ילד או ילדה',addSub:'בקשו מהילד לפתוח את Skedy ← לשונית „חברים“ ← „הקוד שלי“. זה מספר של 3 ספרות.',codePh:'קוד (3 ספרות)',nameShort:'שם (לא חובה)',namePh:'שם (לא חובה, נשמר רק בטלפון הזה)',addBtn:'הוספה',codeBad:'לא מצאנו את הקוד. בדקו את המספר.',codeDup:'הילד הזה כבר ברשימה.',netFail:'אין חיבור לשרת. נסו שוב.',onlyTen:'בינתיים Skedy עובד רק לשכבה י׳.',
+he:{app:'Skedy Parents',mePh:'השם שלך (בעברית)',meL:'השם שלך',heOnly:'צריך לכתוב את השמות בעברית.',pmPersonal:'פגישות אישיות, {n} דק׳',pmPick:'בחירת שעה',pmFreeT:'שעות פנויות',pmNoFree:'אין שעות פנויות.',pmBooked:'נרשמתם ל־{t}',pmCancelB:'ביטול',pmConfirm:'להירשם ל־{t} עם {n}?',pmCancelQ:'לבטל את ההרשמה ל־{t}?',pmTaken:'השעה הזאת כבר נתפסה. בחרו שעה אחרת.',pmDup:'הילד הזה כבר רשום לאסיפה הזאת.',pmMany:'יותר מדי ניסיונות. נסו שוב בעוד שעה.',pmNames:'כדי להירשם צריך את השם שלך ואת שם הילד/ה בעברית:',pmSave:'שמירה',pmLoadErr:'לא הצלחנו לטעון את השעות. בדקו את האינטרנט.',pmBtn:'אסיפות הורים',pmSub:'אסיפות הורים קרובות בכיתה ובשכבה של הילד.',pmNone:'עוד אין אסיפות הורים במערכת.',pmDef:'אסיפת הורים',pmSoon:'בקרוב',pmNote:'לפי Skedy Admin של בית הספר.',addTitle:'הוספת ילד או ילדה',addSub:'בקשו מהילד לפתוח את Skedy ← לשונית „חברים“ ← „הקוד שלי“. זה מספר של 3 ספרות.',codePh:'קוד (3 ספרות)',nameShort:'שם הילד/ה (בעברית)',namePh:'שם הילד/ה (בעברית)',addBtn:'הוספה',codeBad:'לא מצאנו את הקוד. בדקו את המספר.',codeDup:'הילד הזה כבר ברשימה.',netFail:'אין חיבור לשרת. נסו שוב.',onlyTen:'בינתיים Skedy עובד רק לשכבה י׳.',
  kids:'הילדים',addMore:'+ ילד או ילדה נוספים',remove:'הסרה',removeSure:'ללחוץ שוב להסרה',kidGone:'הקוד של {n} כבר לא פעיל. מוצגת המערכת האחרונה ששמורה – בקשו קוד חדש.',cancel:'ביטול',
- privNote:'השמות שנתתם לילדים נשמרים רק בטלפון הזה. לפי הקוד Skedy לוקח מהשרת רק את הכיתה והקבוצות.',studentApp:'Skedy לתלמידים',
+ privNote:'השמות נשמרים בטלפון הזה. לשרת הם נשלחים רק כשנרשמים לפגישה אישית עם מורה, ונמחקים יום אחרי האסיפה. לפי הקוד Skedy לוקח מהשרת רק את הכיתה והקבוצות.',studentApp:'Skedy לתלמידים',
  pushBtn:'🔔 התראות על שינויים במערכת של הילדים',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה במערכת של הילדים.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את הכיתה והקבוצות של הילדים ואת כתובת ההתראות של המכשיר – בלי שמות.',
  holBtn:'חופשות וימים בלי לימודים',holSub:'כל הימים הקרובים בלי לימודים: חגים, חופשות וימים מיוחדים.',holNone:'עוד אין ימים בלי לימודים במערכת.',holDay1:'יום לימודים אחד',holDays:'{n} ימי לימודים',holNote:'לפי לוח החופשות של בית הספר, שח״ף ו־Skedy Admin. חופשה שצמודה לסוף השבוע – משישי ועד שבת.',
  today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',subTag:'החלפה',test:'מבחן',exam:'בחינה',
@@ -192,9 +195,9 @@ he:{app:'Skedy Parents',pmBtn:'אסיפות הורים',pmSub:'אסיפות הו
  language:'שפה',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
  installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
  noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
-en:{app:'Skedy Parents',pmBtn:'Parent meetings',pmSub:'Upcoming parent meetings for your child’s class and grade.',pmNone:'No parent meetings scheduled yet.',pmDef:'Parent meeting',pmSoon:'Coming up',pmNote:'From the school’s Skedy Admin.',addTitle:'Add your child',addSub:'Ask your child to open Skedy → the “Friends” tab → “My code”. It’s a 3-digit number.',codePh:'Code (3 digits)',nameShort:'Name (optional)',namePh:'Name (optional, stays on this phone)',addBtn:'Add',codeBad:'Code not found. Check the number.',codeDup:'This child is already on the list.',netFail:'Can’t reach the server. Try again.',onlyTen:'For now Skedy works for grade 10 only.',
+en:{app:'Skedy Parents',mePh:'Your name (in Hebrew)',meL:'Your name',heOnly:'Please write the names in Hebrew.',pmPersonal:'Personal meetings, {n} min',pmPick:'Pick a time',pmFreeT:'Free times',pmNoFree:'No free times left.',pmBooked:'Signed up for {t}',pmCancelB:'Cancel',pmConfirm:'Sign up for {t} for {n}?',pmCancelQ:'Cancel the sign-up for {t}?',pmTaken:'This time was just taken. Pick another one.',pmDup:'This child is already signed up for this meeting.',pmMany:'Too many tries. Try again in an hour.',pmNames:'To sign up we need your name and your child’s name in Hebrew:',pmSave:'Save',pmLoadErr:'Could not load the times. Check your internet.',pmBtn:'Parent meetings',pmSub:'Upcoming parent meetings for your child’s class and grade.',pmNone:'No parent meetings scheduled yet.',pmDef:'Parent meeting',pmSoon:'Coming up',pmNote:'From the school’s Skedy Admin.',addTitle:'Add your child',addSub:'Ask your child to open Skedy → the “Friends” tab → “My code”. It’s a 3-digit number.',codePh:'Code (3 digits)',nameShort:'Child’s name (in Hebrew)',namePh:'Child’s name (in Hebrew)',addBtn:'Add',codeBad:'Code not found. Check the number.',codeDup:'This child is already on the list.',netFail:'Can’t reach the server. Try again.',onlyTen:'For now Skedy works for grade 10 only.',
  kids:'Children',addMore:'+ Add another child',remove:'Remove',removeSure:'Tap again to remove',kidGone:'The code for {n} no longer works. Showing the last saved schedule — ask for a new code.',cancel:'Cancel',
- privNote:'The names you give your children stay only on this phone. With the code, Skedy gets only the class and groups from the server.',studentApp:'Skedy for students',
+ privNote:'The names stay on this phone. They go to the server only when you sign up for a personal meeting with a teacher, and are deleted the day after the meeting. With the code, Skedy gets only the class and groups from the server.',studentApp:'Skedy for students',
  pushBtn:'🔔 Get alerts about changes in my children’s schedule',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your children’s schedule.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps your children’s class and groups and this device’s alert address — no names.',
  holBtn:'Holidays and days off',holSub:'All upcoming days without school: holidays, vacations and special days.',holNone:'No days off in the schedule yet.',holDay1:'1 school day',holDays:'{n} school days',holNote:'From the school’s holiday calendar, Shahaf and Skedy Admin. A break next to a weekend is shown from Friday to Saturday.',
  today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'No lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',subTag:'Substitute',test:'Test',exam:'Exam',
@@ -202,9 +205,9 @@ en:{app:'Skedy Parents',pmBtn:'Parent meetings',pmSub:'Upcoming parent meetings 
  language:'Language',updated:'Updated',offline:'No internet. Showing the last saved schedule.',loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
  installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
  noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
-ru:{app:'Skedy Parents',pmBtn:'Родительские собрания',pmSub:'Ближайшие собрания класса и параллели ребёнка.',pmNone:'Собраний пока нет.',pmDef:'Родительское собрание',pmSoon:'Скоро',pmNote:'По данным Skedy Admin школы.',addTitle:'Добавьте ребёнка',addSub:'Попросите ребёнка открыть Skedy → вкладка «Друзья» → «Мой код». Это число из 3 цифр.',codePh:'Код (3 цифры)',nameShort:'Имя (необязательно)',namePh:'Имя (необязательно, только в этом телефоне)',addBtn:'Добавить',codeBad:'Код не найден. Проверьте число.',codeDup:'Этот ребёнок уже в списке.',netFail:'Нет связи с сервером. Попробуйте ещё раз.',onlyTen:'Пока Skedy работает только для י׳.',
+ru:{app:'Skedy Parents',mePh:'Ваше имя (на иврите)',meL:'Ваше имя',heOnly:'Имена нужно написать на иврите.',pmPersonal:'Личные встречи по {n} мин',pmPick:'Выбрать время',pmFreeT:'Свободное время',pmNoFree:'Свободного времени не осталось.',pmBooked:'Вы записаны на {t}',pmCancelB:'Отменить',pmConfirm:'Записаться на {t} ({n})?',pmCancelQ:'Отменить запись на {t}?',pmTaken:'Это время уже заняли. Выберите другое.',pmDup:'Этот ребёнок уже записан на это собрание.',pmMany:'Слишком много попыток. Попробуйте через час.',pmNames:'Для записи нужны ваше имя и имя ребёнка на иврите:',pmSave:'Сохранить',pmLoadErr:'Не удалось загрузить время. Проверьте интернет.',pmBtn:'Родительские собрания',pmSub:'Ближайшие собрания класса и параллели ребёнка.',pmNone:'Собраний пока нет.',pmDef:'Родительское собрание',pmSoon:'Скоро',pmNote:'По данным Skedy Admin школы.',addTitle:'Добавьте ребёнка',addSub:'Попросите ребёнка открыть Skedy → вкладка «Друзья» → «Мой код». Это число из 3 цифр.',codePh:'Код (3 цифры)',nameShort:'Имя ребёнка (на иврите)',namePh:'Имя ребёнка (на иврите)',addBtn:'Добавить',codeBad:'Код не найден. Проверьте число.',codeDup:'Этот ребёнок уже в списке.',netFail:'Нет связи с сервером. Попробуйте ещё раз.',onlyTen:'Пока Skedy работает только для י׳.',
  kids:'Дети',addMore:'+ Ещё ребёнок',remove:'Убрать',removeSure:'Нажмите ещё раз, чтобы убрать',kidGone:'Код ({n}) больше не действует. Показано последнее сохранённое расписание — попросите новый код.',cancel:'Отмена',
- privNote:'Имена детей хранятся только в этом телефоне. По коду Skedy берёт с сервера только класс и группы.',studentApp:'Skedy для учеников',
+ privNote:'Имена хранятся в этом телефоне. На сервер они уходят, только когда вы записываетесь на личную встречу с учителем, и стираются на следующий день после собрания. По коду Skedy берёт с сервера только класс и группы.',studentApp:'Skedy для учеников',
  pushBtn:'🔔 Уведомления об изменениях в расписании детей',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в расписании детей.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит класс и группы детей и адрес уведомлений этого устройства — без имён.',
  holBtn:'Каникулы и выходные',holSub:'Все ближайшие дни без учёбы: праздники, каникулы и особые дни.',holNone:'Дней без учёбы в расписании пока нет.',holDay1:'1 учебный день',holDays:'Учебных дней: {n}',holNote:'По календарю каникул школы, Шахаф и Skedy Admin. Каникулы рядом с выходными — с пятницы и по субботу.',
  today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день уроков нет',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',subTag:'Замена',test:'Контрольная',exam:'Экзамен',
@@ -254,6 +257,10 @@ function kidsOk(){return STATE?prefs.kids.filter(function(k){return !!byId(STATE
 function kid(){var ks=kidsOk();if(!ks.length)return null;var k=null;ks.forEach(function(x){if(x.id===prefs.cur)k=x;});return k||ks[0];}
 function clsName(k){return nm(byId(STATE.classes,k.c));}
 function kidLabel(k){return k.name||clsName(k);}
+// имена для записи на личные встречи — только на иврите
+var HE=/^[\u05D0-\u05EA][\u05D0-\u05EA '"׳״-]{0,39}$/;
+function heName(x){return String(x||'').replace(/\s+/g,' ').trim();}
+function heOk(x){return HE.test(heName(x));}
 
 /* ---------- lessons (как в приложении учеников: класс + группы, изменения) ---------- */
 function groupFitsCls(g,cid){if(g.exceptClasses&&g.exceptClasses.indexOf(cid)>=0)return false;return !g.classId||g.classId===cid;}
@@ -319,7 +326,41 @@ function pmFor(k,from,to){var c=byId(STATE.classes,k.c);if(!c||!TTCH||!Array.isA
     .sort(function(a,b){return a.date.localeCompare(b.date)||a.from.localeCompare(b.from);});}
 function pmCard(o,withDate){var today=todayISO(),rel=o.date===today?t('today'):o.date===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wday(o.date)]+', '+fmtDate(o.date);
   return '<div class="notice pm">👪 <b><bdi>'+esc(o.title||t('pmDef'))+'</bdi></b>'+(withDate?' · '+esc(rel):'')+' · <bdi dir="ltr">'+esc(o.from+(o.to?'–'+o.to:''))+'</bdi>'+
-    (o.t?' · <bdi>'+esc(o.t)+'</bdi>':'')+(o.room?' · <bdi>'+esc(o.room)+'</bdi>':'')+(o.note?'<br><small><bdi>'+esc(o.note)+'</bdi></small>':'')+'</div>';}
+    (o.t?' · <bdi>'+esc(o.t)+'</bdi>':'')+(o.room?' · <bdi>'+esc(o.room)+'</bdi>':'')+(o.note?'<br><small><bdi>'+esc(o.note)+'</bdi></small>':'')+(o.slot?pmBookHtml(o):'')+'</div>';}
+/* ---------- запись на личные встречи (POST /pmb) ---------- */
+// своё время: prefs.bk = {'id собрания|id ребёнка': '18:20'}; секрет устройства skedyPa.tok — отменить может только тот, кто записался
+function pmTok(){var x=sGet('skedyPa.tok');if(!x){var a=new Uint8Array(16);crypto.getRandomValues(a);x=Array.prototype.map.call(a,function(b){return (b<16?'0':'')+b.toString(16);}).join('');sSet('skedyPa.tok',x);}return x;}
+function kidKey(k){var c=byId(STATE.classes,k.c);return c?LG[c.letter]+'-'+c.num:'';}
+function bkOf(o,k){return ((prefs.bk||{})[o.id+'|'+k.id])||'';}
+function pmPost(path,body){return fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {s:r.status,j:j};});},function(){return {s:0,j:{}};});}
+function pmLoad(id){ui.pmSl=ui.pmSl||{};ui.pmSl[id]={wait:1};render();
+  fetch(API+'/pmb/'+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){ui.pmSl[id]=j&&j.slots?j:{err:1};render();},function(){ui.pmSl[id]={err:1};render();});}
+function pmBookHtml(o){var k=kid(),at=bkOf(o,k),h='<div class="pmb"><small>'+esc(t('pmPersonal').replace('{n}',o.slot))+'</small>';
+  if(at)return h+'<div class="pmok">✅ '+esc(t('pmBooked').replace('{t}',at))+' · <bdi>'+esc(kidLabel(k))+'</bdi> <button class="link" data-act="pmCancel" data-id="'+esc(o.id)+'">'+esc(t('pmCancelB'))+'</button></div></div>';
+  var S=(ui.pmSl||{})[o.id];
+  if(!S||ui.screen!=='pm')return h+'<button class="secondary small" data-act="pmOpen" data-id="'+esc(o.id)+'">🕐 '+esc(t('pmPick'))+'</button></div>';
+  if(S.wait)return h+'<div class="muted">'+esc(t('loading'))+'</div></div>';
+  if(S.err)return h+'<div class="muted">'+esc(t('pmLoadErr'))+'</div></div>';
+  // нет имён на иврите — сначала спросить их
+  if(!heOk(prefs.me)||!heOk(k.name)){
+    return h+'<p class="small">'+esc(t('pmNames'))+'</p><div class="stack" style="margin-top:6px">'+
+      (heOk(prefs.me)?'':'<input class="input" id="pme" type="text" maxlength="40" dir="rtl" lang="he" placeholder="'+esc(t('mePh'))+'" value="'+esc(ui.pme||'')+'">')+
+      (heOk(k.name)?'':'<input class="input" id="pmk" type="text" maxlength="40" dir="rtl" lang="he" placeholder="'+esc(t('namePh'))+'" value="'+esc(ui.pmk||'')+'">')+
+      (ui.pmErr?'<div class="small" role="alert">'+esc(ui.pmErr)+'</div>':'')+'<button class="primary" data-act="pmNames" data-id="'+esc(o.id)+'">'+esc(t('pmSave'))+'</button></div></div>';}
+  var free=S.slots.filter(function(x){return S.taken.indexOf(x)<0;});
+  h+=(ui.pmErr?'<div class="small" role="alert">'+esc(ui.pmErr)+'</div>':'');
+  if(!free.length)return h+'<div class="muted">'+esc(t('pmNoFree'))+'</div></div>';
+  h+='<div class="small muted">'+esc(t('pmFreeT'))+' · <bdi>'+esc(kidLabel(k))+'</bdi></div><div class="slots">';
+  free.forEach(function(x){h+='<button data-act="pmBook" data-id="'+esc(o.id)+'" data-at="'+esc(x)+'" dir="ltr">'+esc(x)+'</button>';});
+  return h+'</div></div>';}
+function pmBook(id,at){var k=kid(),o=null;(TTCH.pm||[]).forEach(function(x){if(x.id===id)o=x;});if(!k||!o)return;
+  if(!confirm(t('pmConfirm').replace('{t}',at).replace('{n}',k.name)))return;
+  ui.pmErr='';pmPost('/pmb',{mid:id,at:at,p:prefs.me,k:k.name,c:kidKey(k),tok:pmTok()}).then(function(x){
+    if(x.s===200){prefs.bk=prefs.bk||{};prefs.bk[id+'|'+k.id]=at;savePrefs();}
+    else ui.pmErr=t(x.j.error==='taken'?'pmTaken':x.j.error==='dup'?'pmDup':x.s===429||x.j.error==='too_many'?'pmMany':x.j.error==='bad_name'?'heOnly':'netFail');
+    pmLoad(id);});}
+function pmCancel(id){var k=kid(),at=bkOf({id:id},k);if(!at||!confirm(t('pmCancelQ').replace('{t}',at)))return;
+  pmPost('/pmb/cancel',{mid:id,at:at,tok:pmTok()}).then(function(x){if(x.s===200){delete prefs.bk[id+'|'+k.id];savePrefs();}else ui.pmErr=t('netFail');if(ui.screen==='pm')pmLoad(id);else render();});}
 function renderPm(){
   var k=kid(),h=top()+'<div class="dayhead"><button class="icon-btn" data-act="tab" data-id="more" aria-label="'+esc(t('navMore'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+esc(t('pmBtn'))+'</p></div></div>';
   h+=kidSwitch()+'<p class="sub">'+esc(t('pmSub'))+'</p>';
@@ -357,8 +398,9 @@ function refreshKids(){if(!API)return;var now=Date.now();
       else return;
       savePrefs();if(changed){syncPush();render();}});});}
 function addKid(){
-  var code=ui.code.trim(),name=ui.name.trim().slice(0,30);
+  var code=ui.code.trim(),name=heName(ui.name).slice(0,40),me=heOk(prefs.me)?prefs.me:heName(ui.me);
   if(!/^[1-9]\d{2}$/.test(code)){ui.err=t('codeBad');render();return;}
+  if(!heOk(name)||!heOk(me)){ui.err=t('heOnly');render();return;}
   if(prefs.kids.some(function(k){return k.code===code;})){ui.err=t('codeDup');render();return;}
   ui.busy=true;ui.err='';render();
   palFetch(code).then(function(x){ui.busy=false;
@@ -366,7 +408,7 @@ function addKid(){
     if(x.s!==200||!x.j.classId){ui.err=t('netFail');render();return;}
     if(!byId(STATE.classes,x.j.classId)){ui.err=t('onlyTen');render();return;}
     var k={id:'k'+code,code:code,c:x.j.classId,g:x.j.groups||[],at:Date.now()};if(name)k.name=name;
-    prefs.kids.push(k);prefs.cur=k.id;savePrefs();syncPush();
+    prefs.me=me;prefs.kids.push(k);prefs.cur=k.id;savePrefs();syncPush();
     ui.add=false;ui.code='';ui.name='';ui.screen='day';ui.date=homeDay();render();window.scrollTo(0,0);});
 }
 
@@ -415,7 +457,8 @@ function renderAdd(){
   else h+=top();
   h+='<h2>'+esc(t('addTitle'))+'</h2><p class="sub">'+esc(t('addSub'))+'</p>';
   h+='<div class="stack"><input class="input code" id="kcode" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" dir="ltr" placeholder="'+esc(t('codePh'))+'" value="'+esc(ui.code)+'">'+
-    '<input class="input" id="kname" type="text" maxlength="30" autocomplete="off" dir="auto" placeholder="'+esc(t('namePh'))+'" value="'+esc(ui.name)+'">';
+    (heOk(prefs.me)?'':'<input class="input" id="kme" type="text" maxlength="40" autocomplete="off" dir="rtl" lang="he" placeholder="'+esc(t('mePh'))+'" value="'+esc(ui.me||'')+'">')+
+    '<input class="input" id="kname" type="text" maxlength="40" autocomplete="off" dir="rtl" lang="he" placeholder="'+esc(t('namePh'))+'" value="'+esc(ui.name)+'">';
   if(ui.err)h+='<div class="notice plain small" role="alert">'+esc(ui.err)+'</div>';
   h+='<button class="primary" data-act="addKid"'+(ui.busy?' disabled':'')+'>'+esc(ui.busy?t('loading'):t('addBtn'))+'</button>';
   if(!first)h+='<button class="secondary" data-act="addCancel">'+esc(t('cancel'))+'</button>';
@@ -491,8 +534,9 @@ function renderHol(){
 function renderMore(){
   var h=top()+'<h2>'+esc(t('navMore'))+'</h2><div class="field"><label>'+esc(t('language'))+'</label>'+langSwitch()+'</div>';
   // дети: имя правится прямо здесь (только в телефоне), класс — по коду
+  h+='<div class="field"><label>'+esc(t('meL'))+'</label><input class="input" id="mme" type="text" maxlength="40" autocomplete="off" dir="rtl" lang="he" placeholder="'+esc(t('mePh'))+'" value="'+esc(prefs.me||'')+'"></div>';
   h+='<div class="field"><label>'+esc(t('kids'))+'</label><div class="klist">';
-  kidsOk().forEach(function(k){h+='<div class="krow"><input class="input" data-kid="'+esc(k.id)+'" type="text" maxlength="30" autocomplete="off" dir="auto" placeholder="'+esc(t('nameShort'))+'" value="'+esc(k.name||'')+'" aria-label="'+esc(clsName(k))+'">'+
+  kidsOk().forEach(function(k){h+='<div class="krow"><input class="input" data-kid="'+esc(k.id)+'" type="text" maxlength="40" autocomplete="off" dir="rtl" lang="he" placeholder="'+esc(t('nameShort'))+'" value="'+esc(k.name||'')+'" aria-label="'+esc(clsName(k))+'">'+
     '<span class="kcls"><bdi>'+esc(clsName(k))+'</bdi></span><button class="kdel'+(ui.delArm===k.id?' arm':'')+'" data-act="delKid" data-id="'+esc(k.id)+'">'+esc(t(ui.delArm===k.id?'removeSure':'remove'))+'</button></div>';});
   h+='</div><button class="link" data-act="addOpen">'+esc(t('addMore'))+'</button></div><div class="stack">';
   if(API){h+=pushOn()?'<div class="notice">'+esc(t('pushIsOn'))+'</div>':'<button class="primary" data-act="push">'+esc(t('pushBtn'))+'</button>';
@@ -560,7 +604,12 @@ root.addEventListener('click',function(e){
     case 'tab':ui.msg='';if(id==='day'&&ui.screen==='day')ui.date=homeDay();ui.screen=id;render();window.scrollTo(0,0);break;
     case 'day':ui.date=stepDay(ui.date,+el.getAttribute('data-n'));render();break;
     case 'goto':ui.date=id;render();break;
-    case 'kid':prefs.cur=id;savePrefs();render();break;
+    case 'kid':prefs.cur=id;savePrefs();ui.pmErr='';render();break;
+    case 'pmOpen':ui.screen='pm';ui.pmErr='';pmLoad(id);window.scrollTo(0,0);break;
+    case 'pmBook':pmBook(id,el.getAttribute('data-at'));break;
+    case 'pmCancel':pmCancel(id);break;
+    case 'pmNames':var kk=kid(),nm1=heOk(prefs.me)?prefs.me:heName(ui.pme),nm2=heOk(kk.name)?kk.name:heName(ui.pmk);
+      if(!heOk(nm1)||!heOk(nm2)){ui.pmErr=t('heOnly');render();break;}prefs.me=nm1;kk.name=nm2;savePrefs();ui.pmErr='';ui.pme='';ui.pmk='';render();break;
     case 'addKid':addKid();break;
     case 'addOpen':ui.add=true;ui.err='';ui.code='';ui.name='';render();window.scrollTo(0,0);break;
     case 'addCancel':ui.add=false;ui.err='';render();break;
@@ -573,10 +622,13 @@ root.addEventListener('click',function(e){
 root.addEventListener('input',function(e){var el=e.target;if(!el)return;
   if(el.id==='kcode'){ui.code=el.value.replace(/\D/g,'').slice(0,3);if(el.value!==ui.code)el.value=ui.code;}
   else if(el.id==='kname')ui.name=el.value;
-  else if(el.getAttribute('data-kid')){var id=el.getAttribute('data-kid');prefs.kids.forEach(function(k){if(k.id===id){var v=el.value.trim().slice(0,30);if(v)k.name=v;else delete k.name;}});savePrefs();}});
+  else if(el.id==='kme')ui.me=el.value;
+  else if(el.id==='pme'||el.id==='pmk'){ui[el.id]=el.value;}
+  else if(el.id==='mme'){var mv=heName(el.value);if(mv)prefs.me=mv;else delete prefs.me;savePrefs();}
+  else if(el.getAttribute('data-kid')){var id=el.getAttribute('data-kid');prefs.kids.forEach(function(k){if(k.id===id){var v=heName(el.value).slice(0,40);if(v)k.name=v;else delete k.name;}});savePrefs();}});
 // имя ребёнка поменяли — переключатель и шапка обновятся, когда поле потеряет фокус
 root.addEventListener('change',function(e){if(e.target&&e.target.getAttribute('data-kid'))render();});
-root.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target&&(e.target.id==='kcode'||e.target.id==='kname')){e.preventDefault();addKid();}});
+root.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target&&(e.target.id==='kcode'||e.target.id==='kname'||e.target.id==='kme')){e.preventDefault();addKid();}});
 // сменить день свайпом
 var sx=null;root.addEventListener('touchstart',function(e){sx=ui.screen==='day'&&e.touches.length===1?e.touches[0].clientX:null;},{passive:true});
 root.addEventListener('touchend',function(e){if(sx==null||!STATE||adding())return;var dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)<70)return;
