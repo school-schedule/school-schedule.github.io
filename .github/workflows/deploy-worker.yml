@@ -1,0 +1,25 @@
+# Обновляет Cloudflare Worker (worker/), когда изменения в worker/ попадают в main.
+# Нужны секреты репозитория (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN  — API-токен Cloudflare (шаблон «Edit Cloudflare Workers» + Queues: Edit)
+#   CLOUDFLARE_ACCOUNT_ID — Account ID из панели Cloudflare
+# Секреты самого Worker (EDITOR_CODE и др.) остаются в Cloudflare и здесь не нужны.
+# Запустить вручную: вкладка Actions → Deploy Worker → Run workflow.
+name: Deploy Worker
+on:
+  push:
+    branches: [main]
+    paths: ['worker/src/**', 'worker/wrangler.toml']
+  workflow_dispatch:
+concurrency: worker-deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          wranglerVersion: '4'
+          command: deploy

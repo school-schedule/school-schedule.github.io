@@ -5,7 +5,7 @@
 **Skedy** (от *schedule*; раньше «המערכת שלי») — веб-приложение (PWA) с личным расписанием ученика параллели י׳ (10-е классы). Ученик один раз выбирает класс и свои группы (математика, английский, мегамот и т. д.) и дальше видит только свои уроки на день, уже с изменениями: отмена, другой кабинет, контрольная, экзамен. Редакторы по коду входят в режим редактирования и публикуют изменения для всех.
 
 - Сайт: GitHub Pages, `https://school-schedule.github.io/`. Деплой автоматический: всё, что попало в ветку по умолчанию, сразу видят ученики.
-- Сервер данных: Cloudflare Worker (адрес в `config.js`). Его код — в `worker/` (`src/worker.js`, `wrangler.toml`), скачан из Cloudflare. Это копия: GitHub его **не** деплоит, работающий Worker меняется только через `wrangler deploy`. Секреты (`EDITOR_CODE`) — только в Cloudflare Secrets, никогда в коде.
+- Сервер данных: Cloudflare Worker (адрес в `config.js`). Его код — в `worker/` (`src/worker.js`, `wrangler.toml`), скачан из Cloudflare. Работающий Worker обновляет **GitHub Actions** (`.github/workflows/deploy-worker.yml`): когда изменения в `worker/src/` или `wrangler.toml` попадают в `main`, запускается `wrangler deploy` (секреты репозитория `CLOUDFLARE_API_TOKEN` и `CLOUDFLARE_ACCOUNT_ID`; вручную — Actions → Deploy Worker → Run workflow). Значит, слияние PR с Worker = обновление Worker: сливать только после «готово» автора. Можно и вручную: `cd worker && npx wrangler deploy`. Секреты (`EDITOR_CODE`) — только в Cloudflare Secrets, никогда в коде.
 - Без сборки, без фреймворков, без npm: чистые HTML + CSS + JS (ES5-стиль: `var`, `function`).
 - Три языка интерфейса: иврит (по умолчанию, RTL), английский, русский.
 
