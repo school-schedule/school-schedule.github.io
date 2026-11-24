@@ -370,9 +370,22 @@ function validTT(tt) {
     (q.gn == null || (typeof q.gn === "string" && q.gn.length <= 100)) && (q.b == null || (typeof q.b === "string" && q.b.length <= 100)) &&
     Array.isArray(q.c) && q.c.length > 0 && q.c.length <= 100 && q.c.every((k) => keys.has(k))))) return false;
   if (tt.co != null && !validCo(tt.co, keys)) return false;
+  if (tt.ro != null && !validRo(tt.ro, keys)) return false;
   return tt.l.every((x) => Array.isArray(x) && x.length === 6 && Number.isInteger(x[0]) && x[0] >= 0 && x[0] <= 4 &&
     Number.isInteger(x[1]) && x[1] >= 0 && x[1] <= 15 && idx(x[2], tt.s) && idx(x[3], tt.r) && idx(x[4], tt.t) &&
     Array.isArray(x[5]) && x[5].length > 0 && x[5].length <= 100 && x[5].every((k) => keys.has(k)));
+}
+// ro — роли учителей: {id, t: учитель, k: "hr" — מחנך/ת (классы c) | "gc" — רכז/ת שכבה (параллели g) |
+//   "sc" — רכז/ת מקצוע (предмет s) | "team" — צוות (предмет s) | "x" — другое (название n), c?, g?, s?, n?}
+const RO_KINDS = ["hr", "gc", "sc", "team", "x"];
+function validRo(ro, keys) {
+  if (!Array.isArray(ro) || ro.length > 3000) return false;
+  const str = (x, n) => x == null || (typeof x === "string" && x.length <= n);
+  return ro.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && typeof o.t === "string" && o.t && o.t.length <= 200 &&
+    RO_KINDS.includes(o.k) && str(o.s, 200) && str(o.n, 100) &&
+    (o.c == null || (Array.isArray(o.c) && o.c.length <= 100 && o.c.every((k) => keys.has(k)))) &&
+    (o.g == null || (Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12))) &&
+    (o.k !== "hr" || (o.c && o.c.length)) && (o.k !== "gc" || (o.g && o.g.length)) && ((o.k !== "sc" && o.k !== "team") || o.s) && (o.k !== "x" || o.n));
 }
 // co — ограничения (אילוצים) для робота и проверок в /admin/, «Новый год»:
 //   {id, type: "t" — учитель не может (t, d:[дни 0–4], from?/to? — уроки, иначе весь день),
@@ -410,7 +423,8 @@ async function saveTT(req, env) {
   if (prevRaw && (body.base || null) !== prevAt) return json({ error: "conflict", updatedAt: prevAt }, 409);
   const out = { updatedAt: new Date().toISOString(), cls: tt.cls.map((c) => ({ k: c.k, he: c.he, g: +c.g || 0, n: +c.n || 0 })), s: tt.s, r: tt.r, t: tt.t, l: tt.l, ok: tt.ok || [],
     q: (tt.q || []).map((q) => { const o = { id: q.id, s: q.s, t: q.t, c: q.c, h: q.h }; if (q.n) o.n = q.n; if (q.r) o.r = q.r; if (q.k != null) o.k = q.k; if (q.gn) o.gn = q.gn; if (q.b) o.b = q.b; return o; }), th: tt.th || {},
-    co: (tt.co || []).map((o) => { const x = {}; for (const k of CO_KEYS) if (o[k] != null) x[k] = o[k]; return x; }) };
+    co: (tt.co || []).map((o) => { const x = {}; for (const k of CO_KEYS) if (o[k] != null) x[k] = o[k]; return x; }),
+    ro: (tt.ro || []).map((o) => { const x = { id: o.id, t: o.t, k: o.k }; for (const f of ["c", "g", "s", "n"]) if (o[f] != null && o[f].length) x[f] = o[f]; return x; }) };
   if (prevRaw) await ttBackup(env, prevRaw, prevAt);
   await env.DB.put("tt", JSON.stringify(out));
   return json({ ok: true, updatedAt: out.updatedAt, lessons: out.l.length });
