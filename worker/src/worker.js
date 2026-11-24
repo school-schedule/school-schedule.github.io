@@ -716,7 +716,7 @@ async function subscribe(req, env) {
   try { lim = await limiter(env, "sub", req).hit(SUB_MAX, SUB_WINDOW_SEC); } catch (e) { lim = { ok: true }; }
   if (!lim.ok) return json({ error: "too_many_subscribes", message: "Too many subscribe requests from this address. Try again later.", retryAfter: lim.retryAfter }, 429);
   const raw = await req.text();
-  if (raw.length > 4000) return json({ error: "too_big" }, 413);
+  if (raw.length > 12000) return json({ error: "too_big" }, 413); // у родителей до 6 детей с группами
   let b;
   try { b = JSON.parse(raw); } catch (e) { return json({ error: "bad_json" }, 400); }
   const s = b && b.subscription;
@@ -734,6 +734,15 @@ async function subscribe(req, env) {
   // Skedy для учителей: вместо класса и групп — имя учителя (уведомления о его уроках)
   const teacher = typeof b.teacher === "string" ? b.teacher.replace(/\s+/g, " ").trim().slice(0, 60) : "";
   if (teacher) { rec.t = teacher; rec.c = ""; rec.g = []; }
+  // Skedy Parents: вместо одного класса — дети (до 6): класс, группы и название класса для текста уведомления (без имён)
+  else if (Array.isArray(b.kids)) {
+    rec.c = ""; rec.g = [];
+    rec.k = b.kids.slice(0, 6).filter((k) => k && classes.test(String(k.c || ""))).map((k) => ({
+      c: String(k.c),
+      g: (Array.isArray(k.g) ? k.g : []).map(String).filter((x) => /^[\w-]{1,40}$/.test(x)).slice(0, 60),
+      n: typeof k.n === "string" ? k.n.replace(/\s+/g, " ").trim().slice(0, 12) : "",
+    }));
+  }
   const txt = JSON.stringify(rec);
   // если ничего не поменялось — не тратим запись
   const old = await env.DB.getWithMetadata("sub:" + id);
@@ -983,7 +992,7 @@ async function chatKeyHash(b) {
 }
 async function chatPost(req, env) {
   const raw = await req.text();
-  if (raw.length > 4000) return json({ error: "too_big" }, 413);
+  if (raw.length > 12000) return json({ error: "too_big" }, 413); // у родителей до 6 детей с группами
   let b;
   try { b = JSON.parse(raw); } catch (e) { return json({ error: "bad_json" }, 400); }
   const tkey = await chatKeyHash(b);
@@ -1274,8 +1283,18 @@ function mergeTests(list) {
 function concerns(d, rec) {
   if (rec.t) return !!d.t && d.t === normName(rec.t); // учитель: изменения в его уроках
   if (d.aud.type === "tt") return false; // изменения из Skedy Admin (/ttch) — только учителям
+  if (rec.k) return rec.k.some((k) => concernsKid(d, k)); // родитель: урок хотя бы одного ребёнка
   if (d.aud.type === "class") return d.aud.id === rec.c;
   return rec.g.includes(d.aud.id);
+}
+function concernsKid(d, k) {
+  return d.aud.type === "class" ? d.aud.id === k.c : k.g.includes(d.aud.id);
+}
+// у родителя с детьми из разных классов строка начинается с класса: «י׳2 · Сегодня, урок 3, …»
+function kidsLabel(d, rec) {
+  if (!rec.k || new Set(rec.k.map((k) => k.n)).size < 2) return "";
+  const ns = [...new Set(rec.k.filter((k) => concernsKid(d, k)).map((k) => k.n).filter(Boolean))];
+  return ns.length ? ns.join(", ") + " · " : "";
 }
 
 const PER_MESSAGE = 3; // уведомлений в одном сообщении очереди
@@ -1293,7 +1312,7 @@ async function planPushes(env, ds) {
     // одинаковые строки (у учителя один урок сразу у нескольких классов) — один раз
     const seen = new Set();
     const mine = mergeTests(ds.filter((d) => concerns(d, rec)).sort((a, b) => a.k.localeCompare(b.k)))
-      .filter((d) => { const k = [d.date, d.period, d.to || "", d.type, d.name.he, d.room, d.note].join("|"); if (seen.has(k)) return false; seen.add(k); return true; });
+      .filter((d) => { const k = [d.date, d.period, d.to || "", d.type, d.name.he, d.room, d.note, kidsLabel(d, rec)].join("|"); if (seen.has(k)) return false; seen.add(k); return true; });
     if (!mine.length) continue;
     const L = T[rec.l];
     jobs.push({
@@ -1301,7 +1320,7 @@ async function planPushes(env, ds) {
       s: rec.s,
       p: {
         title: mine.length === 1 ? L.one : L.many(mine.length),
-        body: mine.slice(0, 4).map((d) => line(d, rec.l)).join("\n"),
+        body: mine.slice(0, 4).map((d) => kidsLabel(d, rec) + line(d, rec.l)).join("\n"),
         tag: "chg-" + mine[0].date,
         dir: L.dir,
         lang: rec.l,
