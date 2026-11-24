@@ -3,9 +3,10 @@
 // открывается мгновенно даже на плохом Wi-Fi, а новая версия сайта видна со следующего открытия.
 // JSON-файлы (teacher/*.json): сначала из сети, без сети или если сеть молчит 4 с — из кэша.
 // Расписание само приложение хранит в localStorage, запросы к серверу (Worker) сюда не попадают.
-var CACHE = 'app-v9';
+var CACHE = 'app-v10';
 var SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png',
-  'teacher/', 'teacher/index.html', 'teacher/manifest.webmanifest', 'teacher/icon-192.png', 'teacher/icon-512.png', 'teacher/apple-touch-icon.png', 'teacher/rooms.json', 'teacher/teachers.json', 'teacher/subjects.json']; // teacher/ — Skedy для учителей
+  'teacher/', 'teacher/index.html', 'teacher/manifest.webmanifest', 'teacher/icon-192.png', 'teacher/icon-512.png', 'teacher/apple-touch-icon.png', 'teacher/rooms.json', 'teacher/teachers.json', 'teacher/subjects.json',
+  'parents/', 'parents/index.html', 'parents/manifest.webmanifest', 'parents/icon-192.png', 'parents/icon-512.png', 'parents/apple-touch-icon.png']; // teacher/ — Skedy для учителей, parents/ — для родителей
 var FONTS = /^https:\/\/fonts\.(googleapis|gstatic)\.com$/;
 
 self.addEventListener('install', function (e) {
@@ -79,8 +80,8 @@ self.addEventListener('fetch', function (e) {
 self.addEventListener('push', function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) {}
-  // у Skedy Teachers своя иконка (с шапочкой)
-  var ico = /\/teacher\/$/.test(self.registration.scope) ? 'teacher/icon-192.png' : 'icon-192.png';
+  // у Skedy Teachers и Skedy Parents свои иконки (с шапочкой и с сердечком)
+  var m = /\/(teacher|parents)\/$/.exec(self.registration.scope), ico = m ? m[1] + '/icon-192.png' : 'icon-192.png';
   e.waitUntil(self.registration.showNotification(d.title || 'Skedy', {
     body: d.body || '',
     tag: d.tag || 'changes',
@@ -94,11 +95,11 @@ self.addEventListener('push', function (e) {
 
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
-  // открываем то приложение, чья это подписка: ученическое (scope «/») или для учителей (scope «/teacher/»)
-  var scope = self.registration.scope, teacher = /\/teacher\/$/.test(scope);
+  // открываем то приложение, чья это подписка: ученическое (scope «/»), для учителей («/teacher/») или для родителей («/parents/»)
+  var scope = self.registration.scope, sub = /\/(teacher|parents)\/$/.test(scope);
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
     for (var i = 0; i < list.length; i++) {
-      var u = list[i].url, mine = u.indexOf(scope) === 0 && (teacher || u.indexOf('/teacher/') < 0);
+      var u = list[i].url, mine = u.indexOf(scope) === 0 && (sub || (u.indexOf('/teacher/') < 0 && u.indexOf('/parents/') < 0));
       if (mine && 'focus' in list[i]) return list[i].focus();
     }
     return self.clients.openWindow(scope);

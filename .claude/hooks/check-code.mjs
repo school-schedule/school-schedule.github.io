@@ -111,8 +111,8 @@ const base = path.basename(file);
 const text = fs.readFileSync(file, 'utf8');
 const errors = [];
 
-// приложения без встроенных данных: teacher/index.html (Skedy Teachers) и admin/index.html (расписание всей школы)
-// проверяем код и <head>; manifest нужен только учителям (admin — не PWA)
+// приложения без встроенных данных: teacher/index.html (Skedy Teachers), parents/index.html (Skedy Parents) и admin/index.html (расписание всей школы)
+// проверяем код и <head>; manifest нужен учителям и родителям (admin — не PWA)
 function checkApp(html, errors, label, must) {
   const jOpen = '<script id="app-js">';
   const ji = html.indexOf(jOpen), je = html.indexOf('</script>', ji);
@@ -125,6 +125,7 @@ function checkApp(html, errors, label, must) {
 
 const dir = path.basename(path.dirname(path.resolve(file)));
 if (base === 'index.html' && dir === 'teacher') checkApp(text, errors, 'teacher/index.html', ['config.js', 'manifest.webmanifest']);
+else if (base === 'index.html' && dir === 'parents') checkApp(text, errors, 'parents/index.html', ['config.js', 'manifest.webmanifest']);
 else if (base === 'index.html' && dir === 'admin') checkApp(text, errors, 'admin/index.html', ['config.js']);
 else if (base === 'index.html') checkIndex(text, errors);
 // код Cloudflare Worker (worker/) — тоже модуль

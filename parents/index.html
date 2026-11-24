@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#171717">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Skedy Parents">
+<title>Skedy Parents</title>
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="../config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="app-css">
+/* Skedy Parents: та же палитра p2 («лайм»), что у ученического приложения */
+:root{--bg:#171717;--card:#101010;--line:rgba(255,255,255,.08);--ink:#F2F2F2;--muted:#A3A3A3;--acc:#C6FF00;--acc-ink:#171717;--bad:#FF5A5F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Rubik",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#root{max-width:620px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);margin:0 -16px 8px;padding-inline:16px}
+.top .logo{width:36px;height:36px;flex:none}
+.top b{font-size:20px;font-weight:700}
+.top .who{margin-inline-start:auto;color:var(--muted);font-size:14px;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+h2{font-size:30px;font-weight:700;margin:14px 0 4px}
+.sub{color:var(--muted);margin:0 0 16px;line-height:1.45}
+.muted{color:var(--muted)}.small{font-size:14px}.center{text-align:center}
+.input{width:100%;font:inherit;font-size:17px;color:var(--ink);background:#0D0D0D;border:1px solid var(--line);border-radius:16px;padding:13px 16px;outline:none}
+.input:focus{border-color:var(--acc)}
+.list{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.list button{display:block;width:100%;text-align:start;padding:14px 18px;font-size:17px;border-bottom:1px solid var(--line);min-height:50px}
+.list button:last-child{border-bottom:0}
+.list button:active{background:#1d1d1d}
+.primary{background:var(--acc);color:var(--acc-ink);font-weight:600;border-radius:999px;padding:14px 22px;min-height:48px;width:100%;box-shadow:0 0 18px rgba(198,255,0,.25)}
+.secondary{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:13px 20px;min-height:48px;width:100%;font-weight:600}
+.link{color:var(--acc);text-decoration:underline;padding:10px;font-size:15px}
+.dayhead{display:flex;align-items:center;gap:10px;margin:14px 0 10px}
+.dayhead .t{flex:1}.dayhead .wd{font-size:30px;font-weight:700;margin:0}.dayhead .dt{color:var(--muted);font-size:15px}
+.icon-btn{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#0D0D0D;border:1px solid var(--line);border-radius:18px;padding:4px;margin-bottom:14px}
+.chip{border-radius:14px;min-height:48px;font-weight:600;color:var(--muted)}
+.chip.on{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc),0 0 12px rgba(198,255,0,.25)}
+.chip.today b{text-decoration:underline;text-underline-offset:4px}
+ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.lesson{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:13px 15px}
+.lesson .num{flex:none;min-width:30px;height:30px;padding:0 6px;border-radius:999px;display:grid;place-items:center;font-weight:600;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3);font-variant-numeric:tabular-nums;direction:ltr}
+.lesson .body{flex:1;min-width:0}
+.r1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.subj{font-weight:700;font-size:17px}
+.time{color:var(--muted);font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}
+.r2{color:var(--muted);font-size:14px;margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.r2 .aud{color:var(--ink)}
+.r2 s{opacity:.6}.r2 mark{background:none;color:var(--acc);font-weight:600}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;background:var(--acc);color:var(--acc-ink)}
+.tag.cancel{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)}
+.tag.next{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.tag.sub{background:none;color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.lesson.is-now{border-color:var(--acc);box-shadow:0 0 18px rgba(198,255,0,.22)}
+.lesson.is-now .num{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.lesson.is-test .num,.lesson.is-exam .num,.lesson.is-room .num{background:var(--acc);color:var(--acc-ink);box-shadow:none}
+.lesson.is-cancel .subj{text-decoration:line-through;opacity:.7}
+.lesson.free{background:none;border:0;padding:4px 15px;color:var(--muted)}
+.lesson.free .num{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.left{color:var(--acc);font-size:14px;font-weight:600;margin-top:6px}
+.notice.msg{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.notice.msg small{opacity:.7;font-weight:400}.notice.msg button{color:inherit;min-width:36px;min-height:36px;flex:none}
+.notice{background:#1f2a00;border:1px solid rgba(198,255,0,.5);color:var(--acc);border-radius:16px;padding:11px 14px;margin-bottom:12px;font-weight:500}
+.notice.plain{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:400}
+.empty{color:var(--muted);text-align:center;padding:40px 10px}
+.hols{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px}.hol{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 16px}
+.hol .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.hol .hd b{font-size:18px}.hol .hn{flex:none;font-size:13px;font-weight:600;color:var(--acc)}
+.hol .dd{color:var(--muted);font-size:14px;margin-top:2px}.hol .ht{margin-top:6px}.hol.soon{border-color:var(--acc)}
+.dhead{font-size:16px;color:var(--muted);margin:18px 4px 8px}
+.field{margin:16px 0}.field>label{display:block;color:var(--muted);font-size:14px;margin:0 4px 6px}
+.langs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#0D0D0D;border:1px solid var(--line);border-radius:16px;padding:4px}
+.langs button{border-radius:12px;min-height:44px;font-weight:600;color:var(--muted)}
+.langs button.on{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.foot{color:var(--muted);font-size:13px;text-align:center;margin-top:22px;line-height:1.5}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.welcome{text-align:center;padding-top:30px}
+.welcome .logo{width:88px;height:88px}
+.welcome h1{font-size:32px;margin:12px 0 4px}
+.tabbar{position:fixed;inset-inline:0;bottom:0;padding:0 16px calc(10px + env(safe-area-inset-bottom));z-index:5;pointer-events:none}
+.tabbar .in{pointer-events:auto;max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(16,16,16,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:28px;padding:6px}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:52px;color:var(--muted);font-size:12px;font-weight:600;position:relative}
+.tabbar button.on{color:var(--acc)}
+.tabbar svg{width:24px;height:24px}
+.tabbar .badge{position:absolute;top:2px;inset-inline-end:calc(50% - 22px);background:var(--acc);color:var(--acc-ink);border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
+.tabbar .badge:empty{display:none}
+.pstrip{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin:0 -16px 6px;padding-inline:16px;scrollbar-width:none}
+.pstrip::-webkit-scrollbar{display:none}
+.pstrip .chip{flex:none;min-width:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;background:#0D0D0D;border:1px solid var(--line)}
+.pstrip .chip small{font-size:11px;font-weight:400;color:var(--muted);direction:ltr}
+.pstrip .chip.on{border-color:transparent}
+.bld{margin:14px 0}.bld>b{display:block;font-size:15px;color:var(--muted);margin:0 4px 8px}
+.rooms{display:flex;flex-wrap:wrap;gap:8px}
+.room{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;font-size:15px;min-height:40px;display:inline-flex;align-items:center}
+.seg2{grid-template-columns:repeat(2,1fr);margin-top:14px}
+.g6{grid-template-columns:repeat(6,1fr)}
+.nums{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}
+.nums button{border-radius:12px;min-height:44px;font-weight:600;background:#0D0D0D;border:1px solid var(--line);color:var(--muted)}
+.nums button.on{color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+#wl{margin-top:8px}#wl:not(:has(button:not([hidden]))){display:none}
+/* ---------- анимации, как в ученическом Skedy ---------- */
+/* переезжающая лаймовая рамка в переключателях (дни, уроки, языки, режимы, классы) и круг под вкладкой */
+.sl{position:relative}.sl > :not(.slider){position:relative;z-index:1}
+.sl > .on{box-shadow:none!important;background:transparent!important;border-color:transparent!important}
+.slider{position:absolute;left:0;top:0;z-index:0;border-radius:12px;pointer-events:none;background:radial-gradient(circle,rgba(198,255,0,.2),rgba(198,255,0,.04) 75%);box-shadow:inset 0 0 0 1.5px var(--acc),0 0 14px rgba(198,255,0,.4);transition:transform .5s cubic-bezier(.34,1.3,.64,1),width .5s cubic-bezier(.34,1.3,.64,1),height .5s cubic-bezier(.34,1.3,.64,1)}
+.strip .slider,.pstrip .slider{border-radius:14px}
+.tabbar .slider{background:none;box-shadow:none;transition:transform .55s cubic-bezier(.34,1.35,.64,1)}
+.tabbar .slider::before{content:'';position:absolute;top:-1px;left:50%;width:38px;height:38px;margin-left:-19px;border-radius:50%;background:radial-gradient(circle,rgba(198,255,0,.28),rgba(198,255,0,.06) 70%);box-shadow:inset 0 0 0 1.5px var(--acc),0 0 14px rgba(198,255,0,.45)}
+.tabbar svg.pop{animation:navpop .5s cubic-bezier(.34,1.5,.64,1)}
+@keyframes navpop{0%{transform:none}40%{transform:translateY(-9px) scale(1.15)}100%{transform:none}}
+/* новый экран, день или урок: карточки появляются по очереди с пружинкой */
+.wrap.enter .lessons > li,.wrap.enter .room,.wrap.enter .list,.wrap.enter .stack,.wrap.enter .field,.wrap.enter .notice{animation:cardin .5s cubic-bezier(.34,1.25,.64,1) both}
+.wrap.enter h2,.wrap.enter .sub,.wrap.enter .dhead,.wrap.enter .empty,.wrap.enter .foot,.wrap.enter .bld > b{animation:fadein .35s ease both}
+.wrap.enter .lessons > li:nth-child(2),.wrap.enter .room:nth-child(2){animation-delay:30ms}
+.wrap.enter .lessons > li:nth-child(3),.wrap.enter .room:nth-child(3){animation-delay:60ms}
+.wrap.enter .lessons > li:nth-child(4),.wrap.enter .room:nth-child(4){animation-delay:90ms}
+.wrap.enter .lessons > li:nth-child(5),.wrap.enter .room:nth-child(5){animation-delay:120ms}
+.wrap.enter .lessons > li:nth-child(6),.wrap.enter .room:nth-child(6){animation-delay:150ms}
+.wrap.enter .lessons > li:nth-child(7),.wrap.enter .room:nth-child(7){animation-delay:180ms}
+.wrap.enter .lessons > li:nth-child(8),.wrap.enter .room:nth-child(8){animation-delay:210ms}
+.wrap.enter .lessons > li:nth-child(9),.wrap.enter .room:nth-child(9){animation-delay:240ms}
+.wrap.enter .lessons > li:nth-child(n+10),.wrap.enter .room:nth-child(n+10){animation-delay:270ms}
+/* заставка при запуске */
+.splash{position:fixed;inset:0;z-index:9999;background:#171717;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;animation:spOut .28s ease .44s forwards}
+.splash .sl{position:relative;display:grid;place-items:center}
+.splash .sl .logo{width:104px;height:104px;border-radius:28px;animation:spPop .46s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 0 26px rgba(198,255,0,.35))}
+.splash .sl i{position:absolute;inset:0;border-radius:30px;border:2px solid #C6FF00;animation:spRing .62s ease-out .12s both}
+.splash b{font:700 28px Rubik,system-ui,sans-serif;color:#F2F2F2;letter-spacing:.2px;animation:spTxt .32s ease .14s both}
+@keyframes spPop{from{transform:scale(.5) rotate(-10deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes spRing{from{transform:scale(.85);opacity:.9}to{transform:scale(1.9);opacity:0}}
+@keyframes spTxt{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes spOut{to{opacity:0;transform:scale(1.03)}}
+@keyframes cardin{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes wfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media (prefers-reduced-motion:no-preference){.welcome .logo{animation:wfloat 4s ease-in-out infinite}}
+@media (prefers-reduced-motion:reduce){.slider,.tabbar .slider{transition:none}.tabbar svg.pop,.wrap.enter *{animation:none!important}}
+.gtoggle{margin-top:8px;color:var(--acc);font-size:14px;font-weight:600;padding:8px 0;min-height:36px}
+.glist{list-style:none;margin:4px 0 0;padding:0;border-top:1px solid var(--line)}
+.glist li{display:flex;flex-direction:column;gap:2px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.glist li:last-child{border-bottom:0}
+.glist li b{font-weight:600}
+/* учитель и кабинет — отдельными кусками в ряд: порядок «учитель · кабинет» в любом направлении письма */
+.glist .gm{display:flex;flex-wrap:wrap;gap:0 6px;color:var(--muted)}.glist .gm i{font-style:normal}
+@media (prefers-reduced-motion:no-preference){.glist{animation:cardin .4s cubic-bezier(.34,1.25,.64,1) both}}
+bdi{unicode-bidi:isolate}
+[hidden]{display:none!important}
+.tabbar .in{grid-template-columns:repeat(3,1fr)}
+/* переключатель детей: имя и класс под ним */
+.langs.kids{margin:0 0 4px}.langs.kids button{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.langs.kids small{font-size:11px;font-weight:400;color:var(--muted)}
+.input.code{font-size:26px;letter-spacing:8px;text-align:center;font-variant-numeric:tabular-nums}.input.code:placeholder-shown{font-size:17px;letter-spacing:normal}
+.klist{display:flex;flex-direction:column;gap:8px}
+.krow{display:flex;align-items:center;gap:8px}.krow .input{flex:1;min-width:0;padding:11px 14px}
+.krow .kcls{color:var(--muted);font-size:14px;flex:none}
+.kdel{flex:none;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-size:14px;font-weight:600}
+.kdel.arm{color:var(--bad);border-color:var(--bad)}
+button[disabled]{opacity:.6}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script id="app-js">
+(function(){
+'use strict';
+/* ---------- storage helpers ---------- */
+// своя память skedyPa.* — отдельно от учеников (sched.*), учителей (skedyT.*) и пробника י״א/י״ב (skedyP.*)
+function sGet(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/* ---------- texts ---------- */
+var T={
+he:{app:'Skedy Parents',addTitle:'הוספת ילד או ילדה',addSub:'בקשו מהילד לפתוח את Skedy ← לשונית „חברים“ ← „הקוד שלי“. זה מספר של 3 ספרות.',codePh:'קוד (3 ספרות)',nameShort:'שם (לא חובה)',namePh:'שם (לא חובה, נשמר רק בטלפון הזה)',addBtn:'הוספה',codeBad:'לא מצאנו את הקוד. בדקו את המספר.',codeDup:'הילד הזה כבר ברשימה.',netFail:'אין חיבור לשרת. נסו שוב.',onlyTen:'בינתיים Skedy עובד רק לשכבה י׳.',
+ kids:'הילדים',addMore:'+ ילד או ילדה נוספים',remove:'הסרה',removeSure:'ללחוץ שוב להסרה',kidGone:'הקוד של {n} כבר לא פעיל. מוצגת המערכת האחרונה ששמורה – בקשו קוד חדש.',cancel:'ביטול',
+ privNote:'השמות שנתתם לילדים נשמרים רק בטלפון הזה. לפי הקוד Skedy לוקח מהשרת רק את הכיתה והקבוצות.',studentApp:'Skedy לתלמידים',
+ pushBtn:'🔔 התראות על שינויים במערכת של הילדים',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה במערכת של הילדים.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את הכיתה והקבוצות של הילדים ואת כתובת ההתראות של המכשיר – בלי שמות.',
+ holBtn:'חופשות וימים בלי לימודים',holSub:'כל הימים הקרובים בלי לימודים: חגים, חופשות וימים מיוחדים.',holNone:'עוד אין ימים בלי לימודים במערכת.',holDay1:'יום לימודים אחד',holDays:'{n} ימי לימודים',holNote:'לפי לוח החופשות של בית הספר, שח״ף ו־Skedy Admin. חופשה שצמודה לסוף השבוע – משישי ועד שבת.',
+ today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',subTag:'החלפה',test:'מבחן',exam:'בחינה',
+ nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים.',noTests:'אין מבחנים ב־3 השבועות הקרובים.',
+ language:'שפה',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
+ installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
+ noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
+en:{app:'Skedy Parents',addTitle:'Add your child',addSub:'Ask your child to open Skedy → the “Friends” tab → “My code”. It’s a 3-digit number.',codePh:'Code (3 digits)',nameShort:'Name (optional)',namePh:'Name (optional, stays on this phone)',addBtn:'Add',codeBad:'Code not found. Check the number.',codeDup:'This child is already on the list.',netFail:'Can’t reach the server. Try again.',onlyTen:'For now Skedy works for grade 10 only.',
+ kids:'Children',addMore:'+ Add another child',remove:'Remove',removeSure:'Tap again to remove',kidGone:'The code for {n} no longer works. Showing the last saved schedule — ask for a new code.',cancel:'Cancel',
+ privNote:'The names you give your children stay only on this phone. With the code, Skedy gets only the class and groups from the server.',studentApp:'Skedy for students',
+ pushBtn:'🔔 Get alerts about changes in my children’s schedule',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your children’s schedule.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps your children’s class and groups and this device’s alert address — no names.',
+ holBtn:'Holidays and days off',holSub:'All upcoming days without school: holidays, vacations and special days.',holNone:'No days off in the schedule yet.',holDay1:'1 school day',holDays:'{n} school days',holNote:'From the school’s holiday calendar, Shahaf and Skedy Admin. A break next to a weekend is shown from Friday to Saturday.',
+ today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'No lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',subTag:'Substitute',test:'Test',exam:'Exam',
+ nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks.',noTests:'No tests in the next 3 weeks.',
+ language:'Language',updated:'Updated',offline:'No internet. Showing the last saved schedule.',loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
+ installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
+ noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
+ru:{app:'Skedy Parents',addTitle:'Добавьте ребёнка',addSub:'Попросите ребёнка открыть Skedy → вкладка «Друзья» → «Мой код». Это число из 3 цифр.',codePh:'Код (3 цифры)',nameShort:'Имя (необязательно)',namePh:'Имя (необязательно, только в этом телефоне)',addBtn:'Добавить',codeBad:'Код не найден. Проверьте число.',codeDup:'Этот ребёнок уже в списке.',netFail:'Нет связи с сервером. Попробуйте ещё раз.',onlyTen:'Пока Skedy работает только для י׳.',
+ kids:'Дети',addMore:'+ Ещё ребёнок',remove:'Убрать',removeSure:'Нажмите ещё раз, чтобы убрать',kidGone:'Код ({n}) больше не действует. Показано последнее сохранённое расписание — попросите новый код.',cancel:'Отмена',
+ privNote:'Имена детей хранятся только в этом телефоне. По коду Skedy берёт с сервера только класс и группы.',studentApp:'Skedy для учеников',
+ pushBtn:'🔔 Уведомления об изменениях в расписании детей',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в расписании детей.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит класс и группы детей и адрес уведомлений этого устройства — без имён.',
+ holBtn:'Каникулы и выходные',holSub:'Все ближайшие дни без учёбы: праздники, каникулы и особые дни.',holNone:'Дней без учёбы в расписании пока нет.',holDay1:'1 учебный день',holDays:'Учебных дней: {n}',holNote:'По календарю каникул школы, Шахаф и Skedy Admin. Каникулы рядом с выходными — с пятницы и по субботу.',
+ today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день уроков нет',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',subTag:'Замена',test:'Контрольная',exam:'Экзамен',
+ nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд.',noTests:'В ближайшие 3 недели контрольных нет.',
+ language:'Язык',updated:'Обновлено',offline:'Нет интернета. Показано последнее сохранённое расписание.',loading:'Загружаю расписание…',loadFail:'Не удалось загрузить расписание. Проверьте интернет.',retry:'Попробовать ещё раз',install:'На экран «Домой»',
+ installHint:'iPhone и iPad: в Safari нажмите «Поделиться» → «На экран „Домой“». Android: меню ⋮ → «Установить». Компьютер: значок установки в адресной строке.',
+ noSchool:'Учёбы нет',period:'Урок',periods:'Уроки',room:'Каб.',backToday:'Вернуться к сегодня',notOfficial:'Skedy — помощник, а не официальное расписание. Если сомневаетесь, проверьте в שח״ף.'}
+};
+var DAYS={he:['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'],en:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],ru:['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']};
+var DAYS_S={he:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ru:['Вс','Пн','Вт','Ср','Чт','Пт','Сб']};
+var LOC={he:'he-IL',en:'en-GB',ru:'ru-RU'};
+// логотип: обычный «sk.» с белым сердечком над «s» (у Skedy Teachers на этом месте шапочка)
+var LOGO='<svg class="logo" width="36" height="36" aria-hidden="true" viewBox="0 0 512 512"><defs><radialGradient id="plb" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#1c1f12"/><stop offset=".55" stop-color="#0d0d0d"/><stop offset="1" stop-color="#070707"/></radialGradient><filter id="plg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="512" height="512" rx="116" fill="url(#plb)"/><g transform="translate(256 256) scale(.92) translate(-256 -256)"><path fill="#fff" d="M134.8 353.2Q116.4 353.2 103.5 349.3Q90.5 345.4 82.3 339.4Q74.1 333.5 70.3 327.1Q66.5 320.8 66.2 315.9Q66 313 68 310.9Q70 308.9 72.4 308.9H111.6Q111.9 308.9 112.4 309.1Q112.9 309.2 113.5 309.7Q117 310.8 120.1 313.2Q123.2 315.7 127.1 317.6Q131 319.4 136.4 319.4Q141 319.4 144.7 317.4Q148.3 315.4 148.3 311.6Q148.3 308.4 146.3 305.9Q144.3 303.5 137.8 301.2Q131.3 298.9 117 296.2Q103.8 293.5 92.8 288.3Q81.9 283 75.5 274.1Q69.2 265.2 69.2 252.2Q69.2 241.1 76.5 230.9Q83.8 220.6 98.2 214Q112.7 207.4 133.7 207.4Q149.7 207.4 161.9 211.2Q174.2 215 182.7 220.6Q191.2 226.3 195.7 232.8Q200.1 239.3 200.4 244.4Q200.7 247.4 198.8 249.4Q196.9 251.4 194.5 251.4H159.1Q158.3 251.4 157.4 251.3Q156.4 251.1 155.9 250.6Q152.1 249.8 149 247.5Q145.9 245.2 142.4 243.2Q138.9 241.1 133.5 241.1Q128.9 241.1 126 243.3Q123.2 245.5 123.2 249Q123.2 251.9 125.1 254.4Q127 256.8 133.7 259Q140.5 261.1 155.1 263.6Q174 266.5 185.3 273.4Q196.6 280.3 201.5 289.5Q206.4 298.7 206.4 307.8Q206.4 321.6 198.1 331.9Q189.9 342.1 173.8 347.7Q157.8 353.2 134.8 353.2ZM234.4 350.5Q231.5 350.5 229.4 348.5Q227.4 346.4 227.4 343.5V165.8Q227.4 162.8 229.4 160.8Q231.5 158.8 234.4 158.8H273.6Q276.6 158.8 278.6 160.8Q280.6 162.8 280.6 165.8V254.9L311.4 214.7Q312.5 213.3 314.4 211.7Q316.2 210.1 319.8 210.1H365.1Q367.8 210.1 369.6 211.9Q371.3 213.6 371.3 216.3Q371.3 217.4 370.9 218.7Q370.5 220.1 369.7 220.6L326.8 273.3L376.5 340.2Q377.8 342.4 377.8 344.3Q377.8 347 376.1 348.7Q374.3 350.5 371.6 350.5H324.6Q320.6 350.5 318.8 348.7Q317.1 347 315.7 345.9L280.6 297.3V343.5Q280.6 346.4 278.6 348.5Q276.6 350.5 273.6 350.5Z"/><circle cx="418.8" cy="326.2" r="27" fill="#C6FF00" filter="url(#plg)"/><g transform="translate(132 146) rotate(-12)" filter="url(#plg)"><path d="M0 46C-34 22-64 0-64-28C-64-48-48-62-29-62C-15-62-5-54 0-43C5-54 15-62 29-62C48-62 64-48 64-28C64 0 34 22 0 46Z" fill="#fff"/><path d="M-30-40C-40-38-46-30-46-22" fill="none" stroke="#C6FF00" stroke-width="7" stroke-linecap="round"/></g></g></svg>';
+
+/* ---------- state ---------- */
+// prefs = {lang, kids:[{id, code, name?, c, g:[группы], at, gone?}], cur}; имя ребёнка — только здесь, на сервер не уходит
+var prefs=sGet('skedyPa.prefs')||{};if(!T[prefs.lang])prefs.lang='he';if(!Array.isArray(prefs.kids))prefs.kids=[];
+var STATE=sGet('skedyPa.data');
+// изменения на даты и дни без учёбы из Skedy Admin (GET /ttch)
+var TTCH=sGet('skedyPa.ttch');
+var ui={screen:'day',date:null,offline:false,loading:false,failed:false,add:false,code:'',name:'',err:'',busy:false,delArm:null};
+var API=(function(){var u=String(window.SCHEDULE_API||'').trim();return /^(https:\/\/|http:\/\/localhost)/.test(u)?u.replace(/\/+$/,''):'';})();
+function t(k){return (T[prefs.lang]||T.he)[k]||T.he[k]||k;}
+function nm(o){return o?(o[prefs.lang]||o.he||''):'';}
+function savePrefs(){sSet('skedyPa.prefs',prefs);}
+
+/* ---------- dates ---------- */
+function pad(n){return (n<10?'0':'')+n;}
+function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function addDays(s,n){var d=parse(s);d.setDate(d.getDate()+n);return iso(d);}
+function wday(s){return parse(s).getDay();}
+function todayISO(){return iso(new Date());}
+function schoolDay(s){while(wday(s)>=5)s=addDays(s,1);return s;}
+function stepDay(s,n){do{s=addDays(s,n);}while(wday(s)>=5);return s;}
+function fmtDate(s){try{return new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'long'}).format(parse(s));}catch(e){return s;}}
+function fmtStamp(s){try{return new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(s));}catch(e){return s;}}
+function mins(hm){var p=String(hm).split(':');return (+p[0])*60+(+p[1]);}
+function nowMins(){var d=new Date();return d.getHours()*60+d.getMinutes();}
+
+/* ---------- kids ---------- */
+function byId(list,id){for(var i=0;i<(list||[]).length;i++)if(list[i].id===id)return list[i];return null;}
+function per(n){var r=null;(STATE.periods||[]).forEach(function(p){if(p.n===n)r=p;});return r;}
+function normT(s){return String(s||'').replace(/[״"'׳`\-–]/g,' ').replace(/\s+/g,' ').trim();}
+// дети, чей класс есть в данных Skedy (пока только י׳)
+function kidsOk(){return STATE?prefs.kids.filter(function(k){return !!byId(STATE.classes,k.c);}):[];}
+function kid(){var ks=kidsOk();if(!ks.length)return null;var k=null;ks.forEach(function(x){if(x.id===prefs.cur)k=x;});return k||ks[0];}
+function clsName(k){return nm(byId(STATE.classes,k.c));}
+function kidLabel(k){return k.name||clsName(k);}
+
+/* ---------- lessons (как в приложении учеников: класс + группы, изменения) ---------- */
+function groupFitsCls(g,cid){if(g.exceptClasses&&g.exceptClasses.indexOf(cid)>=0)return false;return !g.classId||g.classId===cid;}
+function openSubj(sid){var s=byId(STATE.subjects,sid);return !!(s&&s.open);}
+function hasMap(cid){var m={};STATE.groups.forEach(function(x){if(groupFitsCls(x,cid))m[x.subjectId]=1;});return m;}
+function groupFits(g,cid,has){return openSubj(g.subjectId)?!!has[g.subjectId]:groupFitsCls(g,cid);}
+function lessonsFor(date,k){
+  var wd=wday(date),cid=k.c,has=hasMap(cid),gids=(k.g||[]).filter(function(id){var g=byId(STATE.groups,id);return g&&groupFits(g,cid,has);});
+  return STATE.lessons.filter(function(l){return l.day===wd&&((l.aud.type==='class'&&l.aud.id===cid)||(l.aud.type==='group'&&gids.indexOf(l.aud.id)>=0));})
+    .sort(function(a,b){return a.period-b.period;}).map(function(l){return {l:l,ch:changesFor(date,l.id)};});
+}
+function changesFor(date,lid){var r=(STATE.changes||[]).filter(function(c){return c.date===date&&c.lessonId===lid;});
+  extChanges(date,lid).forEach(function(x){if(!r.some(function(y){return y.type===x.type;}))r.push(x);});return r;}
+// изменения из Skedy Admin для урока Skedy: тот же день недели, номер урока и учитель
+function extChanges(date,lid){if(!TTCH||!TTCH.ch)return [];var l=byId(STATE.lessons,lid);if(!l||wday(date)!==l.day)return [];
+  var k=normT(l.teacher);if(!k)return [];
+  return TTCH.ch.filter(function(c){return c.date===date&&c.p===l.period&&normT(c.t)===k;}).map(function(c){
+    return {type:c.type,room:c.room||'',sub:c.sub||'',note:c.note||''};});}
+// каникулы школы на 5787 год (2026–2027) — по годовому плану школы, как у учеников и учителей; на следующий год — заменить
+var SCHOOL_OFF=[
+ ['2026-09-11','2026-09-13',{he:'ראש השנה',en:'Rosh Hashanah',ru:'Рош ха-Шана'}],
+ ['2026-09-20','2026-10-03',{he:'חופשת חגי תשרי',en:'Tishrei holidays',ru:'Осенние праздники'}],
+ ['2026-10-27','2026-10-27',{he:'יום הבחירות',en:'Election day',ru:'День выборов'}],
+ ['2026-12-06','2026-12-12',{he:'חופשת חנוכה',en:'Hanukkah vacation',ru:'Каникулы Хануки'}],
+ ['2027-03-23','2027-03-24',{he:'פורים',en:'Purim',ru:'Пурим'}],
+ ['2027-04-13','2027-04-28',{he:'חופשת פסח',en:'Passover vacation',ru:'Каникулы Песаха'}],
+ ['2027-05-12','2027-05-12',{he:'יום העצמאות',en:'Independence Day',ru:'День независимости'}],
+ ['2027-06-10','2027-06-11',{he:'שבועות',en:'Shavuot',ru:'Шавуот'}],
+ ['2027-06-21','2027-08-31',{he:'החופש הגדול',en:'Summer vacation',ru:'Летние каникулы'}]];
+function schoolOff(date){var r=null;SCHOOL_OFF.forEach(function(x){if(!r&&date>=x[0]&&date<=x[1])r=x;});return r;}
+function holRanges(by){var out=[];Object.keys(by).sort().forEach(function(d){var txt=by[d].join(' · '),b=out[out.length-1];
+    if(b&&b.text===txt&&stepDay(b.to,1)===d){b.to=d;b.n++;return;}out.push({from:d,to:d,text:txt,n:1});});
+  out.forEach(function(x){if(wday(x.from)===0)x.from=addDays(x.from,-2);if(wday(x.to)===4)x.to=addDays(x.to,2);});
+  return out;}
+// дни без учёбы: каникулы школы и выходные из Skedy Admin для всей школы или с י׳
+function extOff(date){var so=schoolOff(date),r=so?[{date:date,text:nm(so[2]),off:true}]:[];if(!TTCH||!TTCH.off)return r;
+  return r.concat(TTCH.off.filter(function(o){return date>=o.date&&date<=(o.to||o.date)&&(!o.g.length||o.g.indexOf(10)>=0);}).map(function(o){return {date:date,text:o.text,off:true};}));}
+// учителя ребёнка за неделю — для событий одной группы («בקבוצה של …»)
+function teachersOf(k){var key=k.c+'|'+(k.g||[]).join(',')+'|'+STATE.updatedAt;if(teachersOf.k===key)return teachersOf.v;
+  var set={},sun=addDays(todayISO(),-wday(todayISO()));for(var i=0;i<5;i++)lessonsFor(addDays(sun,i),k).forEach(function(x){set[normT(x.l.teacher)]=1;});
+  teachersOf.k=key;teachersOf.v=set;return set;}
+function eventsFor(date,k){return (STATE.events||[]).filter(function(e){return e.date===date&&(!e.cls||e.cls.indexOf(k.c)>=0)&&(!e.teacher||teachersOf(k)[normT(e.teacher)]);}).concat(extOff(date));}
+function dayOff(date,k){var e=eventsFor(date,k).filter(function(x){return x.off&&!x.from;});return e.length?e[0]:null;}
+function kind(x){var r='';x.ch.forEach(function(c){if(c.type==='test'||c.type==='exam')r=c.type;});return r;}
+// контрольная одного предмета на несколько уроков подряд — одна карточка
+function blocks(items){var out=[];items.forEach(function(x){var k=kind(x),b=out[out.length-1];
+  if(b&&k&&b.k===k&&b.s===x.l.subjectId&&x.l.period>=b.last&&x.l.period<=b.last+1){b.last=x.l.period;}
+  else out.push({k:k,s:x.l.subjectId,last:x.l.period,x:x});});return out;}
+function upcomingTests(k){var d=todayISO(),end=addDays(d,21),out=[];
+  for(;d<=end;d=addDays(d,1)){if(wday(d)>=5||dayOff(d,k))continue;
+    var its=lessonsFor(d,k).filter(function(x){return kind(x);});if(its.length)out.push({date:d,items:blocks(its)});}
+  return out;}
+function holList(k){var by={},today=todayISO(),add=function(d,text){var a=by[d]=by[d]||[];if(a.indexOf(text)<0)a.push(text);};
+  (STATE.events||[]).forEach(function(e){if(e.off&&!e.from&&!e.teacher&&e.date>=today&&(!e.cls||e.cls.indexOf(k.c)>=0))add(e.date,e.text);});
+  if(TTCH&&TTCH.off)TTCH.off.forEach(function(o){if(o.g.length&&o.g.indexOf(10)<0)return;
+    for(var d=o.date,i=0;d<=(o.to||o.date)&&i<120;d=addDays(d,1),i++)if(d>=today&&wday(d)<5)add(d,o.text);});
+  SCHOOL_OFF.forEach(function(x){for(var d=x[0],i=0;d<=x[1]&&i<120;d=addDays(d,1),i++)if(d>=today&&wday(d)<5)add(d,nm(x[2]));});
+  return holRanges(by);}
+// какой день открывать: вечером, когда уроки закончились (не раньше 16:00), — следующий учебный
+function homeDay(){var d=todayISO(),k=kid();if(wday(d)>=5||!k)return schoolDay(d);
+  var end=16*60;lessonsFor(d,k).forEach(function(x){var p=per(x.l.period);if(p)end=Math.max(end,mins(p.end));});
+  return nowMins()>=end?stepDay(d,1):d;}
+
+/* ---------- data from server ---------- */
+// light — только изменения (/data, /ttch); коды детей перепроверяются не чаще раза в 6 часов
+function load(light){
+  if(!API){ui.failed=!STATE;render();return;}
+  ui.loading=!STATE;render();
+  fetch(API+'/data',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    ui.loading=false;
+    if(j&&Array.isArray(j.lessons)){if(!STATE||!STATE.updatedAt||!j.updatedAt||j.updatedAt>=STATE.updatedAt){STATE=j;sSet('skedyPa.data',j);}ui.offline=false;ui.failed=false;}
+    else{ui.offline=!!STATE;ui.failed=!STATE;}
+    render();
+  },function(){ui.loading=false;ui.offline=!!STATE;ui.failed=!STATE;render();});
+  fetch(API+'/ttch',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&Array.isArray(j.ch)){TTCH=j;sSet('skedyPa.ttch',j);render();}},function(){});
+  if(!light)refreshKids();
+}
+function palFetch(code){return fetch(API+'/pal/'+encodeURIComponent(code),{cache:'no-store'}).then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {s:r.status,j:j};});},function(){return {s:0,j:{}};});}
+// ребёнок мог поменять группы — берём выбор по коду заново; код удалён (404) — оставляем последний выбор и пишем об этом
+function refreshKids(){if(!API)return;var now=Date.now();
+  prefs.kids.forEach(function(k){if(now-(k.at||0)<216e5)return;
+    palFetch(k.code).then(function(x){var changed=false;
+      if(x.s===200&&x.j.classId){changed=k.c!==x.j.classId||(k.g||[]).join(',')!==(x.j.groups||[]).join(',')||!!k.gone;k.c=x.j.classId;k.g=x.j.groups||[];k.gone=false;k.at=Date.now();}
+      else if(x.s===404){changed=!k.gone;k.gone=true;k.at=Date.now();}
+      else return;
+      savePrefs();if(changed){syncPush();render();}});});}
+function addKid(){
+  var code=ui.code.trim(),name=ui.name.trim().slice(0,30);
+  if(!/^[1-9]\d{2}$/.test(code)){ui.err=t('codeBad');render();return;}
+  if(prefs.kids.some(function(k){return k.code===code;})){ui.err=t('codeDup');render();return;}
+  ui.busy=true;ui.err='';render();
+  palFetch(code).then(function(x){ui.busy=false;
+    if(x.s===404||x.s===400){ui.err=t('codeBad');render();return;}
+    if(x.s!==200||!x.j.classId){ui.err=t('netFail');render();return;}
+    if(!byId(STATE.classes,x.j.classId)){ui.err=t('onlyTen');render();return;}
+    var k={id:'k'+code,code:code,c:x.j.classId,g:x.j.groups||[],at:Date.now()};if(name)k.name=name;
+    prefs.kids.push(k);prefs.cur=k.id;savePrefs();syncPush();
+    ui.add=false;ui.code='';ui.name='';ui.screen='day';ui.date=homeDay();render();window.scrollTo(0,0);});
+}
+
+/* ---------- push ---------- */
+// своя регистрация service worker на /parents/ — своя подписка; серверу — только класс, группы и название класса каждого ребёнка
+function standalone(){try{return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}}
+function isIOS(){var u=navigator.userAgent||'';return /iphone|ipad|ipod/i.test(u)||(/macintosh/i.test(u)&&navigator.maxTouchPoints>1);}
+function pushOn(){try{return Notification.permission==='granted'&&!!sGet('skedyPa.push');}catch(e){return false;}}
+function b64uBytes(s){s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var r=atob(s),a=new Uint8Array(r.length);for(var i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}
+function swReady(){return navigator.serviceWorker.register('../sw.js',{scope:'./'}).then(function(){return navigator.serviceWorker.ready;});}
+function subKids(){return kidsOk().slice(0,6).map(function(k){var c=byId(STATE.classes,k.c);return {c:k.c,g:(k.g||[]).slice(0,60),n:c?c.he:''};});}
+function sendSub(sub,force){
+  var kids=subKids(),sig=[sub.endpoint,prefs.lang,JSON.stringify(kids)].join('|');if(!force&&sGet('skedyPa.pushsig')===sig)return Promise.resolve();
+  return fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub.toJSON?sub.toJSON():sub,kids:kids,lang:prefs.lang})})
+  .then(function(r){if(!r.ok)throw new Error('subscribe');sSet('skedyPa.pushsig',sig);});
+}
+function enablePush(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){ui.msg=t(isIOS()&&!standalone()?'pushNeedInstall':'pushUnsupported');render();return;}
+  Notification.requestPermission().then(function(p){
+    if(p!=='granted'){ui.msg=t('pushDenied');render();return;}
+    return Promise.all([swReady(),fetch(API+'/vapid').then(function(r){return r.json();})]).then(function(a){
+      var reg=a[0];return reg.pushManager.getSubscription().then(function(old){return old||reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uBytes(a[1].key)});});
+    }).then(function(sub){return sendSub(sub,true);}).then(function(){sSet('skedyPa.push','on');ui.msg=t('pushOnMsg');render();});
+  }).catch(function(){ui.msg=t('pushFailed');render();});
+}
+// добавили или убрали ребёнка, он сменил группы, сменили язык — сообщаем серверу
+function syncPush(){
+  if(!API||!STATE||!pushOn()||!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.getRegistration('./').then(function(reg){return reg&&reg.pushManager.getSubscription();}).then(function(x){if(x)return sendSub(x);}).catch(function(){});
+}
+
+/* ---------- screens ---------- */
+function top(){var k=kid();return '<div class="top">'+LOGO+'<b>Skedy</b>'+(k&&kidsOk().length<2?'<span class="who"><bdi>'+esc(kidLabel(k))+'</bdi></span>':'')+'</div>';}
+function langSwitch(){var h='<div class="langs">';[['he','עב'],['en','EN'],['ru','RU']].forEach(function(x){h+='<button class="'+(prefs.lang===x[0]?'on':'')+'" data-act="lang" data-id="'+x[0]+'">'+x[1]+'</button>';});return h+'</div>';}
+function chev(n){var r=(n<0)===(document.documentElement.dir==='rtl');return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+(r?'M9 6l6 6-6 6':'M15 6l-6 6 6 6')+'"/></svg>';}
+// переключатель детей (если их больше одного): имя или класс
+function kidSwitch(){var ks=kidsOk(),k=kid();if(ks.length<2)return '';
+  var h='<div class="langs kids" style="grid-template-columns:repeat('+ks.length+',1fr)">';
+  ks.forEach(function(x){h+='<button class="'+(x===k?'on':'')+'" data-act="kid" data-id="'+esc(x.id)+'"><bdi>'+esc(kidLabel(x))+'</bdi>'+(x.name?'<small><bdi>'+esc(clsName(x))+'</bdi></small>':'')+'</button>';});
+  return h+'</div>';}
+function goneNote(k){return k&&k.gone?'<div class="notice plain small">'+esc(t('kidGone').replace('{n}',kidLabel(k)))+'</div>':'';}
+// добавление ребёнка по коду друга из приложения учеников
+function renderAdd(){
+  var first=!kidsOk().length,h='';
+  if(first)h+='<div class="welcome">'+LOGO.replace('width="36" height="36"','width="88" height="88"')+'<h1>'+esc(t('app'))+'</h1></div><div class="field">'+langSwitch()+'</div>';
+  else h+=top();
+  h+='<h2>'+esc(t('addTitle'))+'</h2><p class="sub">'+esc(t('addSub'))+'</p>';
+  h+='<div class="stack"><input class="input code" id="kcode" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" dir="ltr" placeholder="'+esc(t('codePh'))+'" value="'+esc(ui.code)+'">'+
+    '<input class="input" id="kname" type="text" maxlength="30" autocomplete="off" dir="auto" placeholder="'+esc(t('namePh'))+'" value="'+esc(ui.name)+'">';
+  if(ui.err)h+='<div class="notice plain small" role="alert">'+esc(ui.err)+'</div>';
+  h+='<button class="primary" data-act="addKid"'+(ui.busy?' disabled':'')+'>'+esc(ui.busy?t('loading'):t('addBtn'))+'</button>';
+  if(!first)h+='<button class="secondary" data-act="addCancel">'+esc(t('cancel'))+'</button>';
+  h+='</div><p class="muted small" style="margin:14px 4px 0">'+esc(t('privNote'))+'</p>';
+  if(first)h+='<div class="center" style="margin-top:10px"><a class="link" href="../">'+esc(t('studentApp'))+'</a></div>';
+  return h;
+}
+function card(x,mark,after,toP){
+  var l=x.l,s=byId(STATE.subjects,l.subjectId),cls=[],tags='',roomHtml=esc(l.room||''),tchHtml=esc(l.teacher||''),newRoom=false;
+  if(mark){cls.push('is-'+mark);tags+='<span class="tag '+mark+'">'+esc(t(mark+'Tag'))+'</span>';}
+  x.ch.forEach(function(c){cls.push('is-'+c.type);
+    if(c.type==='room'){newRoom=true;roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room||'')+'</mark>';tags+='<span class="tag">'+esc(t('roomChanged'))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';}
+    else if(c.type==='sub'){tchHtml=(l.teacher?'<s>'+esc(l.teacher)+'</s> ':'')+'<mark>'+esc(c.sub||'')+'</mark>';
+      if(c.room){newRoom=true;roomHtml=(l.room?'<s>'+esc(l.room)+'</s> ':'')+'<mark>'+esc(c.room)+'</mark>';}
+      tags+='<span class="tag sub">⇄ '+esc(t('subTag'))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';}
+    else tags+='<span class="tag '+esc(c.type)+'">'+esc(t(c.type==='cancel'?'cancelled':c.type))+(c.note?': <bdi>'+esc(c.note)+'</bdi>':'')+'</span>';});
+  var p=per(l.period),pe=toP&&toP>l.period?per(toP):null,time=p?(p.start+'–'+(pe||p).end):'';
+  return '<li class="lesson '+esc(cls.join(' '))+'"><div class="num">'+esc(pe?l.period+'–'+toP:l.period)+'</div><div class="body">'+
+    '<div class="r1"><span class="subj">'+esc(nm(s))+'</span><span class="time">'+esc(time)+'</span></div>'+
+    '<div class="r2">'+(tchHtml?'<span><bdi>'+tchHtml+'</bdi></span>':'')+(l.room||newRoom?'<span>'+(/^חדר/.test(l.room||'')?'':esc(t('room'))+' ')+'<bdi>'+roomHtml+'</bdi></span>':'')+'</div>'+
+    (tags?'<div class="tags">'+tags+'</div>':'')+(after||'')+'</div></li>';
+}
+function renderDay(){
+  var k=kid(),d=ui.date,today=todayISO(),wd=wday(d),h=top();
+  if(ui.offline)h+='<div class="notice plain small">'+esc(t('offline'))+'</div>';
+  h+=kidSwitch()+goneNote(k);
+  h+='<div class="dayhead"><button class="icon-btn" data-act="day" data-n="-1" aria-label="'+esc(t('prevDay'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+
+    esc(d===today?t('today'):d===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wd])+'</p><div class="dt">'+esc((d===today||d===addDays(today,1)?DAYS[prefs.lang][wd]+', ':'')+fmtDate(d))+'</div></div>'+
+    '<button class="icon-btn" data-act="day" data-n="1" aria-label="'+esc(t('nextDay'))+'">'+chev(1)+'</button></div>';
+  var sun=addDays(d,-wd);h+='<div class="strip">';
+  for(var i=0;i<5;i++){var di=addDays(sun,i);h+='<button class="chip'+(di===d?' on':'')+(di===today?' today':'')+'" data-act="goto" data-id="'+di+'"><b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}
+  h+='</div>';
+  if(schoolDay(today)!==d&&Math.abs(parse(d)-parse(schoolDay(today)))>6*864e5)h+='<div class="center"><button class="link" data-act="goto" data-id="'+schoolDay(today)+'">'+esc(t('backToday'))+'</button></div>';
+  eventsFor(d,k).forEach(function(e){h+='<div class="notice"><bdi>'+esc(e.text)+'</bdi>'+(e.from?' · '+esc(e.from===e.to?t('period')+' '+e.from:t('periods'))+(e.from===e.to?'':' <bdi dir="ltr">'+esc(e.from+'–'+e.to)+'</bdi>'):'')+(e.room?' · <bdi>'+esc(e.room)+'</bdi>':'')+'</div>';});
+  if(dayOff(d,k))return h+'<div class="empty">'+esc(t('noSchool'))+'</div>';
+  var ls=lessonsFor(d,k);
+  if(!ls.length)return h+'<div class="empty">'+esc(t('noLessons'))+'</div>';
+  // текущий и следующий урок — только сегодня
+  var nowP=0,nextP=0,nm_=nowMins();
+  if(d===today)ls.forEach(function(x){var p=per(x.l.period);if(!p||x.ch.some(function(c){return c.type==='cancel';}))return;
+    if(nm_>=mins(p.start)&&nm_<mins(p.end))nowP=x.l.period;else if(!nextP&&mins(p.start)>nm_)nextP=x.l.period;});
+  var first=ls[0].l.period,last=ls[ls.length-1].l.period,by={};ls.forEach(function(x){(by[x.l.period]=by[x.l.period]||[]).push(x);});
+  h+='<ul class="lessons">';
+  for(var n=first;n<=last;n++){
+    if(!by[n]){var fp=per(n);if(fp)h+='<li class="lesson free"><div class="num">'+n+'</div><div class="body"><div class="r1"><span>'+esc(t('free'))+'</span><span class="time">'+esc(fp.start+'–'+fp.end)+'</span></div></div></li>';continue;}
+    by[n].forEach(function(x){var mark=x.l.period===nowP?'now':x.l.period===nextP?'next':'',after='';
+      if(mark==='now')after='<div class="left">'+esc(t('minLeft').replace('{n}',mins(per(x.l.period).end)-nm_))+'</div>';
+      h+=card(x,mark,after);});
+  }
+  return h+'</ul>'+foot();
+}
+function foot(){return '<div class="foot">'+(STATE.updatedAt?esc(t('updated'))+': '+esc(fmtStamp(STATE.updatedAt))+'<br>':'')+esc(t('notOfficial'))+'</div>';}
+function renderTests(){
+  var k=kid(),h=top()+kidSwitch()+'<h2>'+esc(t('testsTitle'))+'</h2><p class="sub">'+esc(t('testsSub'))+'</p>',days=upcomingTests(k),today=todayISO();
+  if(!days.length)return h+'<div class="empty">'+esc(t('noTests'))+'</div>';
+  days.forEach(function(x){var rel=x.date===today?t('today'):x.date===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wday(x.date)];
+    h+='<div class="dhead">'+esc(rel+', '+fmtDate(x.date))+'</div><ul class="lessons">';
+    x.items.forEach(function(b){h+=card(b.x,'','',b.last);});h+='</ul>';});
+  return h;
+}
+function renderHol(){
+  var k=kid(),h=top()+'<div class="dayhead"><button class="icon-btn" data-act="tab" data-id="more" aria-label="'+esc(t('navMore'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+esc(t('holBtn'))+'</p></div></div>';
+  h+=kidSwitch()+'<p class="sub">'+esc(t('holSub'))+'</p>';
+  var list=holList(k),today=todayISO(),fd=function(d){try{return new Intl.DateTimeFormat(LOC[prefs.lang],{day:'numeric',month:'long'}).format(parse(d));}catch(e){return d;}};
+  if(!list.length)return h+'<div class="empty">'+esc(t('holNone'))+'</div>';
+  h+='<div class="hols">';
+  list.forEach(function(x){var one=x.from===x.to,rng=one?fd(x.from):x.from.slice(0,7)===x.to.slice(0,7)?'⁦'+(+x.from.slice(8))+'–'+(+x.to.slice(8))+'⁩ '+fd(x.to).replace(/^\d+\s*/,''):fd(x.from)+' – '+fd(x.to); // «6–10» всегда слева направо
+    h+='<div class="hol'+(x.from<=stepDay(today,5)?' soon':'')+'"><div class="hd"><b><bdi>'+esc(rng)+'</bdi></b><span class="hn">'+esc(t(x.n===1?'holDay1':'holDays').replace('{n}',x.n))+'</span></div>'+
+      '<div class="dd"><bdi>'+esc(DAYS[prefs.lang][wday(x.from)]+(one?'':' – '+DAYS[prefs.lang][wday(x.to)]))+'</bdi></div><div class="ht"><bdi>'+esc(x.text)+'</bdi></div></div>';});
+  return h+'</div><p class="muted small center">'+esc(t('holNote'))+'</p>';}
+function renderMore(){
+  var h=top()+'<h2>'+esc(t('navMore'))+'</h2><div class="field"><label>'+esc(t('language'))+'</label>'+langSwitch()+'</div>';
+  // дети: имя правится прямо здесь (только в телефоне), класс — по коду
+  h+='<div class="field"><label>'+esc(t('kids'))+'</label><div class="klist">';
+  kidsOk().forEach(function(k){h+='<div class="krow"><input class="input" data-kid="'+esc(k.id)+'" type="text" maxlength="30" autocomplete="off" dir="auto" placeholder="'+esc(t('nameShort'))+'" value="'+esc(k.name||'')+'" aria-label="'+esc(clsName(k))+'">'+
+    '<span class="kcls"><bdi>'+esc(clsName(k))+'</bdi></span><button class="kdel'+(ui.delArm===k.id?' arm':'')+'" data-act="delKid" data-id="'+esc(k.id)+'">'+esc(t(ui.delArm===k.id?'removeSure':'remove'))+'</button></div>';});
+  h+='</div><button class="link" data-act="addOpen">'+esc(t('addMore'))+'</button></div><div class="stack">';
+  if(API){h+=pushOn()?'<div class="notice">'+esc(t('pushIsOn'))+'</div>':'<button class="primary" data-act="push">'+esc(t('pushBtn'))+'</button>';
+    if(ui.msg)h+='<div class="notice plain small">'+esc(ui.msg)+'</div>';
+    h+='<p class="muted small" style="margin:0 4px">'+esc(t('pushNote'))+'</p>';}
+  h+='<button class="secondary" data-act="tab" data-id="holidays">🏖️ '+esc(t('holBtn'))+'</button>';
+  if(!standalone())h+='<div class="notice plain small"><b>'+esc(t('install'))+'</b><br>'+esc(t('installHint'))+'</div>';
+  h+='</div><p class="muted small" style="margin:14px 4px 0">'+esc(t('privNote'))+'</p>';
+  h+='<div class="center" style="margin-top:10px"><a class="link" href="../">'+esc(t('studentApp'))+'</a></div>';
+  return h+foot();
+}
+var NAV=[['day','navDay','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>'],
+  ['tests','navTests','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5h6v3H9zM9 13l2 2 4-4"/></svg>'],
+  ['more','navMore','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>']];
+function nav(){var nt=0;upcomingTests(kid()).forEach(function(x){nt+=x.items.length;});
+  var h='<nav class="tabbar"><div class="in">';NAV.forEach(function(x){h+='<button class="'+(ui.screen===x[0]||(x[0]==='more'&&ui.screen==='holidays')?'on':'')+'" data-act="tab" data-id="'+x[0]+'">'+x[2]+'<span>'+esc(t(x[1]))+'</span><span class="badge">'+(x[0]==='tests'&&nt?nt:'')+'</span></button>';});
+  return h+'</div></nav>';}
+
+/* ---------- render ---------- */
+var root=document.getElementById('root');
+function adding(){return !kidsOk().length||ui.add;}
+function render(){
+  document.documentElement.lang=prefs.lang;document.documentElement.dir=prefs.lang==='he'?'rtl':'ltr';document.title=t('app');
+  var h;
+  if(!STATE)h=top()+'<div class="empty">'+esc(ui.failed?t('loadFail'):t('loading'))+(ui.failed?'<div class="stack"><button class="primary" data-act="retry">'+esc(t('retry'))+'</button></div>':'')+'</div>';
+  else if(adding())h=renderAdd();
+  else{if(!ui.date)ui.date=homeDay();
+    h=(ui.screen==='tests'?renderTests():ui.screen==='more'?renderMore():ui.screen==='holidays'?renderHol():renderDay())+nav();}
+  var f=document.activeElement,fid=f&&root.contains(f)&&(f.id||f.getAttribute('data-kid'));
+  root.innerHTML='<div class="wrap">'+h+'</div>';
+  // поле, в котором печатали, остаётся в фокусе
+  if(fid){var nf=document.getElementById(fid)||root.querySelector('[data-kid="'+fid+'"]');if(nf&&nf.focus){nf.focus();try{var v=nf.value.length;nf.setSelectionRange(v,v);}catch(e){}}}
+  slideAll();slideAll.only=null;
+  // новый экран, другой день или ребёнок — карточки появляются по очереди
+  var k=kid(),sk=(STATE?1:0)+'|'+(STATE&&adding()?'add':ui.screen)+'|'+(k?k.id:'')+'|'+(ui.screen==='day'?ui.date:'');
+  if(render.last!==sk)root.firstChild.classList.add('enter');
+  render.last=sk;
+  var on=root.querySelector('.tabbar .on svg');if(on&&render.tab&&render.tab!==ui.screen)on.classList.add('pop');
+  render.tab=on?ui.screen:null;
+}
+// лаймовая рамка переезжает в нажатом переключателе (дни, языки, дети) и круг под вкладкой — как в Skedy Teachers
+var SLIDE={},SLIDES='.strip,.langs,.tabbar .in';
+function slideKey(c){return c.closest('.tabbar')?'nav':ui.screen+'|'+c.className.replace(/\s*sl\b/,'')+'|'+document.documentElement.dir;}
+function slideAll(){
+  root.querySelectorAll(SLIDES).forEach(function(c){
+    var on=c.querySelector(':scope > .on');if(!on)return;
+    var k=slideKey(c),sl=document.createElement('span');sl.className='slider';sl.setAttribute('aria-hidden','true');c.classList.add('sl');c.insertBefore(sl,c.firstChild);
+    var r={x:on.offsetLeft,y:on.offsetTop,w:on.offsetWidth,h:on.offsetHeight},p=SLIDE[k];
+    var put=function(q){sl.style.transform='translate('+q.x+'px,'+q.y+'px)';sl.style.width=q.w+'px';sl.style.height=q.h+'px';};
+    var go=p&&(k==='nav'||k===slideAll.only)&&(p.x!==r.x||p.y!==r.y||p.w!==r.w);
+    sl.style.transition='none';
+    if(go){put(p);void sl.offsetWidth;sl.style.transition='';}
+    put(r);SLIDE[k]=r;
+    if(!go){void sl.offsetWidth;sl.style.transition='';}
+  });
+}
+root.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]');if(!el||el.disabled)return;var a=el.getAttribute('data-act'),id=el.getAttribute('data-id');
+  var sc=el.parentNode&&el.parentNode.matches&&el.parentNode.matches(SLIDES)?el.parentNode:null;slideAll.only=sc?slideKey(sc):null;
+  if(a!=='delKid')ui.delArm=null;
+  switch(a){
+    case 'push':ui.msg='';enablePush();break;
+    case 'lang':prefs.lang=id;savePrefs();syncPush();render();break;
+    case 'tab':ui.msg='';if(id==='day'&&ui.screen==='day')ui.date=homeDay();ui.screen=id;render();window.scrollTo(0,0);break;
+    case 'day':ui.date=stepDay(ui.date,+el.getAttribute('data-n'));render();break;
+    case 'goto':ui.date=id;render();break;
+    case 'kid':prefs.cur=id;savePrefs();render();break;
+    case 'addKid':addKid();break;
+    case 'addOpen':ui.add=true;ui.err='';ui.code='';ui.name='';render();window.scrollTo(0,0);break;
+    case 'addCancel':ui.add=false;ui.err='';render();break;
+    // убрать ребёнка — двойным нажатием
+    case 'delKid':if(ui.delArm!==id){ui.delArm=id;render();break;}
+      ui.delArm=null;prefs.kids=prefs.kids.filter(function(k){return k.id!==id;});if(prefs.cur===id)prefs.cur=null;savePrefs();syncPush();render();break;
+    case 'retry':load();break;
+  }
+});
+root.addEventListener('input',function(e){var el=e.target;if(!el)return;
+  if(el.id==='kcode'){ui.code=el.value.replace(/\D/g,'').slice(0,3);if(el.value!==ui.code)el.value=ui.code;}
+  else if(el.id==='kname')ui.name=el.value;
+  else if(el.getAttribute('data-kid')){var id=el.getAttribute('data-kid');prefs.kids.forEach(function(k){if(k.id===id){var v=el.value.trim().slice(0,30);if(v)k.name=v;else delete k.name;}});savePrefs();}});
+// имя ребёнка поменяли — переключатель и шапка обновятся, когда поле потеряет фокус
+root.addEventListener('change',function(e){if(e.target&&e.target.getAttribute('data-kid'))render();});
+root.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target&&(e.target.id==='kcode'||e.target.id==='kname')){e.preventDefault();addKid();}});
+// сменить день свайпом
+var sx=null;root.addEventListener('touchstart',function(e){sx=ui.screen==='day'&&e.touches.length===1?e.touches[0].clientX:null;},{passive:true});
+root.addEventListener('touchend',function(e){if(sx==null||!STATE||adding())return;var dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)<70)return;
+  var fwd=dx<0;if(document.documentElement.dir==='rtl')fwd=!fwd;ui.date=stepDay(ui.date,fwd?1:-1);render();},{passive:true});
+
+/* ---------- start ---------- */
+render();load();
+// заставка при запуске (~0,7 с), как у учеников и учителей; нажатие пропускает; при «уменьшить движение» её нет
+(function(){
+  try{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;}catch(e){}
+  var d=document.createElement('div');d.className='splash';d.setAttribute('aria-hidden','true');
+  d.innerHTML='<span class="sl"><i></i>'+LOGO.replace('width="36" height="36"','width="104" height="104"')+'</span><b>'+esc(t('app'))+'</b>';
+  document.body.appendChild(d);
+  var done=function(){if(!d.parentNode)return;d.parentNode.removeChild(d);
+    var w=root.firstChild;if(w){w.classList.remove('enter');void w.offsetWidth;w.classList.add('enter');}};
+  d.addEventListener('click',done);setTimeout(done,720);
+})();
+// раз в минуту обновляем «сейчас» и «осталось», раз в 5 минут — изменения (только пока приложение на экране)
+setInterval(function(){if(ui.screen==='day'&&STATE&&!adding()&&!document.hidden)render();},60000);
+setInterval(function(){if(!document.hidden)load(true);},300000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-(load.at||0)>6e4){load.at=Date.now();load(false);}});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js',{scope:'./'}).then(syncPush,function(){});
+})();
+</script>
+</body>
+</html>

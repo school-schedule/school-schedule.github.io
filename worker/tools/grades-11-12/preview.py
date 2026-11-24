@@ -26,6 +26,7 @@ rep('<link rel="manifest" href="manifest.webmanifest">','')
 rep("<title>Skedy</title>","<title>Skedy · י״א / י״ב</title>")
 rep("if(location.hostname!=='school-schedule.github.io')return;","return;")  # без статистики посещений
 rep("location.href='teacher/'","location.href='../teacher/'")
+rep("location.href='parents/'","location.href='../parents/'")
 a=html.index('<script id="app-js">')
 js=html[a:];n=js.count("'sched.");assert n>40,n
 html=html[:a]+js.replace("'sched.","'skedyP.")
