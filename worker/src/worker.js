@@ -440,7 +440,8 @@ async function ttRestore(env, id) {
 }
 
 /* ---------------- изменения на даты для всей школы (Skedy Admin) ---------------- */
-// Ключ KV "ttch": {updatedAt, ch:[{id, date, p, s, t, c:[классы], type: cancel|room|test|sub, room?, sub?, note?}], off:[дни без учёбы]}.
+// Ключ KV "ttch": {updatedAt, ch:[{id, date, p, s, t, c:[классы], type: cancel|room|test|sub, room?, sub?, note?}], off:[дни без учёбы],
+//   pm:[родительские собрания]}.
 // sub — замена: урок ведёт другой учитель (имя в sub; room — если и кабинет другой).
 // Урок узнаём по дню (из даты), номеру урока, предмету, учителю и классам — так же, как в /tt.
 // Старше 30 дней — выбрасываются. Новые и изменённые на сегодня и дальше — уведомления учителям этих уроков
@@ -466,6 +467,20 @@ function validOff(off) {
   return off.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && d(o.date) && (o.to == null || (d(o.to) && o.to >= o.date)) &&
     typeof o.text === "string" && o.text.length <= 200 && Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12));
 }
+// родительские собрания (Skedy Parents): {id, date, from "ЧЧ:ММ", to?, title?, g:[параллели], c:[классы «10-2»], t?, room?, note?};
+// g и c пустые — вся школа
+const HM = /^([01]\d|2[0-3]):[0-5]\d$/;
+function validPm(pm) {
+  if (!Array.isArray(pm) || pm.length > 500) return false;
+  const str = (x, n) => x == null || (typeof x === "string" && x.length <= n);
+  return pm.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && isDate(o.date) && typeof o.from === "string" && HM.test(o.from) &&
+    (o.to == null || o.to === "" || (typeof o.to === "string" && HM.test(o.to) && o.to > o.from)) && str(o.title, 100) && str(o.t, 100) && str(o.room, 100) && str(o.note, 200) &&
+    Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12) &&
+    Array.isArray(o.c) && o.c.length <= 100 && o.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
+}
+function pmSig(o) {
+  return [o.date, o.from, o.to || "", o.title || "", o.g.join(","), o.c.join(","), o.t || "", o.room || "", o.note || ""].join("|");
+}
 function chSig(c) {
   return [c.date, c.p, c.s, c.t || "", c.c.join(","), c.type, c.room || "", c.note || "", c.sub || ""].join("|");
 }
@@ -476,7 +491,7 @@ async function saveTTCh(req, env, ctx) {
   if (text.length > TT_MAX_BYTES) return json({ error: "too_big" }, 413);
   let body;
   try { body = JSON.parse(text); } catch (e) { return json({ error: "bad_data" }, 400); }
-  if (!body || !validCh(body.ch) || (body.off != null && !validOff(body.off))) return json({ error: "bad_data" }, 400);
+  if (!body || !validCh(body.ch) || (body.off != null && !validOff(body.off)) || (body.pm != null && !validPm(body.pm))) return json({ error: "bad_data" }, 400);
   const prevRaw = await env.DB.get("ttch");
   const prev = prevRaw ? JSON.parse(prevRaw) : { updatedAt: null, ch: [] };
   if ((body.base || null) !== (prev.updatedAt || null)) return json({ error: "conflict", updatedAt: prev.updatedAt }, 409);
@@ -490,7 +505,13 @@ async function saveTTCh(req, env, ctx) {
   });
   const off = (body.off != null ? body.off : prev.off || []).filter((o) => (o.to || o.date) >= oldest)
     .map((o) => { const x = { id: o.id, date: o.date, text: o.text, g: o.g }; if (o.to && o.to !== o.date) x.to = o.to; return x; });
-  const out = { updatedAt: new Date().toISOString(), ch, off };
+  // собрания: если не прислали — остаются прежние (старый сайт их не знает)
+  const pm = (body.pm != null ? body.pm : prev.pm || []).filter((o) => o.date >= oldest).map((o) => {
+    const x = { id: o.id, date: o.date, from: o.from, g: o.g, c: o.c };
+    for (const f of ["to", "title", "t", "room", "note"]) if (o[f]) x[f] = String(o[f]).replace(/\s+/g, " ").trim();
+    return x;
+  });
+  const out = { updatedAt: new Date().toISOString(), ch, off, pm };
   await env.DB.put("ttch", JSON.stringify(out));
   const old = new Map(prev.ch.map((c) => [c.id, chSig(c)]));
   const fresh = ch.filter((c) => c.date >= today && (c.t || c.sub) && old.get(c.id) !== chSig(c));
@@ -499,6 +520,10 @@ async function saveTTCh(req, env, ctx) {
   const gone = prev.ch.filter((c) => c.type === "sub" && c.sub && c.date >= today &&
     (!now.has(c.id) || normName(now.get(c.id).type === "sub" ? now.get(c.id).sub : "") !== normName(c.sub)));
   if (fresh.length || gone.length) ctx.waitUntil(ttchNotify(env, fresh, gone));
+  // новое или изменённое собрание на сегодня и дальше — уведомление родителям (Skedy Parents) детей из этих классов
+  const oldPm = new Map((prev.pm || []).map((o) => [o.id, pmSig(o)]));
+  const freshPm = pm.filter((o) => o.date >= today && oldPm.get(o.id) !== pmSig(o));
+  if (freshPm.length) ctx.waitUntil(pmNotify(env, freshPm));
   return json({ ok: true, updatedAt: out.updatedAt, changes: fresh.length });
 }
 // Урок י׳, который есть в Skedy (тот же день недели, номер урока и учитель), — уведомление как у изменений Skedy:
@@ -521,6 +546,25 @@ async function ttchNotify(env, fresh, gone = []) {
     ds.push(tt(c, c.type, c.t, c.sub));
   }
   for (const c of gone) ds.push(tt(c, "subOff", c.sub, c.t));
+  if (ds.length) await notifyAll(env, ds);
+}
+// собрание → классы Skedy (id), к которым оно относится: уведомление только родителям детей из них
+const LETTER_GRADE = { "ז": 7, "ח": 8, "ט": 9, "י": 10, "יא": 11, "י״א": 11, "יב": 12, "י״ב": 12 };
+async function pmNotify(env, list) {
+  const raw = await env.DB.get("state");
+  const st = raw ? JSON.parse(raw) : null;
+  if (!st) return;
+  const ds = [];
+  for (const o of list) {
+    const cids = st.classes.filter((cl) => {
+      const g = LETTER_GRADE[cl.letter];
+      return (!o.g.length && !o.c.length) || o.g.includes(g) || o.c.includes(g + "-" + cl.num);
+    }).map((cl) => cl.id);
+    if (!cids.length) continue;
+    const ttl = o.title || "";
+    ds.push({ k: o.date + "|00|" + o.from, date: o.date, type: "pm", period: 0, aud: { type: "pm" }, cids, time: o.from + (o.to ? "–" + o.to : ""),
+      name: { he: ttl, en: ttl, ru: ttl }, room: o.room || "", note: o.note || "", who: o.t || "" });
+  }
   if (ds.length) await notifyAll(env, ds);
 }
 // классы урока для текста уведомления: «10-2» → «י׳2»; больше трёх классов одной параллели — «שכבת י׳»
@@ -1215,9 +1259,9 @@ async function* allSubs(env) {
 /* ---------------- уведомления ---------------- */
 
 const T = {
-  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
-  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
-  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
+  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", pm: "אסיפת הורים", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
+  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", pm: "Parent meeting", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
+  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", pm: "Родительское собрание", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
 };
 const DAYS = {
   he: ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"],
@@ -1258,6 +1302,9 @@ function describe(st, c) {
 }
 function line(d, lang) {
   const L = T[lang];
+  // родительское собрание: «Завтра, 18:00–20:00, Родительское собрание · учитель · кабинет»
+  if (d.type === "pm") return dayWord(d.date, lang) + ", " + d.time + ", " + (d.name[lang] || L.pm) +
+    (d.who ? " · " + d.who : "") + (d.room ? " · " + d.room : "") + (d.note ? " (" + d.note + ")" : "");
   let what = d.type === "cancel" ? L.cancel : d.type === "room" ? L.room + ": " + d.room : d.type === "test" ? L.test :
     d.type === "sub" ? L.sub + ": " + d.who + (d.room ? ", " + L.room + ": " + d.room : "") :
     d.type === "subMe" ? L.subMe + " " + (d.who || "—") + (d.cls ? " · " + d.cls : "") + (d.room ? " · " + d.room : "") :
@@ -1283,11 +1330,13 @@ function mergeTests(list) {
 function concerns(d, rec) {
   if (rec.t) return !!d.t && d.t === normName(rec.t); // учитель: изменения в его уроках
   if (d.aud.type === "tt") return false; // изменения из Skedy Admin (/ttch) — только учителям
+  if (d.aud.type === "pm") return !!rec.k && rec.k.some((k) => d.cids.includes(k.c)); // собрание — только родителям
   if (rec.k) return rec.k.some((k) => concernsKid(d, k)); // родитель: урок хотя бы одного ребёнка
   if (d.aud.type === "class") return d.aud.id === rec.c;
   return rec.g.includes(d.aud.id);
 }
 function concernsKid(d, k) {
+  if (d.aud.type === "pm") return d.cids.includes(k.c);
   return d.aud.type === "class" ? d.aud.id === k.c : k.g.includes(d.aud.id);
 }
 // у родителя с детьми из разных классов строка начинается с класса: «י׳2 · Сегодня, урок 3, …»
@@ -1312,14 +1361,14 @@ async function planPushes(env, ds) {
     // одинаковые строки (у учителя один урок сразу у нескольких классов) — один раз
     const seen = new Set();
     const mine = mergeTests(ds.filter((d) => concerns(d, rec)).sort((a, b) => a.k.localeCompare(b.k)))
-      .filter((d) => { const k = [d.date, d.period, d.to || "", d.type, d.name.he, d.room, d.note, kidsLabel(d, rec)].join("|"); if (seen.has(k)) return false; seen.add(k); return true; });
+      .filter((d) => { const k = [d.date, d.period, d.to || "", d.type, d.name.he, d.room, d.note, d.time || "", d.who || "", kidsLabel(d, rec)].join("|"); if (seen.has(k)) return false; seen.add(k); return true; });
     if (!mine.length) continue;
     const L = T[rec.l];
     jobs.push({
       key,
       s: rec.s,
       p: {
-        title: mine.length === 1 ? L.one : L.many(mine.length),
+        title: mine.every((d) => d.type === "pm") ? L.pm : mine.length === 1 ? L.one : L.many(mine.length),
         body: mine.slice(0, 4).map((d) => kidsLabel(d, rec) + line(d, rec.l)).join("\n"),
         tag: "chg-" + mine[0].date,
         dir: L.dir,
