@@ -165,6 +165,8 @@ bdi{unicode-bidi:isolate}
 .kdel{flex:none;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-size:14px;font-weight:600}
 .kdel.arm{color:var(--bad);border-color:var(--bad)}
 button[disabled]{opacity:.6}
+.notice.pm{color:var(--ink);font-weight:400}.notice.pm b{color:var(--acc)}.notice.pm small{color:var(--muted)}
+.pmsoon{display:block;width:100%;text-align:start;font:inherit;font-size:14px}
 </style>
 </head>
 <body>
@@ -180,7 +182,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 /* ---------- texts ---------- */
 var T={
-he:{app:'Skedy Parents',addTitle:'הוספת ילד או ילדה',addSub:'בקשו מהילד לפתוח את Skedy ← לשונית „חברים“ ← „הקוד שלי“. זה מספר של 3 ספרות.',codePh:'קוד (3 ספרות)',nameShort:'שם (לא חובה)',namePh:'שם (לא חובה, נשמר רק בטלפון הזה)',addBtn:'הוספה',codeBad:'לא מצאנו את הקוד. בדקו את המספר.',codeDup:'הילד הזה כבר ברשימה.',netFail:'אין חיבור לשרת. נסו שוב.',onlyTen:'בינתיים Skedy עובד רק לשכבה י׳.',
+he:{app:'Skedy Parents',pmBtn:'אסיפות הורים',pmSub:'אסיפות הורים קרובות בכיתה ובשכבה של הילד.',pmNone:'עוד אין אסיפות הורים במערכת.',pmDef:'אסיפת הורים',pmSoon:'בקרוב',pmNote:'לפי Skedy Admin של בית הספר.',addTitle:'הוספת ילד או ילדה',addSub:'בקשו מהילד לפתוח את Skedy ← לשונית „חברים“ ← „הקוד שלי“. זה מספר של 3 ספרות.',codePh:'קוד (3 ספרות)',nameShort:'שם (לא חובה)',namePh:'שם (לא חובה, נשמר רק בטלפון הזה)',addBtn:'הוספה',codeBad:'לא מצאנו את הקוד. בדקו את המספר.',codeDup:'הילד הזה כבר ברשימה.',netFail:'אין חיבור לשרת. נסו שוב.',onlyTen:'בינתיים Skedy עובד רק לשכבה י׳.',
  kids:'הילדים',addMore:'+ ילד או ילדה נוספים',remove:'הסרה',removeSure:'ללחוץ שוב להסרה',kidGone:'הקוד של {n} כבר לא פעיל. מוצגת המערכת האחרונה ששמורה – בקשו קוד חדש.',cancel:'ביטול',
  privNote:'השמות שנתתם לילדים נשמרים רק בטלפון הזה. לפי הקוד Skedy לוקח מהשרת רק את הכיתה והקבוצות.',studentApp:'Skedy לתלמידים',
  pushBtn:'🔔 התראות על שינויים במערכת של הילדים',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה במערכת של הילדים.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את הכיתה והקבוצות של הילדים ואת כתובת ההתראות של המכשיר – בלי שמות.',
@@ -190,7 +192,7 @@ he:{app:'Skedy Parents',addTitle:'הוספת ילד או ילדה',addSub:'בק�
  language:'שפה',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
  installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
  noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
-en:{app:'Skedy Parents',addTitle:'Add your child',addSub:'Ask your child to open Skedy → the “Friends” tab → “My code”. It’s a 3-digit number.',codePh:'Code (3 digits)',nameShort:'Name (optional)',namePh:'Name (optional, stays on this phone)',addBtn:'Add',codeBad:'Code not found. Check the number.',codeDup:'This child is already on the list.',netFail:'Can’t reach the server. Try again.',onlyTen:'For now Skedy works for grade 10 only.',
+en:{app:'Skedy Parents',pmBtn:'Parent meetings',pmSub:'Upcoming parent meetings for your child’s class and grade.',pmNone:'No parent meetings scheduled yet.',pmDef:'Parent meeting',pmSoon:'Coming up',pmNote:'From the school’s Skedy Admin.',addTitle:'Add your child',addSub:'Ask your child to open Skedy → the “Friends” tab → “My code”. It’s a 3-digit number.',codePh:'Code (3 digits)',nameShort:'Name (optional)',namePh:'Name (optional, stays on this phone)',addBtn:'Add',codeBad:'Code not found. Check the number.',codeDup:'This child is already on the list.',netFail:'Can’t reach the server. Try again.',onlyTen:'For now Skedy works for grade 10 only.',
  kids:'Children',addMore:'+ Add another child',remove:'Remove',removeSure:'Tap again to remove',kidGone:'The code for {n} no longer works. Showing the last saved schedule — ask for a new code.',cancel:'Cancel',
  privNote:'The names you give your children stay only on this phone. With the code, Skedy gets only the class and groups from the server.',studentApp:'Skedy for students',
  pushBtn:'🔔 Get alerts about changes in my children’s schedule',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your children’s schedule.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps your children’s class and groups and this device’s alert address — no names.',
@@ -200,7 +202,7 @@ en:{app:'Skedy Parents',addTitle:'Add your child',addSub:'Ask your child to open
  language:'Language',updated:'Updated',offline:'No internet. Showing the last saved schedule.',loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
  installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
  noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
-ru:{app:'Skedy Parents',addTitle:'Добавьте ребёнка',addSub:'Попросите ребёнка открыть Skedy → вкладка «Друзья» → «Мой код». Это число из 3 цифр.',codePh:'Код (3 цифры)',nameShort:'Имя (необязательно)',namePh:'Имя (необязательно, только в этом телефоне)',addBtn:'Добавить',codeBad:'Код не найден. Проверьте число.',codeDup:'Этот ребёнок уже в списке.',netFail:'Нет связи с сервером. Попробуйте ещё раз.',onlyTen:'Пока Skedy работает только для י׳.',
+ru:{app:'Skedy Parents',pmBtn:'Родительские собрания',pmSub:'Ближайшие собрания класса и параллели ребёнка.',pmNone:'Собраний пока нет.',pmDef:'Родительское собрание',pmSoon:'Скоро',pmNote:'По данным Skedy Admin школы.',addTitle:'Добавьте ребёнка',addSub:'Попросите ребёнка открыть Skedy → вкладка «Друзья» → «Мой код». Это число из 3 цифр.',codePh:'Код (3 цифры)',nameShort:'Имя (необязательно)',namePh:'Имя (необязательно, только в этом телефоне)',addBtn:'Добавить',codeBad:'Код не найден. Проверьте число.',codeDup:'Этот ребёнок уже в списке.',netFail:'Нет связи с сервером. Попробуйте ещё раз.',onlyTen:'Пока Skedy работает только для י׳.',
  kids:'Дети',addMore:'+ Ещё ребёнок',remove:'Убрать',removeSure:'Нажмите ещё раз, чтобы убрать',kidGone:'Код ({n}) больше не действует. Показано последнее сохранённое расписание — попросите новый код.',cancel:'Отмена',
  privNote:'Имена детей хранятся только в этом телефоне. По коду Skedy берёт с сервера только класс и группы.',studentApp:'Skedy для учеников',
  pushBtn:'🔔 Уведомления об изменениях в расписании детей',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в расписании детей.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит класс и группы детей и адрес уведомлений этого устройства — без имён.',
@@ -310,6 +312,21 @@ function holList(k){var by={},today=todayISO(),add=function(d,text){var a=by[d]=
     for(var d=o.date,i=0;d<=(o.to||o.date)&&i<120;d=addDays(d,1),i++)if(d>=today&&wday(d)<5)add(d,o.text);});
   SCHOOL_OFF.forEach(function(x){for(var d=x[0],i=0;d<=x[1]&&i<120;d=addDays(d,1),i++)if(d>=today&&wday(d)<5)add(d,nm(x[2]));});
   return holRanges(by);}
+// родительские собрания из Skedy Admin (TTCH.pm): для всей школы, параллели ребёнка или его класса («10-2»)
+var LG={'ז':7,'ח':8,'ט':9,'י':10,'יא':11,'י״א':11,'יב':12,'י״ב':12};
+function pmFor(k,from,to){var c=byId(STATE.classes,k.c);if(!c||!TTCH||!Array.isArray(TTCH.pm))return [];var g=LG[c.letter],key=g+'-'+c.num;
+  return TTCH.pm.filter(function(o){return o.date>=from&&(!to||o.date<=to)&&((!o.g.length&&!o.c.length)||o.g.indexOf(g)>=0||o.c.indexOf(key)>=0);})
+    .sort(function(a,b){return a.date.localeCompare(b.date)||a.from.localeCompare(b.from);});}
+function pmCard(o,withDate){var today=todayISO(),rel=o.date===today?t('today'):o.date===addDays(today,1)?t('tomorrow'):DAYS[prefs.lang][wday(o.date)]+', '+fmtDate(o.date);
+  return '<div class="notice pm">👪 <b><bdi>'+esc(o.title||t('pmDef'))+'</bdi></b>'+(withDate?' · '+esc(rel):'')+' · <bdi dir="ltr">'+esc(o.from+(o.to?'–'+o.to:''))+'</bdi>'+
+    (o.t?' · <bdi>'+esc(o.t)+'</bdi>':'')+(o.room?' · <bdi>'+esc(o.room)+'</bdi>':'')+(o.note?'<br><small><bdi>'+esc(o.note)+'</bdi></small>':'')+'</div>';}
+function renderPm(){
+  var k=kid(),h=top()+'<div class="dayhead"><button class="icon-btn" data-act="tab" data-id="more" aria-label="'+esc(t('navMore'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+esc(t('pmBtn'))+'</p></div></div>';
+  h+=kidSwitch()+'<p class="sub">'+esc(t('pmSub'))+'</p>';
+  var list=pmFor(k,todayISO());
+  if(!list.length)return h+'<div class="empty">'+esc(t('pmNone'))+'</div>';
+  list.forEach(function(o){h+=pmCard(o,true);});
+  return h+'<p class="muted small center">'+esc(t('pmNote'))+'</p>';}
 // какой день открывать: вечером, когда уроки закончились (не раньше 16:00), — следующий учебный
 function homeDay(){var d=todayISO(),k=kid();if(wday(d)>=5||!k)return schoolDay(d);
   var end=16*60;lessonsFor(d,k).forEach(function(x){var p=per(x.l.period);if(p)end=Math.max(end,mins(p.end));});
@@ -432,6 +449,8 @@ function renderDay(){
   for(var i=0;i<5;i++){var di=addDays(sun,i);h+='<button class="chip'+(di===d?' on':'')+(di===today?' today':'')+'" data-act="goto" data-id="'+di+'"><b>'+esc(DAYS_S[prefs.lang][i])+'</b></button>';}
   h+='</div>';
   if(schoolDay(today)!==d&&Math.abs(parse(d)-parse(schoolDay(today)))>6*864e5)h+='<div class="center"><button class="link" data-act="goto" data-id="'+schoolDay(today)+'">'+esc(t('backToday'))+'</button></div>';
+  pmFor(k,d,d).forEach(function(o){h+=pmCard(o,false);});
+  if(d===schoolDay(today)||d===today){var nx=pmFor(k,addDays(d,1),addDays(today,14))[0];if(nx)h+='<button class="notice plain small pmsoon" data-act="tab" data-id="pm">👪 '+esc(t('pmSoon'))+': <bdi>'+esc(nx.title||t('pmDef'))+'</bdi> · '+esc(DAYS[prefs.lang][wday(nx.date)]+', '+fmtDate(nx.date))+' · <bdi dir="ltr">'+esc(nx.from)+'</bdi></button>';}
   eventsFor(d,k).forEach(function(e){h+='<div class="notice"><bdi>'+esc(e.text)+'</bdi>'+(e.from?' · '+esc(e.from===e.to?t('period')+' '+e.from:t('periods'))+(e.from===e.to?'':' <bdi dir="ltr">'+esc(e.from+'–'+e.to)+'</bdi>'):'')+(e.room?' · <bdi>'+esc(e.room)+'</bdi>':'')+'</div>';});
   if(dayOff(d,k))return h+'<div class="empty">'+esc(t('noSchool'))+'</div>';
   var ls=lessonsFor(d,k);
@@ -479,6 +498,7 @@ function renderMore(){
   if(API){h+=pushOn()?'<div class="notice">'+esc(t('pushIsOn'))+'</div>':'<button class="primary" data-act="push">'+esc(t('pushBtn'))+'</button>';
     if(ui.msg)h+='<div class="notice plain small">'+esc(ui.msg)+'</div>';
     h+='<p class="muted small" style="margin:0 4px">'+esc(t('pushNote'))+'</p>';}
+  var npm=pmFor(kid(),todayISO()).length;h+='<button class="secondary" data-act="tab" data-id="pm">👪 '+esc(t('pmBtn'))+(npm?' ('+npm+')':'')+'</button>';
   h+='<button class="secondary" data-act="tab" data-id="holidays">🏖️ '+esc(t('holBtn'))+'</button>';
   if(!standalone())h+='<div class="notice plain small"><b>'+esc(t('install'))+'</b><br>'+esc(t('installHint'))+'</div>';
   h+='</div><p class="muted small" style="margin:14px 4px 0">'+esc(t('privNote'))+'</p>';
@@ -489,7 +509,7 @@ var NAV=[['day','navDay','<svg viewBox="0 0 24 24" fill="none" stroke="currentCo
   ['tests','navTests','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5h6v3H9zM9 13l2 2 4-4"/></svg>'],
   ['more','navMore','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>']];
 function nav(){var nt=0;upcomingTests(kid()).forEach(function(x){nt+=x.items.length;});
-  var h='<nav class="tabbar"><div class="in">';NAV.forEach(function(x){h+='<button class="'+(ui.screen===x[0]||(x[0]==='more'&&ui.screen==='holidays')?'on':'')+'" data-act="tab" data-id="'+x[0]+'">'+x[2]+'<span>'+esc(t(x[1]))+'</span><span class="badge">'+(x[0]==='tests'&&nt?nt:'')+'</span></button>';});
+  var h='<nav class="tabbar"><div class="in">';NAV.forEach(function(x){h+='<button class="'+(ui.screen===x[0]||(x[0]==='more'&&(ui.screen==='holidays'||ui.screen==='pm'))?'on':'')+'" data-act="tab" data-id="'+x[0]+'">'+x[2]+'<span>'+esc(t(x[1]))+'</span><span class="badge">'+(x[0]==='tests'&&nt?nt:'')+'</span></button>';});
   return h+'</div></nav>';}
 
 /* ---------- render ---------- */
@@ -501,7 +521,7 @@ function render(){
   if(!STATE)h=top()+'<div class="empty">'+esc(ui.failed?t('loadFail'):t('loading'))+(ui.failed?'<div class="stack"><button class="primary" data-act="retry">'+esc(t('retry'))+'</button></div>':'')+'</div>';
   else if(adding())h=renderAdd();
   else{if(!ui.date)ui.date=homeDay();
-    h=(ui.screen==='tests'?renderTests():ui.screen==='more'?renderMore():ui.screen==='holidays'?renderHol():renderDay())+nav();}
+    h=(ui.screen==='tests'?renderTests():ui.screen==='more'?renderMore():ui.screen==='holidays'?renderHol():ui.screen==='pm'?renderPm():renderDay())+nav();}
   var f=document.activeElement,fid=f&&root.contains(f)&&(f.id||f.getAttribute('data-kid'));
   root.innerHTML='<div class="wrap">'+h+'</div>';
   // поле, в котором печатали, остаётся в фокусе
