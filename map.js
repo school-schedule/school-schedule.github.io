@@ -57,9 +57,9 @@ var NODE={
   b:[500,500],j6:[620,450],a1:[632,510],r1:[652,436],r:[750,330],s:[745,172],    // двор ברוש (6), проход в двор רימון (8), שקד
   e1:[845,420],e2:[880,495],e:[930,405],ae:[865,555],                            // низ ארז (4) с деревьями, вход в ארז
   jb:[640,590],a:[735,585],au:[740,630],q:[815,690],t:[720,697],                 // двор 9, אלון снизу, תיכון со двора 9
-  sw:[485,655],p1:[610,676],g:[520,690],y:[875,780],ty:[805,760],ent:[962,778]};  // ent — вход в школу с улицы у רחבת תיכון (слова автора)               // проход вдоль ברוש к גפן, двор 11
+  sw:[485,655],p1:[610,676],g:[520,690],y:[875,780],ty:[805,760],ent:[962,778],ent2:[132,424]};  // входы (слова автора): ent — с улицы у רחבת תיכון, ent2 — снизу от спортзала, где дорожка выходит наружу               // проход вдоль ברוש к גפן, двор 11
 var EDGE=[['spn','nn'],['nn','nt'],['nt','o'],['o','os'],['os','sp2'],['sp2','sp'],['os','b'],['b','j6'],['j6','r1'],['r1','r'],['r','s'],['r','e1'],
-  ['e1','e2'],['e2','e'],['e2','ae'],['ae','au'],['b','a1'],['b','jb'],['jb','au'],['a','au'],['au','q'],['q','y'],['q','ty'],['y','ty'],['y','ent'],
+  ['e1','e2'],['e2','e'],['e2','ae'],['ae','au'],['b','a1'],['b','jb'],['jb','au'],['a','au'],['au','q'],['q','y'],['q','ty'],['y','ty'],['y','ent'],['sp','ent2'],
   ['b','sw'],['sw','g'],['sw','p1'],['p1','au'],['p1','t'],['t','au']];
 function dist(p,q){var dx=p[0]-q[0],dy=p[1]-q[1];return Math.sqrt(dx*dx+dy*dy);}
 // кратчайший путь от точки (в пикселях) до узла цели: Дейкстра от цели, потом лучший узел для входа в сеть
@@ -204,7 +204,8 @@ function geoState(selZ){
   var g=st.geo;if(!g||g.lat==null)return null;var p=toPlan(g.lat,g.lon),r={p:p,acc:g.acc||0};
   // за пределами схемы — точку не рисуем, говорим, сколько до школы
   var dx=Math.max(110-p.x,0,p.x-1050),dy=Math.max(0-p.y,0,p.y-880);if(dx||dy){r.far=Math.sqrt(dx*dx+dy*dy)*MPX;}
-  var z=zone(selZ),from=r.far!=null?NODE.ent:[p.x,p.y];  // не в школе — маршрут от входа
+  // не в школе — маршрут от ближайшего входа
+  var gt=GATES.slice().sort(function(a,b){return dist([p.x,p.y],NODE[a.n])-dist([p.x,p.y],NODE[b.n]);})[0],z=zone(selZ),from=r.far!=null?NODE[gt.n]:[p.x,p.y];
   if(z&&z.go)r.rt=route(from,z.go);else if(z)r.noRt=true;
   return r;
 }
@@ -254,6 +255,7 @@ function geoStart(){
 function geoStop(keep,away){if(st.watch!=null){try{navigator.geolocation.clearWatch(st.watch);}catch(e){}}st.watch=null;if(!keep)st.geo=null;if(!keep&&!away)geoWant(false);}
 // здания вне зон (по спутнику; серые, без подписи): между ברוש и גפן, между двором 9 и двором 11, на севере у края
 var EXTRA=['522,574 648,577 646,656 520,654','832,616 920,618 918,700 832,700','295,8 487,8 487,42 295,42'];
+var GATES=[{n:'ent',x:1012,y:778},{n:'ent2',x:140,y:466}];
 var VB0={x:110,y:0,w:940,h:880};
 // улицы и стоянка (по спутнику): улица с востока, шоссе на северо-востоке, стоянка к северу от שקד
 var ROADS=['1000,250 1060,236 1060,890 986,890 990,600','830,-10 935,-10 1060,130 1060,250 1000,250 952,120'];
@@ -320,8 +322,8 @@ function svg(selZ,pinZ){
     if(z.ic&&z.k!==pinZ)h+='<text class="ic" x="'+z.x+'" y="'+(z.y-36)+'">'+z.ic+'</text>';
     h+='<text class="'+on+'" x="'+z.x+'" y="'+z.y+'">'+esc(L(z.lb))+'</text>';
     h+='<text class="n'+on+'" x="'+z.x+'" y="'+(z.y+30)+'">'+esc(z.inset?tx('inset'):'⁦'+z.n+'⁩')+'</text>';});
-  // вход с улицы: значок на улице у רחבת תיכון
-  h+='<g class="gate"><line x1="962" y1="778" x2="996" y2="778"/><circle cx="1012" cy="778" r="21"/><text class="gi" x="1012" y="779">🚪</text><text class="gt" x="1012" y="816">'+esc(tx('gate'))+'</text></g>';
+  // входы: значки «🚪» (n — узел дорожек, x/y — где значок)
+  GATES.forEach(function(g){var n=NODE[g.n];h+='<g class="gate"><line x1="'+n[0]+'" y1="'+n[1]+'" x2="'+g.x+'" y2="'+g.y+'"/><circle cx="'+g.x+'" cy="'+g.y+'" r="21"/><text class="gi" x="'+g.x+'" y="'+(g.y+1)+'">🚪</text><text class="gt" x="'+g.x+'" y="'+(g.y+38)+'">'+esc(tx('gate'))+'</text></g>';});
   var pz=zone(pinZ);
   if(pz)h+='<circle class="ring" cx="'+pz.x+'" cy="'+(pz.y-70)+'" r="16"/><path class="pin" d="M'+pz.x+' '+(pz.y-42)+'c-10-14-20-22-20-34a20 20 0 0 1 40 0c0 12-10 20-20 34z"/><circle cx="'+pz.x+'" cy="'+(pz.y-76)+'" r="7" fill="#171717" style="pointer-events:none"/>';
   return h+'<g id="smap-geo" style="pointer-events:none">'+geoSvg(selZ)+'</g></svg>';
