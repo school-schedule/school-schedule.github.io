@@ -95,6 +95,7 @@ table.grid{border-collapse:collapse;width:100%;min-width:760px;table-layout:fixe
 .rorow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:5px 0;border-bottom:1px solid var(--line)}.rorow:last-child{border-bottom:0}.rorow>b{min-width:110px}.roc{font-weight:600;min-width:44px;text-align:start}.rot{color:var(--acc)}.rolead{font-size:12px;color:var(--muted)}.roauto{font-size:12px;opacity:.7;margin-inline-start:-4px}.rorow>b small{font-weight:400}
 .roform .full .inp{flex:1;min-width:160px}.pmbk{flex-basis:100%;margin:8px 0 0;padding:10px;border:1px dashed var(--line);border-radius:12px}.pmbk table{border-collapse:collapse;margin-bottom:8px}.pmbk td{padding:4px 10px;border-bottom:1px solid var(--line)}.pmlink{min-width:320px;margin-inline-end:6px}.pmslot{flex:0 0 auto;min-width:200px}
 .prdone td{opacity:.55}.apcnt{font-weight:600}.evk{font-size:12px;border-radius:999px;padding:2px 8px;border:1px solid var(--line);color:var(--muted)}.evk.ev-pm,.evk.ev-ap{color:var(--acc);border-color:rgba(198,255,0,.5)}.evk.ev-off{color:#ffb020;border-color:rgba(255,176,32,.5)}.tklink{flex-basis:100%;margin-top:6px}
+.whopick{flex-direction:column;align-items:stretch}.whopick .chips{justify-content:flex-start}.whopick .chips button.part{border-color:var(--acc);color:var(--acc)}.clschips{padding:6px;border:1px dashed var(--line);border-radius:12px}
 .pmday{font-size:16px;margin:16px 0 6px;color:var(--muted)}
 .grid thead th .off{display:block;color:var(--bad);font-size:11px;font-weight:600}
 @media (max-width:820px){.offform{grid-template-columns:1fr}}
@@ -483,7 +484,28 @@ function offView(){
 /* ---------- родительские собрания (D.pm из /ttch; видят родители в Skedy Parents) ---------- */
 // {id, date, from, to?, title?, g:[параллели], c:[классы], t?, room?, note?}; g и c пустые — вся школа
 function pmWho(o){var w=[];if(o.g.length)w.push(o.g.map(function(g){return gName(g);}).join(', '));if(o.c.length)w.push(audLabel(o.c));return w.join(', ')||t('offAll');}
-function pmNewF(d){return {date:d||iso(new Date()),from:'18:00',to:'',title:'',g:[],c:'',t:'',room:'',note:'',slot:''};}
+function pmNewF(d){return {date:d||iso(new Date()),from:'18:00',to:'',title:'',g:[],c:[],vg:null,t:'',room:'',note:'',slot:''};}
+// «для кого» в формах собраний и разрешений: «Вся школа», параллели чипами; нажатая параллель раскрывает свои классы чипами.
+// Параллель целиком — в F.g (все её классы подсвечены); нажатие на класс оставляет только выбранные классы (F.c);
+// выбраны все классы параллели — снова вся параллель.
+function whoPick(F,p){var h='<div class="chips"><button class="'+(!F.g.length&&!F.c.length?'on':'')+'" data-act="'+p+'g" data-v="0">'+esc(t('offAll'))+'</button>';
+  Object.keys(GL).forEach(function(g){var part=F.c.some(function(k){return +k.split('-')[0]===+g;});
+    h+='<button class="'+(F.g.indexOf(+g)>=0?'on':part?'part':'')+'" data-act="'+p+'g" data-v="'+g+'">'+esc(prefs.lang==='he'?GL[g]:g)+(+F.vg===+g?' ▾':'')+'</button>';});
+  h+='</div>';
+  if(F.vg){var whole=F.g.indexOf(+F.vg)>=0;h+='<div class="chips clschips">';
+    D.cls.filter(function(c){return +c.g===+F.vg;}).forEach(function(c){h+='<button class="'+(whole||F.c.indexOf(c.k)>=0?'on':'')+'" data-act="'+p+'c" data-v="'+esc(c.k)+'">'+esc(c.he)+'</button>';});
+    h+='</div>';}
+  return h;}
+function whoAct(F,kind,v){
+  if(kind==='g'){if(+v===0){F.g=[];F.c=[];F.vg=null;return;}var g=+v,gi=F.g.indexOf(g),has=F.c.some(function(k){return +k.split('-')[0]===g;});
+    if(+F.vg!==g&&(gi>=0||has)){F.vg=g;return;}
+    F.vg=g;if(gi>=0)F.g.splice(gi,1);else{F.g.push(g);F.c=F.c.filter(function(k){return +k.split('-')[0]!==g;});}
+    F.g.sort(function(a,b){return a-b;});return;}
+  var k=String(v),g2=+k.split('-')[0],all=D.cls.filter(function(c){return +c.g===g2;}).map(function(c){return c.k;}),wi=F.g.indexOf(g2);
+  if(wi>=0){F.g.splice(wi,1);F.c.push(k);}
+  else{var ci=F.c.indexOf(k);if(ci>=0)F.c.splice(ci,1);else F.c.push(k);
+    if(all.length&&all.every(function(x){return F.c.indexOf(x)>=0;})){F.c=F.c.filter(function(x){return all.indexOf(x)<0;});F.g.push(g2);F.g.sort(function(a,b){return a-b;});}}
+  F.c.sort();}
 // личные встречи: записи родителей (GET /pmb/list/<id>, по коду редактора), ссылка с ключом для учителя (POST /pmb/key)
 var PM_SLOTS=['',5,10,15,20,30];
 function pmApi(path,body){var o={headers:{'X-Editor-Code':encodeURIComponent(ED.code)}};if(body){o.method='POST';o.headers['Content-Type']='application/json';o.body=JSON.stringify(body);}
@@ -503,9 +525,8 @@ function pmView(){
   if(can){var inp=function(f,v,ph,ex){return '<input class="inp" data-f="'+f+'" value="'+esc(v)+'"'+(ph?' placeholder="'+esc(t(ph))+'"':'')+(ex||'')+'>';};
     h+='<div class="offform pmform"><span class="muted">'+esc(t('pmDate'))+'</span>'+inp('pmdate',F.date,'',' type="date"')+inp('pmtitle',F.title,'pmTitlePh',' maxlength="100"')+
       '<span class="muted">'+esc(t('pmFrom'))+'</span>'+inp('pmfrom',F.from,'',' type="time"')+'<span class="pmto"><span class="muted">'+esc(t('pmTo'))+'</span>'+inp('pmto',F.to,'',' type="time"')+'</span>'+
-      '<div class="full"><div class="chips"><button class="'+(!F.g.length&&!F.c.trim()?'on':'')+'" data-act="pmg" data-v="0">'+esc(t('offAll'))+'</button>';
-    Object.keys(GL).forEach(function(g){h+='<button class="'+(F.g.indexOf(+g)>=0?'on':'')+'" data-act="pmg" data-v="'+g+'">'+esc(prefs.lang==='he'?GL[g]:g)+'</button>';});
-    h+='</div>'+inp('pmc',F.c,'pmClsPh',' maxlength="300"')+'</div><div class="full">'+dl('dlPmT',D.byT)+dl('dlPmR',D.byR)+
+      '<div class="full whopick">'+whoPick(F,'pm');
+    h+='</div><div class="full">'+dl('dlPmT',D.byT)+dl('dlPmR',D.byR)+
       inp('pmt',F.t,'pmTPh',' list="dlPmT" maxlength="100"')+inp('pmroom',F.room,'pmRoomPh',' list="dlPmR" maxlength="100"')+inp('pmnote',F.note,'pmNotePh',' maxlength="200"')+
       '<select class="inp pmslot" data-f="pmslot">'+PM_SLOTS.map(function(n){return '<option value="'+n+'"'+(String(F.slot)===String(n)?' selected':'')+'>'+esc(n?t('pmSlotMin').replace('{n}',n):t('pmSlotNone'))+'</option>';}).join('')+'</select>'+
       '<button class="ebtn pri" data-act="pmAdd">'+esc(t('pmAdd'))+'</button></div>'+(ui.pmNote?'<div class="full muted">'+esc(ui.pmNote)+'</div>':'')+'</div>';}
@@ -594,15 +615,13 @@ function rolesView(){
   return h;}
 /* ---------- разрешения родителей (D.ap в /ttch; ответы — GET /apr/list) ---------- */
 // {id, date, title, g:[параллели], c:[классы], due?, note?}
-function apNewF(d){return {date:d||iso(new Date()),title:'',due:'',g:[],c:'',note:''};}
+function apNewF(d){return {date:d||iso(new Date()),title:'',due:'',g:[],c:[],vg:null,note:''};}
 function forCls(o,k){var g=+k.split('-')[0];return (!o.g.length&&!o.c.length)||o.g.indexOf(g)>=0||o.c.indexOf(k)>=0;}
 function apBox(){var today=iso(new Date()),can=!!ED.code&&D.chOk,F=ui.apF||(ui.apF=apNewF()),h='<h2 class="roh">'+esc(t('apT'))+'</h2><p class="sub">'+esc(t('apNote'))+'</p>';
   if(can){var inp=function(f,v,ph,ex){return '<input class="inp" data-f="'+f+'" value="'+esc(v)+'"'+(ph?' placeholder="'+esc(t(ph))+'"':'')+(ex||'')+'>';};
     h+='<div class="offform pmform"><span class="muted">'+esc(t('pmDate'))+'</span>'+inp('apdate',F.date,'',' type="date"')+inp('aptitle',F.title,'apTitlePh',' maxlength="100"')+
       '<span class="muted">'+esc(t('apDue'))+'</span>'+inp('apdue',F.due,'',' type="date"')+inp('apnote',F.note,'pmNotePh',' maxlength="200"')+
-      '<div class="full"><div class="chips"><button class="'+(!F.g.length&&!F.c.trim()?'on':'')+'" data-act="apg" data-v="0">'+esc(t('offAll'))+'</button>';
-    Object.keys(GL).forEach(function(g){h+='<button class="'+(F.g.indexOf(+g)>=0?'on':'')+'" data-act="apg" data-v="'+g+'">'+esc(prefs.lang==='he'?GL[g]:g)+'</button>';});
-    h+='</div>'+inp('apc',F.c,'pmClsPh',' maxlength="300"')+'<button class="ebtn pri" data-act="apAdd">'+esc(t('apAdd'))+'</button></div>'+(ui.apNote?'<div class="full muted">'+esc(ui.apNote)+'</div>':'')+'</div>';}
+      '<div class="full whopick">'+whoPick(F,'ap')+'</div><div class="full"><button class="ebtn pri" data-act="apAdd">'+esc(t('apAdd'))+'</button></div>'+(ui.apNote?'<div class="full muted">'+esc(ui.apNote)+'</div>':'')+'</div>';}
   var ls=D.ap.filter(function(o){return o.date>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
   if(!ls.length)return h+'<div class="state">'+esc(t('apNone'))+'</div>';
   var A=ui.apr;
@@ -1348,8 +1367,8 @@ document.addEventListener('click',function(e){
     case 'offAdd':var F2=ui.offF;if(!F2||!F2.date||!F2.text.trim()){msg('offNeed','bad');break;}
       D.off.push({id:'o'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),date:F2.date,to:F2.to&&F2.to>F2.date?F2.to:undefined,text:F2.text.trim(),g:F2.g.slice()});
       ui.offF={date:F2.date,to:'',text:'',g:[]};chDraft();msg('');break;
-    case 'pmg':var P=ui.pmF;if(+v===0){P.g=[];P.c='';}else{var pgi=P.g.indexOf(+v);if(pgi>=0)P.g.splice(pgi,1);else P.g.push(+v);P.g.sort(function(a,b){return a-b;});}break;
-    case 'pmAdd':var P2=ui.pmF;if(!P2||!ED.code||!D.chOk)return;var pk=qClsKeys(P2.c);ui.pmNote='';
+    case 'pmg':case 'pmc':whoAct(ui.pmF,b.getAttribute('data-act').slice(2),v);break;
+    case 'pmAdd':var P2=ui.pmF;if(!P2||!ED.code||!D.chOk)return;var pk={keys:P2.c.slice(),bad:[]};ui.pmNote='';
       if(pk.bad.length){ui.pmNote=t('qBadCls').replace('{c}',pk.bad.join(', '));break;}
       if(!P2.date||!/^\d{2}:\d{2}$/.test(P2.from)||(P2.to&&P2.to<=P2.from)){ui.pmNote=t('pmNeed');break;}
       if(P2.slot&&(!P2.t.trim()||!P2.to)){ui.pmNote=t('pmSlotNeed');break;}
@@ -1363,8 +1382,8 @@ document.addEventListener('click',function(e){
     case 'tKey':pmApi('/tkey',{t:v}).then(function(x){if(x.s===200&&x.j.key){ui.tKey=ui.tKey||{};ui.tKey[v]=location.origin+'/teacher/#tk='+encodeURIComponent(v)+'.'+x.j.key;}else msg('saveFail','bad');render();});return;
     case 'prLoad':prLoad();return;
     case 'prSet':var pst=b.getAttribute('data-st');if(pst==='del'&&!confirm(t('del')+'?'))return;pmApi('/preq/set',{id:+v,st:pst}).then(prLoad);return;
-    case 'apg':var AF=ui.apF;if(+v===0){AF.g=[];AF.c='';}else{var agi=AF.g.indexOf(+v);if(agi>=0)AF.g.splice(agi,1);else AF.g.push(+v);AF.g.sort(function(a,b){return a-b;});}break;
-    case 'apAdd':var A2=ui.apF;if(!A2||!ED.code||!D.chOk)return;var ak=qClsKeys(A2.c);ui.apNote='';
+    case 'apg':case 'apc':whoAct(ui.apF,b.getAttribute('data-act').slice(2),v);break;
+    case 'apAdd':var A2=ui.apF;if(!A2||!ED.code||!D.chOk)return;var ak={keys:A2.c.slice(),bad:[]};ui.apNote='';
       if(ak.bad.length){ui.apNote=t('qBadCls').replace('{c}',ak.bad.join(', '));break;}
       if(!A2.date||!A2.title.trim()||(A2.due&&A2.due>A2.date)){ui.apNote=t('apNeed');break;}
       var ao={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),date:A2.date,title:A2.title.replace(/\s+/g,' ').trim().slice(0,100),g:A2.g.slice(),c:ak.keys};
@@ -1376,7 +1395,7 @@ document.addEventListener('click',function(e){
     case 'evC':prefs.sel.events=v;break;
     case 'pmLinkCopy':try{navigator.clipboard.writeText(v);}catch(e){}ui.pmNote=t('pmLinkCopied');break;
     case 'pmCopy':var pc=null;D.pm.forEach(function(o){if(o.id===v)pc=o;});if(!pc)return;
-      ui.pmF={date:pc.date,from:pc.from,to:pc.to||'',title:pc.title||'',g:pc.g.slice(),c:pc.c.map(cName).join(', '),t:pc.t||'',room:pc.room||'',note:pc.note||'',slot:pc.slot||''};ui.pmNote=t('pmCopied');window.scrollTo(0,0);break;
+      ui.pmF={date:pc.date,from:pc.from,to:pc.to||'',title:pc.title||'',g:pc.g.slice(),c:pc.c.slice(),vg:pc.g[0]||(pc.c[0]?+pc.c[0].split('-')[0]:null),t:pc.t||'',room:pc.room||'',note:pc.note||'',slot:pc.slot||''};ui.pmNote=t('pmCopied');window.scrollTo(0,0);break;
     case 'pmDel':if(!confirm(t('del')+'?'))return;D.pm=D.pm.filter(function(o){return o.id!==v;});chDraft();msg('');break;
     case 'roK':var kt=ui.roF?ui.roF.t:'';ui.roF=roNewF(v);ui.roF.t=kt;ui.roNote='';break;
     case 'roG':var RG=ui.roF,rgi=RG.g.indexOf(+v);if(rgi>=0)RG.g.splice(rgi,1);else RG.g.push(+v);RG.g.sort(function(a,b){return a-b;});break;
@@ -1452,9 +1471,9 @@ document.addEventListener('change',function(e){
     if(f==='rbcls')RB2.cls=e.target.value;else if(f==='rbmax')RB2.maxP=+e.target.value;else if(f==='rbone')RB2.one=e.target.checked;else RB2.rebuild=e.target.checked;
     RB2.res=null;render();return;}
   if(f==='wiwho'||f==='wifrom'||f==='wito'){var Ww=wiState();Ww[{wiwho:'who',wifrom:'from',wito:'to'}[f]]=e.target.value.trim();render();return;}
-  if(ui.apF&&/^ap(date|title|due|c|note)$/.test(f||'')){ui.apF[f.slice(2)]=e.target.value;return;}
+  if(ui.apF&&/^ap(date|title|due|note)$/.test(f||'')){ui.apF[f.slice(2)]=e.target.value;return;}
   if(ui.roF&&/^ro[tcsn]$/.test(f||'')){ui.roF[f.slice(2)]=e.target.value;return;}
-  if(ui.pmF&&/^pm(date|from|to|title|c|t|room|note|slot)$/.test(f||'')){ui.pmF[f.slice(2)]=e.target.value;return;}
+  if(ui.pmF&&/^pm(date|from|to|title|t|room|note|slot)$/.test(f||'')){ui.pmF[f.slice(2)]=e.target.value;return;}
   if(ui.offF&&(f==='ofdate'||f==='ofto'||f==='oftext')){ui.offF[{ofdate:'date',ofto:'to',oftext:'text'}[f]]=e.target.value;return;}
   if(ui.bulk&&(f==='bd'||f==='bfrom'||f==='bto')){ui.bulk[{bd:'d',bfrom:'from',bto:'to'}[f]]=+e.target.value;return;}
   // замена — другой учитель по имени (не из списка свободных)
