@@ -57,9 +57,9 @@ var NODE={
   b:[500,500],j6:[620,450],a1:[632,510],r1:[652,436],r:[750,330],s:[745,172],    // двор ברוש (6), проход в двор רימון (8), שקד
   e1:[845,420],e2:[880,495],e:[930,405],ae:[865,555],                            // низ ארז (4) с деревьями, вход в ארז
   jb:[640,590],a:[735,585],au:[740,630],q:[815,690],t:[720,697],                 // двор 9, אלון снизу, תיכון со двора 9
-  sw:[485,655],p1:[610,676],g:[520,690],y:[875,780],ty:[805,760]};               // проход вдоль ברוש к גפן, двор 11
+  sw:[485,655],p1:[610,676],g:[520,690],y:[875,780],ty:[805,760],ent:[962,778]};  // ent — вход в школу с улицы у רחבת תיכון (слова автора)               // проход вдоль ברוש к גפן, двор 11
 var EDGE=[['spn','nn'],['nn','nt'],['nt','o'],['o','os'],['os','sp2'],['sp2','sp'],['os','b'],['b','j6'],['j6','r1'],['r1','r'],['r','s'],['r','e1'],
-  ['e1','e2'],['e2','e'],['e2','ae'],['ae','au'],['b','a1'],['b','jb'],['jb','au'],['a','au'],['au','q'],['q','y'],['q','ty'],['y','ty'],
+  ['e1','e2'],['e2','e'],['e2','ae'],['ae','au'],['b','a1'],['b','jb'],['jb','au'],['a','au'],['au','q'],['q','y'],['q','ty'],['y','ty'],['y','ent'],
   ['b','sw'],['sw','g'],['sw','p1'],['p1','au'],['p1','t'],['t','au']];
 function dist(p,q){var dx=p[0]-q[0],dy=p[1]-q[1];return Math.sqrt(dx*dx+dy*dy);}
 // кратчайший путь от точки (в пикселях) до узла цели: Дейкстра от цели, потом лучший узел для входа в сеть
@@ -81,19 +81,19 @@ var T={
    clear:'ניקוי',other:'אחר',rooms:'כיתות',noRooms:'אין כאן כיתות מהמערכת',mapL:'מפת בית הספר',inset:'מבנה נפרד',
    geoBtn:'איפה אני? מסלול',geoOff:'הסתרת המיקום',geoWait:'מחפשים את המיקום…',geoDenied:'אין גישה למיקום. אפשר לאשר בהגדרות הטלפון.',geoErr:'לא הצלחנו לקבל מיקום',geoNo:'הטלפון לא תומך במיקום',
    geoFar:'מחוץ לשטח בית הספר · עוד כ־{d}',geoRoute:'{t} דק׳ הליכה · {d}',geoPick:'בחרו כיתה או אזור — ונראה את הדרך',geoInacc:'ה־GPS לא מדויק (±{d})',geoNoRoute:'לאזור הזה אין מסלול על המפה',
-   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',geoIos:'כדי שהאייפון לא ישאל כל פעם: הגדרות ← Safari ← מיקום ← „אפשר“.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה',full:'מסך מלא',fullX:'סגירת מסך מלא'},
+   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',gate:'כניסה',geoFromGate:'מהכניסה: {t} דק׳ הליכה · {d}',geoIos:'כדי שהאייפון לא ישאל כל פעם: הגדרות ← Safari ← מיקום ← „אפשר“.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה',full:'מסך מלא',fullX:'סגירת מסך מלא'},
  en:{search:'Search a room, lab…',now:'Now',next:'Next lesson',pm:'Parents’ meeting',notOn:'Not on the map yet',
    notOnR:'This room’s location isn’t on the map yet',noMatch:'Nothing found',tap:'Tap an area to see its rooms',
    clear:'Clear',other:'Other',rooms:'Rooms',noRooms:'No timetable rooms here',mapL:'School map',inset:'Separate building',
    geoBtn:'Where am I? Route',geoOff:'Hide my location',geoWait:'Finding your location…',geoDenied:'No access to location. You can allow it in the phone settings.',geoErr:'Couldn’t get your location',geoNo:'This phone can’t share its location',
    geoFar:'Outside the school · about {d} away',geoRoute:'{t} min walk · {d}',geoPick:'Pick a room or area to see the way',geoInacc:'GPS is inaccurate (±{d})',geoNoRoute:'No route to this area on the map',
-   geoPriv:'Your location stays on your phone and is never sent anywhere.',geoIos:'So your iPhone doesn’t ask every time: Settings → Safari → Location → Allow.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map',full:'Full screen',fullX:'Close full screen'},
+   geoPriv:'Your location stays on your phone and is never sent anywhere.',gate:'Entrance',geoFromGate:'From the entrance: {t} min walk · {d}',geoIos:'So your iPhone doesn’t ask every time: Settings → Safari → Location → Allow.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map',full:'Full screen',fullX:'Close full screen'},
  ru:{search:'Поиск кабинета, лаборатории…',now:'Сейчас',next:'Следующий урок',pm:'Родительское собрание',notOn:'Ещё не на карте',
    notOnR:'Где этот кабинет, на карте пока нет',noMatch:'Ничего не найдено',tap:'Нажми на зону — покажу её кабинеты',
    clear:'Очистить',other:'Другое',rooms:'Кабинеты',noRooms:'Здесь нет кабинетов из расписания',mapL:'Карта школы',inset:'Отдельное здание',
    geoBtn:'Где я? Маршрут',geoOff:'Скрыть моё место',geoWait:'Ищу, где ты…',geoDenied:'Нет доступа к геопозиции. Её можно разрешить в настройках телефона.',geoErr:'Не удалось узнать, где ты',geoNo:'Телефон не умеет сообщать геопозицию',
    geoFar:'Ты не в школе · до неё примерно {d}',geoRoute:'{t} мин пешком · {d}',geoPick:'Выбери кабинет или зону — покажу дорогу',geoInacc:'GPS неточный (±{d})',geoNoRoute:'До этой зоны маршрута на карте нет',
-   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',geoIos:'Чтобы iPhone не спрашивал каждый раз: Настройки → Safari → Геопозиция → «Разрешить».',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта',full:'Во весь экран',fullX:'Закрыть весь экран'}
+   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',gate:'Вход',geoFromGate:'От входа: {t} мин пешком · {d}',geoIos:'Чтобы iPhone не спрашивал каждый раз: Настройки → Safari → Геопозиция → «Разрешить».',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта',full:'Во весь экран',fullX:'Закрыть весь экран'}
 };
 var st={sel:null,q:'',rooms:null,busy:false,geo:null,watch:null},CB={},LANG='he';
 function tx(k){return (T[LANG]||T.he)[k]||T.he[k]||k;}
@@ -156,6 +156,8 @@ var css=
 '.smap-svg .lane{fill:none;stroke:#cfcfcf;stroke-width:2.5;stroke-dasharray:16 14;opacity:.55}'+
 '.smap-svg .park{fill:#4a4b4d}'+
 '.smap-svg .trees{pointer-events:none}'+
+'.smap-svg .gate{pointer-events:none}.smap-svg .gate line{stroke:#C6FF00;stroke-width:4;stroke-dasharray:4 6;stroke-linecap:round}.smap-svg .gate circle{fill:#171717;stroke:#C6FF00;stroke-width:4}'+
+'.smap-svg text.gi{font-size:22px;stroke:none}.smap-svg text.gt{fill:#C6FF00;font-size:18px;stroke-width:5px}'+
 '.smap-svg .path{fill:none;stroke:#c9bd9f;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.38;pointer-events:none}'+
 '.smap-svg text{fill:#fff;font-size:32px;font-weight:800;text-anchor:middle;dominant-baseline:middle;pointer-events:none;font-family:inherit;paint-order:stroke;stroke:#111;stroke-width:8px;stroke-linejoin:round}'+
 '.smap-svg text.n{fill:#c4c4c4;font-size:19px;font-weight:700;stroke-width:6px}'+
@@ -201,13 +203,15 @@ function fmtD(m){return m>=1000?(Math.round(m/100)/10)+' '+tx('km'):Math.max(5,M
 function geoState(selZ){
   var g=st.geo;if(!g||g.lat==null)return null;var p=toPlan(g.lat,g.lon),r={p:p,acc:g.acc||0};
   // за пределами схемы — точку не рисуем, говорим, сколько до школы
-  var dx=Math.max(110-p.x,0,p.x-1050),dy=Math.max(0-p.y,0,p.y-880);if(dx||dy){r.far=Math.sqrt(dx*dx+dy*dy)*MPX;return r;}
-  var z=zone(selZ);if(z&&z.go)r.rt=route([p.x,p.y],z.go);else if(z)r.noRt=true;
+  var dx=Math.max(110-p.x,0,p.x-1050),dy=Math.max(0-p.y,0,p.y-880);if(dx||dy){r.far=Math.sqrt(dx*dx+dy*dy)*MPX;}
+  var z=zone(selZ),from=r.far!=null?NODE.ent:[p.x,p.y];  // не в школе — маршрут от входа
+  if(z&&z.go)r.rt=route(from,z.go);else if(z)r.noRt=true;
   return r;
 }
 function geoSvg(selZ){
-  var r=geoState(selZ);if(!r||r.far!=null)return '';var h='';
+  var r=geoState(selZ);if(!r)return '';var h='';
   if(r.rt){var pts=r.rt.pts.map(function(q){return Math.round(q[0])+','+Math.round(q[1]);}).join(' ');h+='<polyline class="rtb" points="'+pts+'"/><polyline class="rt" points="'+pts+'"/>';}
+  if(r.far!=null)return h;
   var ar=Math.min(r.acc/MPX,400);if(ar>14)h+='<circle class="acc" cx="'+r.p.x.toFixed(1)+'" cy="'+r.p.y.toFixed(1)+'" r="'+ar.toFixed(1)+'"/>';
   return h+'<circle class="me" cx="'+r.p.x.toFixed(1)+'" cy="'+r.p.y.toFixed(1)+'" r="13"/>';
 }
@@ -215,7 +219,7 @@ function geoLine(selZ){
   var g=st.geo;if(st.watch==null&&!(g&&g.err))return '';
   if(!g)return esc(tx('geoWait'));if(g.err)return esc(tx(g.err));
   var r=geoState(selZ);if(!r)return esc(tx('geoWait'));
-  if(r.far!=null)return esc(tx('geoFar').replace('{d}',fmtD(r.far)));
+  if(r.far!=null)return esc(tx('geoFar').replace('{d}',fmtD(r.far)))+(r.rt?'<br><b>'+esc(tx('geoFromGate').replace('{t}',Math.max(1,Math.round(r.rt.m/75))).replace('{d}',fmtD(r.rt.m)))+'</b>':'');
   var h=r.rt?'<b>'+esc(tx('geoRoute').replace('{t}',Math.max(1,Math.round(r.rt.m/75))).replace('{d}',fmtD(r.rt.m)))+'</b>':esc(tx(r.noRt?'geoNoRoute':'geoPick'));
   if(r.acc>40)h+='<br><small>'+esc(tx('geoInacc').replace('{d}',fmtD(r.acc)))+'</small>';
   return h;
@@ -316,6 +320,8 @@ function svg(selZ,pinZ){
     if(z.ic&&z.k!==pinZ)h+='<text class="ic" x="'+z.x+'" y="'+(z.y-36)+'">'+z.ic+'</text>';
     h+='<text class="'+on+'" x="'+z.x+'" y="'+z.y+'">'+esc(L(z.lb))+'</text>';
     h+='<text class="n'+on+'" x="'+z.x+'" y="'+(z.y+30)+'">'+esc(z.inset?tx('inset'):'⁦'+z.n+'⁩')+'</text>';});
+  // вход с улицы: значок на улице у רחבת תיכון
+  h+='<g class="gate"><line x1="962" y1="778" x2="996" y2="778"/><circle cx="1012" cy="778" r="21"/><text class="gi" x="1012" y="779">🚪</text><text class="gt" x="1012" y="816">'+esc(tx('gate'))+'</text></g>';
   var pz=zone(pinZ);
   if(pz)h+='<circle class="ring" cx="'+pz.x+'" cy="'+(pz.y-70)+'" r="16"/><path class="pin" d="M'+pz.x+' '+(pz.y-42)+'c-10-14-20-22-20-34a20 20 0 0 1 40 0c0 12-10 20-20 34z"/><circle cx="'+pz.x+'" cy="'+(pz.y-76)+'" r="7" fill="#171717" style="pointer-events:none"/>';
   return h+'<g id="smap-geo" style="pointer-events:none">'+geoSvg(selZ)+'</g></svg>';
