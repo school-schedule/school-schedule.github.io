@@ -7,34 +7,34 @@
 var BASE=(function(){try{var s=document.currentScript&&document.currentScript.src;return s?s.replace(/map\.js(\?.*)?$/,''):'/';}catch(e){return '/';}})();
 // k — ключ, n — номер на плане школы, lb — подпись на схеме, nm — название, sub — пояснение, pre — с чего начинается название кабинета
 var Z=[
- {k:'shaked',n:'3',pre:['שקד'],lb:{he:'שקד',en:'Shaked',ru:'Шакед'},x:740,y:105,
+ {k:'shaked',go:'s',n:'3',pre:['שקד'],lb:{he:'שקד',en:'Shaked',ru:'Шакед'},x:740,y:105,
   pts:'580,8 868,20 872,95 950,108 948,245 900,238 900,193 565,170'},
- {k:'sport',n:'7',pre:['אולם ספורט','חנ"ג','מגרש'],lb:{he:'ספורט',en:'Sports',ru:'Спорт'},x:262,y:300,
+ {k:'sport',go:'sp',n:'7',pre:['אולם ספורט','חנ"ג','מגרש'],lb:{he:'ספורט',en:'Sports',ru:'Спорт'},x:262,y:300,
   sub:{he:'אולם ספורט ומגרשים',en:'Gym and sports fields',ru:'Спортзал и площадки'},
   pts:'130,78 196,78 196,195 386,206 376,414 126,396'},
- {k:'oren',n:'10',pre:['אורן'],lb:{he:'אורן',en:'Oren',ru:'Орен'},x:470,y:300,
+ {k:'oren',go:'o',n:'10',pre:['אורן'],lb:{he:'אורן',en:'Oren',ru:'Орен'},x:470,y:300,
   sub:{he:'רחבת שכבת ז׳',en:'7th grade yard',ru:'Двор 7-х классов'},
   pts:'386,130 568,144 565,170 548,418 376,415 386,206'},
- {k:'rimon',n:'8',pre:['רימון'],lb:{he:'רימון',en:'Rimon',ru:'Римон'},x:725,y:315,
+ {k:'rimon',go:'r',n:'8',pre:['רימון'],lb:{he:'רימון',en:'Rimon',ru:'Римон'},x:725,y:315,
   pts:'565,170 900,193 896,402 836,402 832,446 640,440 548,450 548,418'},
- {k:'erez',n:'4',pre:['ארז'],lb:{he:'ארז',en:'Erez',ru:'Эрез'},x:938,y:390,
+ {k:'erez',go:'e',n:'4',pre:['ארז'],lb:{he:'ארז',en:'Erez',ru:'Эрез'},x:938,y:390,
   pts:'900,238 1028,242 992,532 832,532 836,402 896,402'},
- {k:'brosh',n:'6',pre:['ברוש'],lb:{he:'ברוש',en:'Brosh',ru:'Брош'},x:500,y:515,
+ {k:'brosh',go:'b',n:'6',pre:['ברוש'],lb:{he:'ברוש',en:'Brosh',ru:'Брош'},x:500,y:515,
   pts:'376,415 548,418 548,450 640,440 630,575 500,578 492,610 372,592'},
- {k:'alon',n:'1–2',pre:['אלון'],lb:{he:'אלון',en:'Alon',ru:'Алон'},x:732,y:505,
+ {k:'alon',go:'a',n:'1–2',pre:['אלון'],lb:{he:'אלון',en:'Alon',ru:'Алон'},x:732,y:505,
   sub:{he:'קומת קרקע וקומה שנייה',en:'Ground floor and 2nd floor',ru:'Первый и второй этаж'},
   pts:'640,440 832,446 832,532 828,580 630,556'},
- {k:'audit',n:'9',pre:['אודיטוריום'],lb:{he:'אודיטוריום',en:'Auditorium',ru:'Аудиториум'},x:738,y:645,
+ {k:'audit',go:'au',n:'9',pre:['אודיטוריום'],lb:{he:'אודיטוריום',en:'Auditorium',ru:'Аудиториум'},x:738,y:645,
   sub:{he:'רחבת אודיטוריום',en:'Auditorium yard',ru:'Площадь у аудиториума'},
   pts:'655,560 828,580 832,532 905,526 890,588 826,594 822,696 645,700'},
- {k:'gefen',n:'12',pre:['גפן'],lb:{he:'גפן',en:'Gefen',ru:'Гефен'},x:538,y:785,
+ {k:'gefen',go:'g',n:'12',pre:['גפן'],lb:{he:'גפן',en:'Gefen',ru:'Гефен'},x:538,y:785,
   sub:{he:'תיכון · קומה 0 (תחתונה)',en:'High school · floor 0 (lower)',ru:'Старшая школа · этаж 0 (нижний)'},
   pts:'468,692 612,698 608,856 465,860'},
- {k:'tich',n:'13–14',pre:[],lb:{he:'תיכון',en:'High school',ru:'Старшая'},x:708,y:785,
+ {k:'tich',go:'t',n:'13–14',pre:[],lb:{he:'תיכון',en:'High school',ru:'Старшая'},x:708,y:785,
   nm:{he:'תיכון · קומות 1–2',en:'High school · floors 1–2',ru:'Старшая школа · этажи 1–2'},
   sub:{he:'קומה 1 — קומת חדר המורים · קומה 2 — עליונה',en:'Floor 1 — teachers’ room · floor 2 — top',ru:'Этаж 1 — учительская · этаж 2 — верхний'},
   pts:'612,698 812,706 800,852 608,856'},
- {k:'yard',n:'11',pre:[],lb:{he:'רחבה',en:'Yard',ru:'Двор'},x:878,y:785,
+ {k:'yard',go:'y',n:'11',pre:[],lb:{he:'רחבה',en:'Yard',ru:'Двор'},x:878,y:785,
   nm:{he:'רחבת תיכון ראשית',en:'Main high school yard',ru:'Главный двор старшей школы'},
   pts:'815,702 955,700 950,850 800,862'},
  // בית רינה на плане школы — отдельной вставкой: стоит не рядом с остальными корпусами
@@ -42,20 +42,55 @@ var Z=[
   sub:{he:'מבנה נפרד, מחוץ למתחם הראשי',en:'Separate building, outside the main campus',ru:'Отдельное здание, вне основной территории'},
   pts:'132,660 432,660 432,850 132,850'}
 ];
+/* ---------- геопозиция и маршрут ---------- */
+// Привязка плана к GPS: подобие (поворот, масштаб, сдвиг) по трём точкам автора из Google Maps
+// (верхний угол зоны 7, верхний левый угол зоны 4, нижний левый угол зоны 12; ошибка ~1 м):
+// E + iN = a·(x − i·y) + b, где E/N — метры к востоку/северу от (lat0, lon0), x/y — пиксели плана.
+var GEO={lat0:32.1335419,lon0:34.8308384,k:94266.97,ar:0.19304037,ai:-0.02887301,br:-65.846323,bi:179.079785};
+var MPX=Math.sqrt(GEO.ar*GEO.ar+GEO.ai*GEO.ai); // метров в пикселе плана (~0,195)
+function toPlan(lat,lon){var zr=(lon-GEO.lon0)*GEO.k-GEO.br,zi=(lat-GEO.lat0)*111320-GEO.bi,d=GEO.ar*GEO.ar+GEO.ai*GEO.ai;
+  return {x:(zr*GEO.ar+zi*GEO.ai)/d,y:-(zi*GEO.ar-zr*GEO.ai)/d};}
+// дорожки и дворы (примерно, по плану школы): узлы в пикселях плана, рёбра — по ним можно идти
+var NODE={sp:[384,300],o:[468,300],o2:[520,420],b:[470,505],j:[600,445],r1:[680,420],r:[740,320],s:[740,185],
+  e1:[893,330],e:[938,390],a1:[636,505],a:[735,505],jb:[640,585],au:[740,630],ae:[868,560],e2:[905,520],
+  t:[705,705],g:[550,700],y:[878,775],ty:[812,780]};
+var EDGE=[['sp','o'],['o','o2'],['o2','b'],['o2','j'],['j','r1'],['r1','r'],['r','s'],['r','e1'],['e1','e'],['j','a1'],['a1','a'],
+  ['b','a1'],['b','jb'],['jb','au'],['a','au'],['au','ae'],['ae','e2'],['e2','e'],['au','t'],['t','g'],['ae','y'],['y','ty'],['ty','t']];
+function dist(p,q){var dx=p[0]-q[0],dy=p[1]-q[1];return Math.sqrt(dx*dx+dy*dy);}
+// кратчайший путь от точки (в пикселях) до узла цели: Дейкстра от цели, потом лучший узел для входа в сеть
+function route(from,goal){
+  var D={},prev={},left={},k;for(k in NODE){D[k]=Infinity;left[k]=1;}D[goal]=0;
+  for(;;){var u=null;for(k in left)if(u===null||D[k]<D[u])u=k;if(u===null||D[u]===Infinity)break;delete left[u];
+    EDGE.forEach(function(e){var v=e[0]===u?e[1]:e[1]===u?e[0]:null;if(!v||!left[v])return;var c=D[u]+dist(NODE[u],NODE[v]);if(c<D[v]){D[v]=c;prev[v]=u;}});}
+  // входим в сеть только через 2 ближайших узла (иначе прямая к цели всегда короче — линия шла бы сквозь здания)
+  var near=Object.keys(NODE).sort(function(x,y){return dist(from,NODE[x])-dist(from,NODE[y]);}).slice(0,2);
+  var best=null,bc=Infinity;near.forEach(function(q){var c=dist(from,NODE[q])+D[q];if(c<bc){bc=c;best=q;}});
+  if(!best)return null;var pts=[from],n=best;while(n){pts.push(NODE[n]);n=prev[n];}
+  return {pts:pts,m:bc*MPX};
+}
 // корпуса, которых ещё нет на схеме (их кабинеты — списком «ещё не на карте»)
 var OFF=[['זית',{he:'זית',en:'Zayit',ru:'Заит'}],['ריושקה',{he:'ריושקה',en:'Ryushka',ru:'Рюшка'}],['תמר',{he:'תמר',en:'Tamar',ru:'Тамар'}]];
 var T={
  he:{search:'חיפוש כיתה, מעבדה…',now:'עכשיו',next:'השיעור הבא',pm:'אסיפת הורים',notOn:'עוד לא על המפה',
    notOnR:'המיקום של הכיתה הזו עוד לא על המפה',noMatch:'לא נמצא',tap:'נגיעה באזור מראה את הכיתות שבו',
-   clear:'ניקוי',other:'אחר',rooms:'כיתות',noRooms:'אין כאן כיתות מהמערכת',mapL:'מפת בית הספר',inset:'מבנה נפרד'},
+   clear:'ניקוי',other:'אחר',rooms:'כיתות',noRooms:'אין כאן כיתות מהמערכת',mapL:'מפת בית הספר',inset:'מבנה נפרד',
+   geoBtn:'איפה אני? מסלול',geoOff:'הסתרת המיקום',geoWait:'מחפשים את המיקום…',geoDenied:'אין גישה למיקום. אפשר לאשר בהגדרות הטלפון.',geoErr:'לא הצלחנו לקבל מיקום',geoNo:'הטלפון לא תומך במיקום',
+   geoFar:'מחוץ לשטח בית הספר · עוד כ־{d}',geoRoute:'{t} דק׳ הליכה · {d}',geoPick:'בחרו כיתה או אזור — ונראה את הדרך',geoInacc:'ה־GPS לא מדויק (±{d})',geoNoRoute:'לאזור הזה אין מסלול על המפה',
+   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',m:'מ׳',km:'ק״מ'},
  en:{search:'Search a room, lab…',now:'Now',next:'Next lesson',pm:'Parents’ meeting',notOn:'Not on the map yet',
    notOnR:'This room’s location isn’t on the map yet',noMatch:'Nothing found',tap:'Tap an area to see its rooms',
-   clear:'Clear',other:'Other',rooms:'Rooms',noRooms:'No timetable rooms here',mapL:'School map',inset:'Separate building'},
+   clear:'Clear',other:'Other',rooms:'Rooms',noRooms:'No timetable rooms here',mapL:'School map',inset:'Separate building',
+   geoBtn:'Where am I? Route',geoOff:'Hide my location',geoWait:'Finding your location…',geoDenied:'No access to location. You can allow it in the phone settings.',geoErr:'Couldn’t get your location',geoNo:'This phone can’t share its location',
+   geoFar:'Outside the school · about {d} away',geoRoute:'{t} min walk · {d}',geoPick:'Pick a room or area to see the way',geoInacc:'GPS is inaccurate (±{d})',geoNoRoute:'No route to this area on the map',
+   geoPriv:'Your location stays on your phone and is never sent anywhere.',m:'m',km:'km'},
  ru:{search:'Поиск кабинета, лаборатории…',now:'Сейчас',next:'Следующий урок',pm:'Родительское собрание',notOn:'Ещё не на карте',
    notOnR:'Где этот кабинет, на карте пока нет',noMatch:'Ничего не найдено',tap:'Нажми на зону — покажу её кабинеты',
-   clear:'Очистить',other:'Другое',rooms:'Кабинеты',noRooms:'Здесь нет кабинетов из расписания',mapL:'Карта школы',inset:'Отдельное здание'}
+   clear:'Очистить',other:'Другое',rooms:'Кабинеты',noRooms:'Здесь нет кабинетов из расписания',mapL:'Карта школы',inset:'Отдельное здание',
+   geoBtn:'Где я? Маршрут',geoOff:'Скрыть моё место',geoWait:'Ищу, где ты…',geoDenied:'Нет доступа к геопозиции. Её можно разрешить в настройках телефона.',geoErr:'Не удалось узнать, где ты',geoNo:'Телефон не умеет сообщать геопозицию',
+   geoFar:'Ты не в школе · до неё примерно {d}',geoRoute:'{t} мин пешком · {d}',geoPick:'Выбери кабинет или зону — покажу дорогу',geoInacc:'GPS неточный (±{d})',geoNoRoute:'До этой зоны маршрута на карте нет',
+   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',m:'м',km:'км'}
 };
-var st={sel:null,q:'',rooms:null,busy:false},CB={},LANG='he';
+var st={sel:null,q:'',rooms:null,busy:false,geo:null,watch:null},CB={},LANG='he';
 function tx(k){return (T[LANG]||T.he)[k]||T.he[k]||k;}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function L(o){return o?(o[LANG]||o.he):'';}
@@ -104,6 +139,19 @@ var css=
 '.smap-svg .ring{fill:none;stroke:#C6FF00;stroke-width:4;pointer-events:none;transform-box:fill-box;transform-origin:center;animation:smapPulse 1.6s ease-out infinite}'+
 '@keyframes smapPulse{0%{transform:scale(.4);opacity:1}100%{transform:scale(2.2);opacity:0}}'+
 '@media (prefers-reduced-motion:reduce){.smap-svg .ring{animation:none;opacity:.6}.smap-svg .z polygon,.smap-svg .z rect{transition:none}}'+
+'.smap-geo{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:0 0 10px}'+
+'.smap-me{min-height:46px;padding:10px 16px;border-radius:16px;border:1px solid #C6FF00;background:transparent;color:#C6FF00;font:inherit;font-size:15px;font-weight:600;cursor:pointer}'+
+'.smap-me.on{background:#C6FF00;color:#171717}'+
+'.smap-gline{color:#d6d6d6;font-size:14px;text-align:center;min-height:1.3em}'+
+'.smap-gline:empty{display:none}'+
+'.smap-gline b{color:#C6FF00}'+
+'.smap-priv{color:#7d7d7d;font-size:12px;text-align:center;margin:6px 0 0}'+
+'.smap-svg .rt{fill:none;stroke:#C6FF00;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 16;animation:smapDash 1s linear infinite}'+
+'.smap-svg .rtb{fill:none;stroke:#171717;stroke-width:14;stroke-linecap:round;stroke-linejoin:round;opacity:.7}'+
+'@keyframes smapDash{to{stroke-dashoffset:-18}}'+
+'.smap-svg .acc{fill:rgba(77,163,255,.16);stroke:rgba(77,163,255,.5);stroke-width:2}'+
+'.smap-svg .me{fill:#4da3ff;stroke:#fff;stroke-width:5}'+
+'@media (prefers-reduced-motion:reduce){.smap-svg .rt{animation:none}}'+
 '.smap-tip{color:#8a8a8a;font-size:13px;text-align:center;margin:8px 0 0}'+
 '.smap-info{margin:12px 0 0;padding:14px 16px;border-radius:18px;background:#202020;border:1px solid #2c2c2c}'+
 '.smap-info h3{margin:0 0 2px;font-size:18px;color:#f5f5f5}'+
@@ -119,6 +167,46 @@ var css=
 '[data-mact="go"]{cursor:pointer;text-decoration:underline dotted rgba(198,255,0,.55);text-decoration-thickness:2px;text-underline-offset:4px}';
 function addCss(){if(document.getElementById('smap-css'))return;var s=document.createElement('style');s.id='smap-css';s.textContent=css;(document.head||document.documentElement).appendChild(s);}
 
+function fmtD(m){return m>=1000?(Math.round(m/100)/10)+' '+tx('km'):Math.max(5,Math.round(m/5)*5)+' '+tx('m');}
+// где я на плане и маршрут до выбранной зоны
+function geoState(selZ){
+  var g=st.geo;if(!g||g.lat==null)return null;var p=toPlan(g.lat,g.lon),r={p:p,acc:g.acc||0};
+  // за пределами схемы — точку не рисуем, говорим, сколько до школы
+  var dx=Math.max(110-p.x,0,p.x-1050),dy=Math.max(0-p.y,0,p.y-880);if(dx||dy){r.far=Math.sqrt(dx*dx+dy*dy)*MPX;return r;}
+  var z=zone(selZ);if(z&&z.go)r.rt=route([p.x,p.y],z.go);else if(z)r.noRt=true;
+  return r;
+}
+function geoSvg(selZ){
+  var r=geoState(selZ);if(!r||r.far!=null)return '';var h='';
+  if(r.rt){var pts=r.rt.pts.map(function(q){return Math.round(q[0])+','+Math.round(q[1]);}).join(' ');h+='<polyline class="rtb" points="'+pts+'"/><polyline class="rt" points="'+pts+'"/>';}
+  var ar=Math.min(r.acc/MPX,400);if(ar>14)h+='<circle class="acc" cx="'+r.p.x.toFixed(1)+'" cy="'+r.p.y.toFixed(1)+'" r="'+ar.toFixed(1)+'"/>';
+  return h+'<circle class="me" cx="'+r.p.x.toFixed(1)+'" cy="'+r.p.y.toFixed(1)+'" r="13"/>';
+}
+function geoLine(selZ){
+  var g=st.geo;if(st.watch==null&&!(g&&g.err))return '';
+  if(!g)return esc(tx('geoWait'));if(g.err)return esc(tx(g.err));
+  var r=geoState(selZ);if(!r)return esc(tx('geoWait'));
+  if(r.far!=null)return esc(tx('geoFar').replace('{d}',fmtD(r.far)));
+  var h=r.rt?'<b>'+esc(tx('geoRoute').replace('{t}',Math.max(1,Math.round(r.rt.m/75))).replace('{d}',fmtD(r.rt.m)))+'</b>':esc(tx(r.noRt?'geoNoRoute':'geoPick'));
+  if(r.acc>40)h+='<br><small>'+esc(tx('geoInacc').replace('{d}',fmtD(r.acc)))+'</small>';
+  return h;
+}
+function curZ(){var s=st.sel;return s&&s.r?(zoneOf(s.r)||{}).k:s&&s.z?s.z:null;}
+// перерисовать только слой геопозиции и строку под кнопкой (без render(): не сбивает поиск и прокрутку)
+function geoPaint(){
+  if(CB.shown&&!CB.shown()){geoStop();return;}
+  var l=document.getElementById('smap-geo'),t=document.getElementById('smap-gline'),z=curZ();
+  if(l)l.innerHTML=geoSvg(z);if(t)t.innerHTML=geoLine(z);
+}
+// геопозиция — только по нажатию кнопки, только в телефоне: никуда не отправляется
+function geoStart(){
+  if(!navigator.geolocation){st.geo={err:'geoNo'};return;}
+  st.geo=null;
+  try{st.watch=navigator.geolocation.watchPosition(function(p){st.geo={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};geoPaint();},
+    function(e){st.geo={err:e&&e.code===1?'geoDenied':'geoErr'};if(e&&e.code===1)geoStop(true);geoPaint();},
+    {enableHighAccuracy:true,maximumAge:5000,timeout:20000});}catch(e){st.geo={err:'geoErr'};}
+}
+function geoStop(keep){if(st.watch!=null){try{navigator.geolocation.clearWatch(st.watch);}catch(e){}}st.watch=null;if(!keep)st.geo=null;}
 function svg(selZ,pinZ){
   var h='<svg class="smap-svg" viewBox="110 0 940 880" role="group" aria-label="'+esc(tx('mapL'))+'">';
   Z.forEach(function(z){
@@ -132,7 +220,7 @@ function svg(selZ,pinZ){
   });
   var pz=zone(pinZ);
   if(pz)h+='<circle class="ring" cx="'+pz.x+'" cy="'+(pz.y-46)+'" r="16"/><path class="pin" d="M'+pz.x+' '+(pz.y-18)+'c-10-14-20-22-20-34a20 20 0 0 1 40 0c0 12-10 20-20 34z"/><circle cx="'+pz.x+'" cy="'+(pz.y-52)+'" r="7" fill="#171717" style="pointer-events:none"/>';
-  return h+'</svg>';
+  return h+'<g id="smap-geo" style="pointer-events:none">'+geoSvg(selZ)+'</g></svg>';
 }
 // o: {lang, rooms:[ещё кабинеты], here:[{k:'now'|'next'|'pm', room, label}]}
 function html(o){
@@ -150,7 +238,10 @@ function html(o){
   if(here.length){h+='<div class="smap-here">';
     here.forEach(function(x){h+='<button class="'+(selR===x.room?'on':'')+'" data-mact="r" data-r="'+esc(x.room)+'"><span class="k">'+esc(tx(x.k)||x.k)+'</span><span class="v"><bdi>'+esc(x.label||'')+'</bdi>'+(x.label?' · ':'')+'<bdi>'+esc(x.room)+'</bdi></span></button>';});
     h+='</div>';}
+  h+='<div class="smap-geo"><button class="smap-me'+(st.watch!=null?' on':'')+'" data-mact="geo" aria-pressed="'+(st.watch!=null)+'">📍 '+esc(tx(st.watch!=null?'geoOff':'geoBtn'))+'</button>'+
+    '<div class="smap-gline" id="smap-gline" role="status">'+geoLine(selZ)+'</div></div>';
   h+=svg(selZ,selR?selZ:null);
+  if(st.watch!=null)h+='<p class="smap-priv">'+esc(tx('geoPriv'))+'</p>';
   if(!sel)h+='<p class="smap-tip">'+esc(tx('tap'))+'</p>';
   if(selR){var z=zoneOf(selR);
     h+='<div class="smap-info"><h3><span class="r"><bdi>'+esc(selR)+'</bdi></span></h3>';
@@ -178,7 +269,8 @@ function bind(root,cb){
     var a=el.getAttribute('data-mact');
     if(e){e.stopPropagation();if(a!=='go')e.preventDefault();}
     if(a==='go'){st.sel={r:el.getAttribute('data-r')};st.q='';if(CB.open)CB.open();return;}
-    if(a==='z'){var k=el.getAttribute('data-z');st.sel=st.sel&&st.sel.z===k?null:{z:k};}
+    if(a==='geo'){if(st.watch!=null)geoStop();else geoStart();}
+    else if(a==='z'){var k=el.getAttribute('data-z');st.sel=st.sel&&st.sel.z===k?null:{z:k};}
     else if(a==='r'){st.sel={r:el.getAttribute('data-r')};st.q='';}
     if(CB.render)CB.render();
     if(a==='r')focusMap(root);

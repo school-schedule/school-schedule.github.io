@@ -1578,23 +1578,23 @@ function renderGetApp(){
 }
 /* ---------- privacy ---------- */
 // текст «Конфиденциальность»: [заголовок, абзац…]; при изменении того, что собираем, — поправить здесь (he/en/ru) и дату
-var PRIV_DATE='24.11.2026';
+var PRIV_DATE='25.11.2026';
 var PRIV={
  he:[
   ['','Skedy הוא פרויקט של תלמיד בשכבת י׳. אנחנו משתדלים לדעת עליכם כמה שפחות: בלי שמות, בלי טלפון, בלי מייל, בלי תמונות ובלי מיקום.'],
-  ['מה נשמר רק בטלפון שלכם','הכיתה והקבוצות, השפה, רצף הימים, ההישגים והשמות שנתתם לחברים. אפשר למחוק את כל זה: מוחקים את האפליקציה או את נתוני האתר בדפדפן.'],
+  ['מה נשמר רק בטלפון שלכם','הכיתה והקבוצות, השפה, רצף הימים, ההישגים והשמות שנתתם לחברים. אפשר למחוק את כל זה: מוחקים את האפליקציה או את נתוני האתר בדפדפן. גם המיקום – רק אם לחצתם „איפה אני?“ במפת בית הספר: הוא משמש רק לציור המסלול בטלפון ולא נשלח לשרת.'],
   ['מה מגיע לשרת','מספר מכשיר אקראי (לא קשור לשם או לטלפון), הכיתה ומספרי הקבוצות – כדי לספור כמה משתמשים יש, ובשביל לשונית „חברים“ (קוד של 3 ספרות). לפי הקוד הזה חברים והורים (באפליקציה Skedy Parents) רואים את המערכת שלכם – רק כיתה וקבוצות.','אם הפעלתם התראות: כתובת למשלוח ההתראות (Apple או Google נותנים אותה), הכיתה והקבוצות – כדי לשלוח רק את השינויים שלכם.','הודעות בצ׳אט התמיכה והכיתה. קוראים אותן העורכים של Skedy. השיחה נמחקת 30 יום אחרי ההודעה האחרונה.'],
   ['שירותים חיצוניים','השרת עובד על Cloudflare. באתר יש סטטיסטיקת ביקורים אנונימית של Cloudflare, בלי עוגיות. כדי להגן מפני ניחוש קוד העורכים ומספאם, השרת זוכר את כתובת ה-IP עד שעה.','השינויים במערכת נלקחים מאתר שח״ף של בית הספר.'],
   ['שאלות ומחיקה','רוצים שנמחק את השיחה שלכם או יש שאלה? כתבו ב„תמיכה“.']],
  en:[
   ['','Skedy is a project by a 10th-grade student. We try to know as little about you as possible: no names, no phone number, no email, no photos and no location.'],
-  ['What stays only on your phone','Your class and groups, language, streak, achievements and the names you gave your friends. To delete all of it, remove the app or clear the site data in your browser.'],
+  ['What stays only on your phone','Your class and groups, language, streak, achievements and the names you gave your friends. To delete all of it, remove the app or clear the site data in your browser. Your location too – only if you tap “Where am I?” on the school map: it is used only to draw the route on your phone and is never sent to the server.'],
   ['What the server gets','A random device number (not linked to your name or phone), your class and group numbers – to count how many people use the app, and for the “Friends” tab (a 3-digit code). With this code, friends and parents (in the Skedy Parents app) see your schedule – only the class and groups.','If you turn on alerts: a delivery address for them (issued by Apple or Google), your class and groups – so we only send your changes.','Support chat messages and your class. Skedy editors read them. A chat is deleted 30 days after the last message.'],
   ['Other services','The server runs on Cloudflare. The site uses Cloudflare’s anonymous visit statistics, without cookies. To protect against guessing the editor code and against spam, the server keeps your IP address for up to an hour.','Schedule changes are taken from the school’s Shahaf site.'],
   ['Questions and deletion','Want us to delete your chat, or have a question? Write in “Support”.']],
  ru:[
   ['','Skedy — проект ученика параллели י׳. Мы стараемся знать о тебе как можно меньше: без имени, телефона, почты, фото и местоположения.'],
-  ['Что хранится только в твоём телефоне','Класс и группы, язык, огонёк, ачивки и имена, которые ты дал друзьям. Всё это можно стереть: удали приложение или данные сайта в браузере.'],
+  ['Что хранится только в твоём телефоне','Класс и группы, язык, огонёк, ачивки и имена, которые ты дал друзьям. Всё это можно стереть: удали приложение или данные сайта в браузере. Геопозиция тоже — только если нажать «Где я?» на карте школы: она нужна лишь для маршрута в телефоне и на сервер не отправляется.'],
   ['Что получает сервер','Случайный номер устройства (не связан с именем или телефоном), класс и номера групп — чтобы считать, сколько людей пользуются приложением, и для вкладки «Друзья» (код из 3 цифр). По этому коду друзья и родители (в приложении Skedy Parents) видят твоё расписание — только класс и группы.','Если включишь уведомления: адрес для их доставки (его выдаёт Apple или Google), класс и группы — чтобы присылать только твои изменения.','Сообщения в чате поддержки и класс. Их читают редакторы Skedy. Переписка удаляется через 30 дней после последнего сообщения.'],
   ['Чужие сервисы','Сервер работает на Cloudflare. На сайте стоит анонимная статистика посещений Cloudflare без cookies. Чтобы защититься от подбора кода редактора и спама, сервер помнит IP-адрес до часа.','Изменения в расписании берутся с сайта שח״ף школы.'],
   ['Вопросы и удаление','Хочешь, чтобы мы удалили твою переписку, или есть вопрос? Напиши в «Поддержку».']]
