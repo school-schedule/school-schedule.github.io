@@ -9,7 +9,7 @@ var BASE=(function(){try{var s=document.currentScript&&document.currentScript.sr
 var Z=[
  {k:'shaked',go:'s',kind:'mix',bld:['580,8 868,20 872,95 950,108 950,158 583,155'],ic:'📚',n:'3',pre:['שקד'],lb:{he:'שקד',en:'Shaked',ru:'Шакед'},x:740,y:105,
   pts:'580,8 868,20 872,95 950,108 948,245 900,238 900,193 565,170'},
- {k:'sport',go:'sp',kind:'bld',ic:'🏀',n:'7',pre:['אולם ספורט','חנ"ג','מגרש'],lb:{he:'ספורט',en:'Sports',ru:'Спорт'},x:262,y:300,
+ {k:'sport',go:'spd',kind:'bld',ic:'🏀',n:'7',pre:['אולם ספורט','חנ"ג','מגרש'],lb:{he:'ספורט',en:'Sports',ru:'Спорт'},x:262,y:300,
   sub:{he:'אולם ספורט ומגרשים',en:'Gym and sports fields',ru:'Спортзал и площадки'},
   pts:'130,78 196,78 196,195 386,206 376,414 126,396'},
  {k:'oren',go:'o',kind:'mix',bld:['387,132 436,135 434,300 387,300','505,228 552,232 550,402 505,400'],ic:'🌳',n:'10',pre:['אורן'],lb:{he:'אורן',en:'Oren',ru:'Орен'},x:470,y:300,
@@ -53,13 +53,13 @@ function toPlan(lat,lon){var zr=(lon-GEO.lon0)*GEO.k-GEO.br,zi=(lat-GEO.lat0)*11
 // дорожки и дворы — по спутниковому снимку плана (узлы в пикселях плана, только по открытым местам: дворы 6, 8, 9, 10, 11,
 // низ зоны 4 с деревьями, полоса к югу от спортзала, площадка к северу от двора ז׳, проходы у ברוש; входы в корпуса — на их краях)
 var NODE={
-  spn:[290,60],nn:[440,68],nt:[470,150],o:[465,290],os:[465,410],sp2:[380,422],sp:[300,422], // север, двор ז׳ (10), спортзал с юга
+  spn:[290,60],nn:[440,68],nt:[470,150],o:[465,290],os:[465,410],spd:[368,412], // север, двор ז׳ (10), вход в спортзал — его угол со стороны двора
   b:[500,500],j6:[620,450],a1:[632,510],r1:[652,436],r:[750,330],s:[745,172],    // двор ברוש (6), проход в двор רימון (8), שקד
   e1:[845,420],e2:[880,495],e:[930,405],ae:[865,555],                            // низ ארז (4) с деревьями, вход в ארז
   jb:[640,590],a:[735,585],au:[740,630],q:[815,690],t:[720,697],                 // двор 9, אלון снизу, תיכון со двора 9
-  sw:[485,655],p1:[610,676],g:[520,690],y:[875,780],ty:[805,760],ent:[962,778],ent2:[132,424]};  // входы (слова автора): ent — с улицы у רחבת תיכון, ent2 — снизу от спортзала, где дорожка выходит наружу               // проход вдоль ברוש к גפן, двор 11
-var EDGE=[['spn','nn'],['nn','nt'],['nt','o'],['o','os'],['os','sp2'],['sp2','sp'],['os','b'],['b','j6'],['j6','r1'],['r1','r'],['r','s'],['r','e1'],
-  ['e1','e2'],['e2','e'],['e2','ae'],['ae','au'],['b','a1'],['b','jb'],['jb','au'],['a','au'],['au','q'],['q','y'],['q','ty'],['y','ty'],['y','ent'],['sp','ent2'],
+  sw:[485,655],p1:[610,676],g:[520,690],y:[875,780],ty:[805,760],ent:[962,778],ent2:[382,424]};  // входы (слова автора): ent — с улицы у רחבת תיכון; ent2 — ворота у двора ברוש/אורן, куда приводит тротуар снаружи вдоль южной стороны спортзала               // проход вдоль ברוש к גפן, двор 11
+var EDGE=[['spn','nn'],['nn','nt'],['nt','o'],['o','os'],['os','ent2'],['ent2','spd'],['os','b'],['b','j6'],['j6','r1'],['r1','r'],['r','s'],['r','e1'],
+  ['e1','e2'],['e2','e'],['e2','ae'],['ae','au'],['b','a1'],['b','jb'],['jb','au'],['a','au'],['au','q'],['q','y'],['q','ty'],['y','ty'],['y','ent'],
   ['b','sw'],['sw','g'],['sw','p1'],['p1','au'],['p1','t'],['t','au']];
 function dist(p,q){var dx=p[0]-q[0],dy=p[1]-q[1];return Math.sqrt(dx*dx+dy*dy);}
 // кратчайший путь от точки (в пикселях) до узла цели: Дейкстра от цели, потом лучший узел для входа в сеть
@@ -155,6 +155,7 @@ var css=
 '.smap-svg .road{fill:#3d3f42}'+
 '.smap-svg .lane{fill:none;stroke:#cfcfcf;stroke-width:2.5;stroke-dasharray:16 14;opacity:.55}'+
 '.smap-svg .park{fill:#4a4b4d}'+
+'.smap-svg .walk{fill:none;stroke:#8a877f;stroke-width:12;stroke-linecap:round;opacity:.7;pointer-events:none}'+
 '.smap-svg .trees{pointer-events:none}'+
 '.smap-svg .gate{pointer-events:none}.smap-svg .gate line{stroke:#C6FF00;stroke-width:4;stroke-dasharray:4 6;stroke-linecap:round}.smap-svg .gate circle{fill:#171717;stroke:#C6FF00;stroke-width:4}'+
 '.smap-svg text.gi{font-size:22px;stroke:none}.smap-svg text.gt{fill:#C6FF00;font-size:18px;stroke-width:5px}'+
@@ -255,7 +256,9 @@ function geoStart(){
 function geoStop(keep,away){if(st.watch!=null){try{navigator.geolocation.clearWatch(st.watch);}catch(e){}}st.watch=null;if(!keep)st.geo=null;if(!keep&&!away)geoWant(false);}
 // здания вне зон (по спутнику; серые, без подписи): между ברוש и גפן, между двором 9 и двором 11, на севере у края
 var EXTRA=['522,574 648,577 646,656 520,654','832,616 920,618 918,700 832,700','295,8 487,8 487,42 295,42'];
-var GATES=[{n:'ent',x:1012,y:778},{n:'ent2',x:140,y:466}];
+var GATES=[{n:'ent',x:1012,y:778},{n:'ent2',x:350,y:462}];
+// тротуар снаружи школы вдоль южной стороны спортзала — к воротам ent2 (не дорожка школы, по нему маршрут не строится)
+var WALK=['112,424 382,424'];
 var VB0={x:110,y:0,w:940,h:880};
 // улицы и стоянка (по спутнику): улица с востока, шоссе на северо-востоке, стоянка к северу от שקד
 var ROADS=['1000,250 1060,236 1060,890 986,890 990,600','830,-10 935,-10 1060,130 1060,250 1000,250 952,120'];
@@ -304,6 +307,7 @@ function svg(selZ,pinZ){
   // земля, улицы, стоянка, здания вне зон
   h+='<rect x="0" y="-60" width="1200" height="1000" fill="url(#smapSoil)"/>';
   ROADS.forEach(function(q){h+=poly(q,'road');});LANES.forEach(function(d){h+='<path class="lane" d="'+d+'"/>';});PARK.forEach(function(q){h+=poly(q,'park');});
+  WALK.forEach(function(q){h+='<polyline class="walk" points="'+q+'"/>';});
   EXTRA.forEach(function(q){h+=shadow(q)+poly(q,'rf',roof(q));});
   // зоны: двор — плитка, здание — крыша; корпуса внутри; подсветка и пунктирный контур зоны
   Z.forEach(function(z){
