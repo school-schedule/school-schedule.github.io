@@ -368,8 +368,9 @@ function svg(selZ,pinZ){
   // входы: значки «🚪» (n — узел дорожек, x/y — где значок)
   GATES.forEach(function(g){var n=NODE[g.n];h+='<g class="gate"><line x1="'+n[0]+'" y1="'+n[1]+'" x2="'+g.x+'" y2="'+g.y+'"/><circle cx="'+g.x+'" cy="'+g.y+'" r="21"/><text class="gi" x="'+g.x+'" y="'+(g.y+1)+'">🚪</text><text class="gt" x="'+g.x+'" y="'+(g.y+38)+'">'+esc(tx('gate'))+'</text></g>';});
   // точки известных кабинетов внутри корпусов: номер класса или «•» у кабинета руководства
-  h+='<g class="spots">';for(var sk in SPOTS){var q=SPOTS[sk];h+='<circle'+(FLOOR[sk]===1?' class="up"':'')+' cx="'+q[0]+'" cy="'+q[1]+'" r="12"/><text class="sn" x="'+q[0]+'" y="'+(q[1]+1)+'">'+esc(sk.split(' ')[1])+'</text>';}
-  PLACES.forEach(function(pl){h+='<circle class="pl" cx="'+pl.xy[0]+'" cy="'+pl.xy[1]+'" r="7"/>';});h+='</g>';
+  // номера кабинетов видны только у выбранного корпуса
+  h+='<g class="spots">';for(var sk in SPOTS){var q=SPOTS[sk],sz=zoneOf(sk);if(!sz||sz.k!==selZ)continue;h+='<circle'+(FLOOR[sk]===1?' class="up"':'')+' cx="'+q[0]+'" cy="'+q[1]+'" r="12"/><text class="sn" x="'+q[0]+'" y="'+(q[1]+1)+'">'+esc(sk.split(' ')[1])+'</text>';}
+  PLACES.forEach(function(pl){if(pl.z!==selZ)return;h+='<circle class="pl" cx="'+pl.xy[0]+'" cy="'+pl.xy[1]+'" r="7"/>';});h+='</g>';
   var pz=zone(pinZ),ps=st.sel&&st.sel.r?spotOf(st.sel.r):null,px=ps?ps[0]:pz&&pz.x,py=ps?ps[1]:pz&&pz.y-42;
   // у верхнего края карты булавка перевёрнута (головкой вниз), иначе обрезается
   var fl=py<60,dy=fl?1:-1;
