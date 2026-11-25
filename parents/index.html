@@ -598,7 +598,7 @@ function renderDay(){
   h+='</div>';
   if(schoolDay(today)!==d&&Math.abs(parse(d)-parse(schoolDay(today)))>6*864e5)h+='<div class="center"><button class="link" data-act="goto" data-id="'+schoolDay(today)+'">'+esc(t('backToday'))+'</button></div>';
   pmFor(k,d,d).forEach(function(o){h+=pmCard(o,false);});
-  if(d===schoolDay(today)||d===today){var nx=pmFor(k,addDays(d,1),addDays(today,14))[0];if(nx)h+='<button class="notice plain small pmsoon" data-act="tab" data-id="pm">👪 '+esc(t('pmSoon'))+': <bdi>'+esc(nx.title||t('pmDef'))+'</bdi> · '+esc(DAYS[prefs.lang][wday(nx.date)]+', '+fmtDate(nx.date))+' · <bdi dir="ltr">'+esc(nx.from)+'</bdi></button>';}
+  if(d===schoolDay(today)||d===today||d===homeDay()){var nx=pmFor(k,addDays(d,1),addDays(today,30))[0];if(nx)h+='<button class="notice plain small pmsoon" data-act="tab" data-id="pm">👪 '+esc(t('pmSoon'))+': <bdi>'+esc(nx.title||t('pmDef'))+'</bdi> · '+esc(DAYS[prefs.lang][wday(nx.date)]+', '+fmtDate(nx.date))+' · <bdi dir="ltr">'+esc(nx.from)+'</bdi></button>';}
   eventsFor(d,k).forEach(function(e){h+='<div class="notice"><bdi>'+esc(e.text)+'</bdi>'+(e.from?' · '+esc(e.from===e.to?t('period')+' '+e.from:t('periods'))+(e.from===e.to?'':' <bdi dir="ltr">'+esc(e.from+'–'+e.to)+'</bdi>'):'')+(e.room?' · <bdi>'+esc(e.room)+'</bdi>':'')+'</div>';});
   if(dayOff(d,k))return h+'<div class="empty">'+esc(t('noSchool'))+'</div>';
   var ls=lessonsFor(d,k);
