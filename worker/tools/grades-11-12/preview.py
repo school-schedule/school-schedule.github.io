@@ -27,6 +27,7 @@ rep("<title>Skedy</title>","<title>Skedy · י״א / י״ב</title>")
 rep("if(location.hostname!=='school-schedule.github.io')return;","return;")  # без статистики посещений
 rep("location.href='teacher/'","location.href='../teacher/'")
 rep("location.href='parents/'","location.href='../parents/'")
+rep('<script src="map.js"></script>','<script src="../map.js"></script>')  # карта школы — общий файл в корне
 a=html.index('<script id="app-js">')
 js=html[a:];n=js.count("'sched.");assert n>40,n
 html=html[:a]+js.replace("'sched.","'skedyP.")
