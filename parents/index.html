@@ -88,8 +88,11 @@ ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column
 .welcome .logo{width:88px;height:88px}
 .welcome h1{font-size:32px;margin:12px 0 4px}
 .tabbar{position:fixed;inset-inline:0;bottom:0;padding:0 16px calc(10px + env(safe-area-inset-bottom));z-index:5;pointer-events:none}
-.tabbar .in{pointer-events:auto;max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(16,16,16,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:28px;padding:6px}
+.tabbar .in{pointer-events:auto;max-width:480px;margin:0 auto;display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:rgba(16,16,16,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:28px;padding:6px}
 .tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:52px;color:var(--muted);font-size:12px;font-weight:600;position:relative}
+/* 5 вкладок: длинные русские подписи («Контрольные») — чуть мельче, чтобы не наезжали */
+html[lang="ru"] .tabbar button{font-size:10px;letter-spacing:-.3px}html[lang="ru"] .tabbar{padding-inline:8px}html[lang="ru"] .tabbar .in{padding-inline:3px}
+.tabbar button > span:not(.badge){white-space:nowrap}
 .tabbar button.on{color:var(--acc)}
 .tabbar svg{width:24px;height:24px}
 .tabbar .badge{position:absolute;top:2px;inset-inline-end:calc(50% - 22px);background:var(--acc);color:var(--acc-ink);border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
@@ -155,7 +158,7 @@ ul.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column
 @media (prefers-reduced-motion:no-preference){.glist{animation:cardin .4s cubic-bezier(.34,1.25,.64,1) both}}
 bdi{unicode-bidi:isolate}
 [hidden]{display:none!important}
-.tabbar .in{grid-template-columns:repeat(4,1fr)}
+.tabbar .in{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
 /* переключатель детей: имя и класс под ним */
 .langs.kids{margin:0 0 4px}.langs.kids button{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .langs.kids small{font-size:11px;font-weight:400;color:var(--muted)}
@@ -195,7 +198,7 @@ he:{app:'Skedy Parents',navEv:'אירועים',apNeedT:'נדרש אישור הו
  pushBtn:'🔔 התראות על שינויים במערכת של הילדים',pushIsOn:'🔔 ההתראות מופעלות',pushOnMsg:'מעולה! תגיע התראה כשמשהו ישתנה במערכת של הילדים.',pushDenied:'לא אישרתם התראות. אפשר להפעיל אותן בהגדרות המכשיר.',pushFailed:'לא הצלחנו להפעיל התראות. נסו שוב.',pushUnsupported:'הדפדפן הזה לא תומך בהתראות.',pushNeedInstall:'באייפון ובאייפד התראות עובדות רק אחרי הוספה למסך הבית (ההוראות למטה).',pushNote:'בשביל ההתראות השרת שומר את הכיתה והקבוצות של הילדים ואת כתובת ההתראות של המכשיר – בלי שמות.',
  holBtn:'חופשות וימים בלי לימודים',mapBtn:'מפת בית הספר',holSub:'כל הימים הקרובים בלי לימודים: חגים, חופשות וימים מיוחדים.',holNone:'עוד אין ימים בלי לימודים במערכת.',holDay1:'יום לימודים אחד',holDays:'{n} ימי לימודים',holNote:'לפי לוח החופשות של בית הספר, שח״ף ו־Skedy Admin. חופשה שצמודה לסוף השבוע – משישי ועד שבת.',
  today:'היום',tomorrow:'מחר',prevDay:'יום קודם',nextDay:'יום הבא',noLessons:'אין שיעורים ביום הזה',free:'חלון',cancelled:'בוטל',roomChanged:'חדר אחר',subTag:'החלפה',test:'מבחן',exam:'בחינה',
- nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים.',noTests:'אין מבחנים ב־3 השבועות הקרובים.',
+ nowTag:'עכשיו',nextTag:'הבא',minLeft:'עוד {n} דק׳',navDay:'מערכת',navTests:'מבחנים',navMore:'עוד',navMap:'מפה',back:'חזרה',testsTitle:'מבחנים קרובים',testsSub:'מבחנים ובחינות ב־3 השבועות הקרובים.',noTests:'אין מבחנים ב־3 השבועות הקרובים.',
  language:'שפה',updated:'עודכן',offline:'אין אינטרנט. מוצגת המערכת האחרונה ששמורה.',loading:'טוען את המערכת…',loadFail:'לא הצלחנו לטעון את המערכת. בדקו את החיבור לאינטרנט.',retry:'לנסות שוב',install:'הוספה למסך הבית',
  installHint:'iPhone ו-iPad: ב-Safari לחצו על כפתור השיתוף ובחרו "הוספה למסך הבית". Android: תפריט ⋮ ← "התקנה". במחשב: סמל ההתקנה בשורת הכתובת.',
  noSchool:'אין לימודים',period:'שיעור',periods:'שיעורים',room:'חדר',backToday:'חזרה להיום',notOfficial:'Skedy הוא עוזר, לא המערכת הרשמית. אם יש ספק – בדקו בשח״ף.'},
@@ -205,7 +208,7 @@ en:{app:'Skedy Parents',navEv:'Events',apNeedT:'Parent permission needed',apYes:
  pushBtn:'🔔 Get alerts about changes in my children’s schedule',pushIsOn:'🔔 Alerts are on',pushOnMsg:'Done! You’ll get an alert when something changes in your children’s schedule.',pushDenied:'Alerts were not allowed. You can turn them on in your device settings.',pushFailed:'Could not turn on alerts. Try again.',pushUnsupported:'This browser does not support alerts.',pushNeedInstall:'On iPhone and iPad, alerts work only after adding the app to the Home Screen (see below).',pushNote:'For alerts, the server keeps your children’s class and groups and this device’s alert address — no names.',
  holBtn:'Holidays and days off',mapBtn:'School map',holSub:'All upcoming days without school: holidays, vacations and special days.',holNone:'No days off in the schedule yet.',holDay1:'1 school day',holDays:'{n} school days',holNote:'From the school’s holiday calendar, Shahaf and Skedy Admin. A break next to a weekend is shown from Friday to Saturday.',
  today:'Today',tomorrow:'Tomorrow',prevDay:'Previous day',nextDay:'Next day',noLessons:'No lessons on this day',free:'Free period',cancelled:'Cancelled',roomChanged:'Room changed',subTag:'Substitute',test:'Test',exam:'Exam',
- nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks.',noTests:'No tests in the next 3 weeks.',
+ nowTag:'Now',nextTag:'Next',minLeft:'{n} min left',navDay:'Schedule',navTests:'Tests',navMore:'More',navMap:'Map',back:'Back',testsTitle:'Upcoming tests',testsSub:'Tests and exams in the next 3 weeks.',noTests:'No tests in the next 3 weeks.',
  language:'Language',updated:'Updated',offline:'No internet. Showing the last saved schedule.',loading:'Loading the schedule…',loadFail:'Could not load the schedule. Check your internet connection.',retry:'Try again',install:'Add to Home Screen',
  installHint:'iPhone and iPad: in Safari tap Share and choose "Add to Home Screen". Android: ⋮ menu → "Install". Computer: the install icon in the address bar.',
  noSchool:'No school',period:'Period',periods:'Periods',room:'Room',backToday:'Back to today',notOfficial:'Skedy is a helper, not the official schedule. If in doubt, check Shahaf.'},
@@ -215,7 +218,7 @@ ru:{app:'Skedy Parents',navEv:'События',apNeedT:'Нужно разреш�
  pushBtn:'🔔 Уведомления об изменениях в расписании детей',pushIsOn:'🔔 Уведомления включены',pushOnMsg:'Готово! Придёт уведомление, когда что-то изменится в расписании детей.',pushDenied:'Уведомления не разрешены. Их можно включить в настройках устройства.',pushFailed:'Не получилось включить уведомления. Попробуйте ещё раз.',pushUnsupported:'Этот браузер не поддерживает уведомления.',pushNeedInstall:'На iPhone и iPad уведомления работают только после добавления на экран «Домой» (инструкция ниже).',pushNote:'Для уведомлений сервер хранит класс и группы детей и адрес уведомлений этого устройства — без имён.',
  holBtn:'Каникулы и выходные',mapBtn:'Карта школы',holSub:'Все ближайшие дни без учёбы: праздники, каникулы и особые дни.',holNone:'Дней без учёбы в расписании пока нет.',holDay1:'1 учебный день',holDays:'Учебных дней: {n}',holNote:'По календарю каникул школы, Шахаф и Skedy Admin. Каникулы рядом с выходными — с пятницы и по субботу.',
  today:'Сегодня',tomorrow:'Завтра',prevDay:'Предыдущий день',nextDay:'Следующий день',noLessons:'В этот день уроков нет',free:'Окно',cancelled:'Отменён',roomChanged:'Другой кабинет',subTag:'Замена',test:'Контрольная',exam:'Экзамен',
- nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд.',noTests:'В ближайшие 3 недели контрольных нет.',
+ nowTag:'Сейчас',nextTag:'Дальше',minLeft:'Осталось {n} мин',navDay:'Расписание',navTests:'Контрольные',navMore:'Ещё',navMap:'Карта',back:'Назад',testsTitle:'Ближайшие контрольные',testsSub:'Контрольные и экзамены на 3 недели вперёд.',noTests:'В ближайшие 3 недели контрольных нет.',
  language:'Язык',updated:'Обновлено',offline:'Нет интернета. Показано последнее сохранённое расписание.',loading:'Загружаю расписание…',loadFail:'Не удалось загрузить расписание. Проверьте интернет.',retry:'Попробовать ещё раз',install:'На экран «Домой»',
  installHint:'iPhone и iPad: в Safari нажмите «Поделиться» → «На экран „Домой“». Android: меню ⋮ → «Установить». Компьютер: значок установки в адресной строке.',
  noSchool:'Учёбы нет',period:'Урок',periods:'Уроки',room:'Каб.',backToday:'Вернуться к сегодня',notOfficial:'Skedy — помощник, а не официальное расписание. Если сомневаетесь, проверьте в שח״ף.'}
@@ -641,7 +644,7 @@ function mapHere(){
   return out;
 }
 function renderMap(){
-  return top()+'<div class="dayhead"><button class="icon-btn" data-act="mapBack" aria-label="'+esc(t('navMore'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+esc(t('mapBtn'))+'</p></div></div>'+
+  return top()+(ui.mapFrom?'<div class="dayhead"><button class="icon-btn" data-act="mapBack" aria-label="'+esc(t('back'))+'">'+chev(-1)+'</button><div class="t"><p class="wd">'+esc(t('mapBtn'))+'</p></div></div>':'<h2>'+esc(t('mapBtn'))+'</h2>')+
     SkedyMap.html({lang:prefs.lang,here:mapHere(),rooms:STATE.lessons.map(function(l){return l.room;})});
 }
 function renderHol(){
@@ -678,8 +681,10 @@ var NAV=[['day','navDay','<svg viewBox="0 0 24 24" fill="none" stroke="currentCo
   ['tests','navTests','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5h6v3H9zM9 13l2 2 4-4"/></svg>'],
   ['ev','navEv','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>'],
   ['more','navMore','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>']];
+// карта школы — своя вкладка внизу (map.js)
+if(window.SkedyMap)NAV.splice(NAV.length-1,0,['map','navMap','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/></svg>']);
 function nav(){var nt=0,na=apPending(kid());upcomingTests(kid()).forEach(function(x){nt+=x.items.length;});
-  var h='<nav class="tabbar"><div class="in">';NAV.forEach(function(x){h+='<button class="'+(ui.screen===x[0]||(x[0]==='more'&&(ui.screen==='holidays'||ui.screen==='pm'||ui.screen==='req'||ui.screen==='map'))?'on':'')+'" data-act="tab" data-id="'+x[0]+'">'+x[2]+'<span>'+esc(t(x[1]))+'</span><span class="badge">'+(x[0]==='tests'&&nt?nt:x[0]==='ev'&&na?na:'')+'</span></button>';});
+  var h='<nav class="tabbar"><div class="in">';NAV.forEach(function(x){h+='<button class="'+(ui.screen===x[0]||(x[0]==='more'&&(ui.screen==='holidays'||ui.screen==='pm'||ui.screen==='req'))?'on':'')+'" data-act="tab" data-id="'+x[0]+'">'+x[2]+'<span>'+esc(t(x[1]))+'</span><span class="badge">'+(x[0]==='tests'&&nt?nt:x[0]==='ev'&&na?na:'')+'</span></button>';});
   return h+'</div></nav>';}
 
 /* ---------- render ---------- */
@@ -727,7 +732,7 @@ root.addEventListener('click',function(e){
   switch(a){
     case 'push':ui.msg='';enablePush();break;
     case 'lang':prefs.lang=id;savePrefs();syncPush();render();break;
-    case 'tab':ui.msg='';if(id==='req'){ui.rq={};rqMine();}if(id==='ev')apSync();if(id==='day'&&ui.screen==='day')ui.date=homeDay();ui.screen=id;render();window.scrollTo(0,0);break;
+    case 'tab':if(id==='map'&&ui.screen!=='map'&&window.SkedyMap){var mt=mapHere();SkedyMap.show(mt[0]&&mt[0].room);ui.mapFrom=null;}ui.msg='';if(id==='req'){ui.rq={};rqMine();}if(id==='ev')apSync();if(id==='day'&&ui.screen==='day')ui.date=homeDay();ui.screen=id;render();window.scrollTo(0,0);break;
     case 'day':ui.date=stepDay(ui.date,+el.getAttribute('data-n'));render();break;
     case 'goto':ui.date=id;render();break;
     case 'kid':prefs.cur=id;savePrefs();ui.pmErr='';render();break;
