@@ -81,19 +81,19 @@ var T={
    clear:'ניקוי',other:'אחר',rooms:'כיתות',noRooms:'אין כאן כיתות מהמערכת',mapL:'מפת בית הספר',inset:'מבנה נפרד',
    geoBtn:'איפה אני? מסלול',geoOff:'הסתרת המיקום',geoWait:'מחפשים את המיקום…',geoDenied:'אין גישה למיקום. אפשר לאשר בהגדרות הטלפון.',geoErr:'לא הצלחנו לקבל מיקום',geoNo:'הטלפון לא תומך במיקום',
    geoFar:'מחוץ לשטח בית הספר · עוד כ־{d}',geoRoute:'{t} דק׳ הליכה · {d}',geoPick:'בחרו כיתה או אזור — ונראה את הדרך',geoInacc:'ה־GPS לא מדויק (±{d})',geoNoRoute:'לאזור הזה אין מסלול על המפה',
-   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',geoIos:'כדי שהאייפון לא ישאל כל פעם: הגדרות ← Safari ← מיקום ← „אפשר“.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה'},
+   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',geoIos:'כדי שהאייפון לא ישאל כל פעם: הגדרות ← Safari ← מיקום ← „אפשר“.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה',full:'מסך מלא',fullX:'סגירת מסך מלא'},
  en:{search:'Search a room, lab…',now:'Now',next:'Next lesson',pm:'Parents’ meeting',notOn:'Not on the map yet',
    notOnR:'This room’s location isn’t on the map yet',noMatch:'Nothing found',tap:'Tap an area to see its rooms',
    clear:'Clear',other:'Other',rooms:'Rooms',noRooms:'No timetable rooms here',mapL:'School map',inset:'Separate building',
    geoBtn:'Where am I? Route',geoOff:'Hide my location',geoWait:'Finding your location…',geoDenied:'No access to location. You can allow it in the phone settings.',geoErr:'Couldn’t get your location',geoNo:'This phone can’t share its location',
    geoFar:'Outside the school · about {d} away',geoRoute:'{t} min walk · {d}',geoPick:'Pick a room or area to see the way',geoInacc:'GPS is inaccurate (±{d})',geoNoRoute:'No route to this area on the map',
-   geoPriv:'Your location stays on your phone and is never sent anywhere.',geoIos:'So your iPhone doesn’t ask every time: Settings → Safari → Location → Allow.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map'},
+   geoPriv:'Your location stays on your phone and is never sent anywhere.',geoIos:'So your iPhone doesn’t ask every time: Settings → Safari → Location → Allow.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map',full:'Full screen',fullX:'Close full screen'},
  ru:{search:'Поиск кабинета, лаборатории…',now:'Сейчас',next:'Следующий урок',pm:'Родительское собрание',notOn:'Ещё не на карте',
    notOnR:'Где этот кабинет, на карте пока нет',noMatch:'Ничего не найдено',tap:'Нажми на зону — покажу её кабинеты',
    clear:'Очистить',other:'Другое',rooms:'Кабинеты',noRooms:'Здесь нет кабинетов из расписания',mapL:'Карта школы',inset:'Отдельное здание',
    geoBtn:'Где я? Маршрут',geoOff:'Скрыть моё место',geoWait:'Ищу, где ты…',geoDenied:'Нет доступа к геопозиции. Её можно разрешить в настройках телефона.',geoErr:'Не удалось узнать, где ты',geoNo:'Телефон не умеет сообщать геопозицию',
    geoFar:'Ты не в школе · до неё примерно {d}',geoRoute:'{t} мин пешком · {d}',geoPick:'Выбери кабинет или зону — покажу дорогу',geoInacc:'GPS неточный (±{d})',geoNoRoute:'До этой зоны маршрута на карте нет',
-   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',geoIos:'Чтобы iPhone не спрашивал каждый раз: Настройки → Safari → Геопозиция → «Разрешить».',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта'}
+   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',geoIos:'Чтобы iPhone не спрашивал каждый раз: Настройки → Safari → Геопозиция → «Разрешить».',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта',full:'Во весь экран',fullX:'Закрыть весь экран'}
 };
 var st={sel:null,q:'',rooms:null,busy:false,geo:null,watch:null},CB={},LANG='he';
 function tx(k){return (T[LANG]||T.he)[k]||T.he[k]||k;}
@@ -130,33 +130,44 @@ var css=
 '.smap-here button.on{background:rgba(198,255,0,.1);border-color:#C6FF00}'+
 '.smap-here .k{color:#C6FF00;font-size:12px;font-weight:700;letter-spacing:.02em}'+
 '.smap-here .v{font-size:15px}'+
-'.smap-box{position:relative;max-width:560px;margin:0 auto}'+
-'.smap-svg{display:block;width:100%;height:auto;background:#161616;border:1px solid #2a2a2a;border-radius:22px;touch-action:pan-y;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}'+
+'.smap-box{position:relative;max-width:720px;margin:0 auto}'+
+// на телефоне схема — во всю ширину экрана, без полей
+'@media (max-width:600px){.smap-box:not(.full){margin-inline:calc(50% - 50vw)}.smap-box:not(.full) .smap-svg{border-radius:0;border-inline:0}}'+
+'.smap-svg{display:block;width:100%;height:auto;background:#24231d;border:1px solid #2a2a2a;border-radius:22px;touch-action:pan-y;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}'+
 '.smap-svg.zm{touch-action:none}'+
+// во весь экран: поверх всего приложения
+'.smap-box.full{position:fixed;inset:0;z-index:2147483000;max-width:none;margin:0;background:#141414;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}'+
+'.smap-box.full .smap-svg{flex:1;min-height:0;height:100%;border:0;border-radius:0;touch-action:none}'+
+'.smap-box.full .smap-gline{position:absolute;top:calc(env(safe-area-inset-top) + 10px);inset-inline:64px;background:rgba(20,20,20,.9);border-radius:14px;padding:9px 12px;z-index:2}'+
+'.smap-box.full .smap-zb{top:auto;right:auto;inset-inline-end:12px;bottom:calc(env(safe-area-inset-bottom) + 14px)}'+
+'.smap-x{position:absolute;top:calc(env(safe-area-inset-top) + 8px);inset-inline-start:10px;z-index:3;width:44px;height:44px;border-radius:14px;border:1px solid #3a3a3a;background:rgba(30,30,30,.92);color:#f0f0f0;font:inherit;font-size:20px;cursor:pointer}'+
 '.smap-svg .z{cursor:pointer;outline:none}'+
-// двор — тёмно-зелёный с деревьями, здание — светлее, с тенью
-'.smap-svg .yd{fill:url(#smapTree);stroke:#36522c;stroke-width:3;stroke-linejoin:round}'+
-'.smap-svg .bd{fill:#444;stroke:#5c5c5c;stroke-width:2.5;stroke-linejoin:round;transition:fill .25s,stroke .25s}'+
-'.smap-svg .sh{fill:#0b0b0b;opacity:.75}'+
-'.smap-svg .ex{fill:#2e2e2e;stroke:#3c3c3c;stroke-width:2}'+
+// «как со спутника»: крыши с панелями, плитка дворов, кроны деревьев, улицы
+'.smap-svg .rf{stroke:#1b1d20;stroke-width:2;stroke-linejoin:round}'+
+'.smap-svg .pv{stroke:none}'+
+'.smap-svg .sh{fill:#000;opacity:.45}'+
 '.smap-svg .tint{fill:transparent;stroke:none;transition:fill .25s}'+
-'.smap-svg .z.in .bd{stroke-dasharray:10 8}'+
-'.smap-svg .z:focus-visible .yd,.smap-svg .z:focus-visible .bd{stroke:#f5f5f5}'+
-'.smap-svg .z.on .tint{fill:rgba(198,255,0,.2)}'+
-'.smap-svg .z.on .bd{fill:#5d6d17;stroke:#C6FF00}'+
-'.smap-svg .z.on .yd{stroke:#C6FF00;stroke-width:5}'+
-'.smap-svg .path{fill:none;stroke:#6e6656;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.85;pointer-events:none}'+
-'.smap-svg text{fill:#f0f0f0;font-size:32px;font-weight:800;text-anchor:middle;dominant-baseline:middle;pointer-events:none;font-family:inherit;paint-order:stroke;stroke:#141414;stroke-width:7px;stroke-linejoin:round}'+
-'.smap-svg text.n{fill:#9a9a9a;font-size:19px;font-weight:700;stroke-width:5px}'+
+'.smap-svg .ol{fill:none;stroke:rgba(255,255,255,.28);stroke-width:2.5;stroke-dasharray:8 7;stroke-linejoin:round;transition:stroke .25s}'+
+'.smap-svg .z.in .ol{stroke:rgba(255,255,255,.45)}'+
+'.smap-svg .z:focus-visible .ol{stroke:#f5f5f5;stroke-dasharray:none}'+
+'.smap-svg .z.on .tint{fill:rgba(198,255,0,.26)}'+
+'.smap-svg .z.on .ol{stroke:#C6FF00;stroke-width:5;stroke-dasharray:none}'+
+'.smap-svg .road{fill:#3d3f42}'+
+'.smap-svg .lane{fill:none;stroke:#cfcfcf;stroke-width:2.5;stroke-dasharray:16 14;opacity:.55}'+
+'.smap-svg .park{fill:#4a4b4d}'+
+'.smap-svg .trees{pointer-events:none}'+
+'.smap-svg .path{fill:none;stroke:#c9bd9f;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.38;pointer-events:none}'+
+'.smap-svg text{fill:#fff;font-size:32px;font-weight:800;text-anchor:middle;dominant-baseline:middle;pointer-events:none;font-family:inherit;paint-order:stroke;stroke:#111;stroke-width:8px;stroke-linejoin:round}'+
+'.smap-svg text.n{fill:#c4c4c4;font-size:19px;font-weight:700;stroke-width:6px}'+
 '.smap-svg text.ic{font-size:30px;stroke:none}'+
 '.smap-svg text.on{fill:#C6FF00}'+
-'.smap-zb{position:absolute;inset-inline-end:10px;bottom:10px;display:flex;flex-direction:column;gap:6px}'+
+'.smap-zb{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:2}'+
 '.smap-zb button{width:44px;height:44px;border-radius:14px;border:1px solid #3a3a3a;background:rgba(30,30,30,.92);color:#f0f0f0;font:inherit;font-size:22px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}'+
 '.smap-zb button:disabled{opacity:.35;cursor:default}'+
 '.smap-svg .pin{fill:#C6FF00;pointer-events:none}'+
 '.smap-svg .ring{fill:none;stroke:#C6FF00;stroke-width:4;pointer-events:none;transform-box:fill-box;transform-origin:center;animation:smapPulse 1.6s ease-out infinite}'+
 '@keyframes smapPulse{0%{transform:scale(.4);opacity:1}100%{transform:scale(2.2);opacity:0}}'+
-'@media (prefers-reduced-motion:reduce){.smap-svg .ring{animation:none;opacity:.6}.smap-svg .bd,.smap-svg .tint{transition:none}}'+
+'@media (prefers-reduced-motion:reduce){.smap-svg .ring{animation:none;opacity:.6}.smap-svg .ol,.smap-svg .tint{transition:none}}'+
 '.smap-geo{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:0 0 10px}'+
 '.smap-me{min-height:46px;padding:10px 16px;border-radius:16px;border:1px solid #C6FF00;background:transparent;color:#C6FF00;font:inherit;font-size:15px;font-weight:600;cursor:pointer}'+
 '.smap-me.on{background:#C6FF00;color:#171717}'+
@@ -240,28 +251,67 @@ function geoStop(keep,away){if(st.watch!=null){try{navigator.geolocation.clearWa
 // здания вне зон (по спутнику; серые, без подписи): между ברוש и גפן, между двором 9 и двором 11, на севере у края
 var EXTRA=['522,574 648,577 646,656 520,654','832,616 920,618 918,700 832,700','295,8 487,8 487,42 295,42'];
 var VB0={x:110,y:0,w:940,h:880};
-function vbStr(){var v=st.vb||VB0;return v.x.toFixed(1)+' '+v.y.toFixed(1)+' '+v.w.toFixed(1)+' '+v.h.toFixed(1);}
-function poly(pts,cls){return '<polygon class="'+cls+'" points="'+pts+'"/>';}
-function shadow(pts){return '<polygon class="sh" points="'+pts+'" transform="translate(6 8)"/>';}
-function rectOf(z){var p=z.pts.split(' ').map(function(q){return q.split(',').map(Number);});return {x:p[0][0],y:p[0][1],w:p[1][0]-p[0][0],h:p[2][1]-p[0][1]};}
+// улицы и стоянка (по спутнику): улица с востока, шоссе на северо-востоке, стоянка к северу от שקד
+var ROADS=['1000,250 1060,236 1060,890 986,890 990,600','830,-10 935,-10 1060,130 1060,250 1000,250 952,120'];
+var LANES=['M1025,250 L1022,890','M880,-10 L1060,190'],PARK=['492,0 576,0 576,138 492,138'];
+function P(q){return q.split(' ').map(function(x){return x.split(',').map(Number);});}
+function pip(x,y,p){var c=false;for(var i=0,j=p.length-1;i<p.length;j=i++){var a=p[i],b=p[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;}
+function areaOf(p){var a=0;for(var i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return Math.abs(a/2);}
+function bbox(p){var b={x0:1e9,y0:1e9,x1:-1e9,y1:-1e9};p.forEach(function(q){b.x0=Math.min(b.x0,q[0]);b.y0=Math.min(b.y0,q[1]);b.x1=Math.max(b.x1,q[0]);b.y1=Math.max(b.y1,q[1]);});return b;}
+function rng(seed){var s=seed>>>0||1;return function(){s=(Math.imul(s,1103515245)+12345)>>>0;return (s>>>8)/16777216;};}
+// крыша: у спортзала — светлая с решёткой, у остальных — солнечные панели вдоль длинной стороны
+function roof(q,z){var b=bbox(P(q));return z&&z.k==='sport'?'url(#smapHall)':(b.y1-b.y0)>(b.x1-b.x0)*1.4?'url(#smapPanelV)':'url(#smapPanel)';}
+// деревья: кроны в дворах (гуще во дворах с деревьями на снимке) и редкие вокруг школы; один раз, всегда одинаково
+var DENS={rimon:1500,audit:1400,brosh:1600,oren:2000,erez:1400,shaked:1900,yard:3200};
+var TREES=null;
+function treesSvg(){
+  if(TREES)return TREES;var out=[],blocked=[];
+  Z.forEach(function(z){if(z.inset){var r=rectOf(z);blocked.push([[r.x-10,r.y-10],[r.x+r.w+10,r.y-10],[r.x+r.w+10,r.y+r.h+10],[r.x-10,r.y+r.h+10]]);}else blocked.push(P(z.pts));});EXTRA.concat(ROADS,PARK).forEach(function(q){blocked.push(P(q));});
+  var tree=function(x,y,r){out.push('<circle cx="'+(x+4).toFixed(0)+'" cy="'+(y+6).toFixed(0)+'" r="'+r.toFixed(0)+'" fill="#000" opacity=".4"/><circle cx="'+x.toFixed(0)+'" cy="'+y.toFixed(0)+'" r="'+r.toFixed(0)+'" fill="url(#smapCanopy)"/>');};
+  Z.forEach(function(z,zi){var d=DENS[z.k];if(!d)return;var p=P(z.pts),bl=(z.bld||[]).map(P),b=bbox(p),n=Math.round(areaOf(p)/d),R=rng(zi*7919+13),tries=0;
+    while(n>0&&tries<n*40){tries++;var x=b.x0+R()*(b.x1-b.x0),y=b.y0+R()*(b.y1-b.y0);
+      if(!pip(x,y,p)||bl.some(function(q){return pip(x,y,q);}))continue;tree(x,y,11+R()*12);n--;}});
+  var R=rng(4242),n=70,tries=0;
+  while(n>0&&tries<4000){tries++;var x=VB0.x+R()*VB0.w,y=VB0.y+R()*VB0.h;if(blocked.some(function(q){return pip(x,y,q);}))continue;tree(x,y,10+R()*14);n--;}
+  return TREES='<g class="trees">'+out.join('')+'</g>';
+}
+// вид: на телефоне во весь экран окно схемы вытянуто (st.asp = высота/ширина), иначе — как план
+function asp(){return st.asp||VB0.h/VB0.w;}
+function vbMax(){var a=asp(),w=Math.min(VB0.w,VB0.h/a);return {w:w,h:w*a};}
+function vbDef(){var m=vbMax();return {x:VB0.x+(VB0.w-m.w)/2,y:VB0.y+(VB0.h-m.h)/2,w:m.w,h:m.h};}
+function curVb(){return st.vb||vbDef();}
+function vbStr(){var v=curVb();return v.x.toFixed(1)+' '+v.y.toFixed(1)+' '+v.w.toFixed(1)+' '+v.h.toFixed(1);}
+function zoomed(){return !!st.vb&&st.vb.w<vbMax().w-1;}
+function poly(pts,cls,fill){return '<polygon class="'+cls+'" points="'+pts+'"'+(fill?' fill="'+fill+'"':'')+'/>';}
+function shadow(pts){return '<polygon class="sh" points="'+pts+'" transform="translate(7 9)"/>';}
+function rectOf(z){var p=P(z.pts);return {x:p[0][0],y:p[0][1],w:p[1][0]-p[0][0],h:p[2][1]-p[0][1]};}
+var DEFS='<defs>'+
+  '<pattern id="smapSoil" width="64" height="64" patternUnits="userSpaceOnUse"><rect width="64" height="64" fill="#2d2c24"/><circle cx="10" cy="14" r="3" fill="#343227"/><circle cx="44" cy="38" r="4" fill="#28271f"/><circle cx="52" cy="8" r="2" fill="#37352a"/><circle cx="22" cy="50" r="2.5" fill="#323026"/></pattern>'+
+  '<pattern id="smapPave" width="26" height="26" patternUnits="userSpaceOnUse"><rect width="26" height="26" fill="#5b554a"/><path d="M0 .5H26M.5 0V26" stroke="#4e493f" stroke-width="1.2"/></pattern>'+
+  '<pattern id="smapPanel" width="38" height="22" patternUnits="userSpaceOnUse"><rect width="38" height="22" fill="#767b83"/><rect x="1.5" y="2" width="35" height="15" fill="#2b3d57"/><path d="M1.5 9.5H36.5M13 2V17M25 2V17" stroke="#3d5375" stroke-width="1"/></pattern>'+
+  '<pattern id="smapPanelV" width="38" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(90)"><rect width="38" height="22" fill="#767b83"/><rect x="1.5" y="2" width="35" height="15" fill="#2b3d57"/><path d="M1.5 9.5H36.5M13 2V17M25 2V17" stroke="#3d5375" stroke-width="1"/></pattern>'+
+  '<pattern id="smapHall" width="54" height="54" patternUnits="userSpaceOnUse"><rect width="54" height="54" fill="#9a9da2"/><path d="M0 .5H54M.5 0V54" stroke="#888b90" stroke-width="1.5"/><circle cx="27" cy="27" r="2.5" fill="#76797e"/></pattern>'+
+  '<radialGradient id="smapCanopy" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="#5a9440"/><stop offset=".55" stop-color="#346327"/><stop offset="1" stop-color="#1f4017"/></radialGradient>'+
+  '</defs>';
 function svg(selZ,pinZ){
-  var zm=st.vb&&st.vb.w<VB0.w-1;
-  var h='<svg class="smap-svg'+(zm?' zm':'')+'" viewBox="'+vbStr()+'" role="group" aria-label="'+esc(tx('mapL'))+'">'+
-    '<defs><pattern id="smapTree" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#1c2a19"/>'+
-    '<circle cx="12" cy="13" r="9" fill="#24381f"/><circle cx="35" cy="33" r="11" fill="#223520"/><circle cx="38" cy="9" r="5" fill="#26391f"/></pattern></defs>';
-  EXTRA.forEach(function(q){h+=shadow(q)+poly(q,'ex');});
-  // зоны: основа (двор или здание), корпуса внутри, подсветка выбранной
+  var h='<svg class="smap-svg'+(zoomed()||st.full?' zm':'')+'" viewBox="'+vbStr()+'" role="group" aria-label="'+esc(tx('mapL'))+'">'+DEFS;
+  // земля, улицы, стоянка, здания вне зон
+  h+='<rect x="0" y="-60" width="1200" height="1000" fill="url(#smapSoil)"/>';
+  ROADS.forEach(function(q){h+=poly(q,'road');});LANES.forEach(function(d){h+='<path class="lane" d="'+d+'"/>';});PARK.forEach(function(q){h+=poly(q,'park');});
+  EXTRA.forEach(function(q){h+=shadow(q)+poly(q,'rf',roof(q));});
+  // зоны: двор — плитка, здание — крыша; корпуса внутри; подсветка и пунктирный контур зоны
   Z.forEach(function(z){
     var on=selZ===z.k,name=L(z.nm)||L(z.lb);
     h+='<g class="z'+(on?' on':'')+(z.inset?' in':'')+'" data-mact="z" data-z="'+z.k+'" role="button" tabindex="0" aria-pressed="'+on+'" aria-label="'+esc(name)+'">';
-    if(z.inset){var r=rectOf(z);h+='<rect class="sh" x="'+(r.x+6)+'" y="'+(r.y+8)+'" width="'+r.w+'" height="'+r.h+'" rx="22"/><rect class="bd" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="22"/>';}
-    else if(z.kind==='bld')h+=shadow(z.pts)+poly(z.pts,'bd');
-    else{h+=poly(z.pts,'yd');(z.bld||[]).forEach(function(q){h+=shadow(q)+poly(q,'bd');});h+=poly(z.pts,'tint');}
+    if(z.inset){var r=rectOf(z),rc=function(c,f,d){return '<rect class="'+c+'" x="'+(r.x+(d||0))+'" y="'+(r.y+(d?2+d:0))+'" width="'+r.w+'" height="'+r.h+'" rx="22"'+(f?' fill="'+f+'"':'')+'/>';};
+      h+=rc('sh','',6)+rc('rf','url(#smapPanel)')+rc('tint')+rc('ol');}
+    else if(z.kind==='bld')h+=shadow(z.pts)+poly(z.pts,'rf',roof(z.pts,z))+poly(z.pts,'tint')+poly(z.pts,'ol');
+    else{h+=poly(z.pts,'pv','url(#smapPave)');(z.bld||[]).forEach(function(q){h+=shadow(q)+poly(q,'rf',roof(q));});h+=poly(z.pts,'tint')+poly(z.pts,'ol');}
     h+='</g>';
   });
-  // дорожки — всегда видны, под подписями
+  // дорожки, кроны деревьев (нажатие проходит сквозь них на зону), подписи
   h+='<g class="paths">';EDGE.forEach(function(e){var a=NODE[e[0]],b=NODE[e[1]];h+='<line class="path" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>';});h+='</g>';
-  // подписи и значки поверх всего
+  h+=treesSvg();
   Z.forEach(function(z){var on=selZ===z.k?' on':'';
     if(z.ic&&z.k!==pinZ)h+='<text class="ic" x="'+z.x+'" y="'+(z.y-36)+'">'+z.ic+'</text>';
     h+='<text class="'+on+'" x="'+z.x+'" y="'+z.y+'">'+esc(L(z.lb))+'</text>';
@@ -270,16 +320,24 @@ function svg(selZ,pinZ){
   if(pz)h+='<circle class="ring" cx="'+pz.x+'" cy="'+(pz.y-70)+'" r="16"/><path class="pin" d="M'+pz.x+' '+(pz.y-42)+'c-10-14-20-22-20-34a20 20 0 0 1 40 0c0 12-10 20-20 34z"/><circle cx="'+pz.x+'" cy="'+(pz.y-76)+'" r="7" fill="#171717" style="pointer-events:none"/>';
   return h+'<g id="smap-geo" style="pointer-events:none">'+geoSvg(selZ)+'</g></svg>';
 }
-// зум: кнопки «+ − ⟲» и два пальца; viewBox хранится в st.vb и переживает перерисовку
-function zoomBtns(){var zm=st.vb&&st.vb.w<VB0.w-1;
-  return '<div class="smap-zb"><button data-mact="zin" aria-label="'+esc(tx('zin'))+'"'+(st.vb&&st.vb.w<=VB0.w/4+1?' disabled':'')+'>+</button>'+
+// зум: кнопки «+ − ⟲ ⛶» и два пальца; viewBox хранится в st.vb и переживает перерисовку
+function zoomBtns(){var zm=zoomed(),v=curVb();
+  return '<div class="smap-zb">'+(st.full?'':'<button data-mact="full" aria-label="'+esc(tx('full'))+'">⛶</button>')+
+    '<button data-mact="zin" aria-label="'+esc(tx('zin'))+'"'+(v.w<=vbMax().w/4+1?' disabled':'')+'>+</button>'+
     '<button data-mact="zout" aria-label="'+esc(tx('zout'))+'"'+(zm?'':' disabled')+'>−</button>'+(zm?'<button data-mact="zreset" aria-label="'+esc(tx('zreset'))+'">⟲</button>':'')+'</div>';}
-function vbClamp(v){var w=Math.max(VB0.w/4,Math.min(VB0.w,v.w)),h=w*VB0.h/VB0.w,cx=v.x+v.w/2,cy=v.y+v.h/2;
+function vbClamp(v){var m=vbMax(),a=asp(),w=Math.max(m.w/4,Math.min(m.w,v.w)),h=w*a,cx=v.x+v.w/2,cy=v.y+v.h/2;
   var x=Math.max(VB0.x,Math.min(VB0.x+VB0.w-w,cx-w/2)),y=Math.max(VB0.y,Math.min(VB0.y+VB0.h-h,cy-h/2));
-  return w>=VB0.w-1?null:{x:x,y:y,w:w,h:h};}
+  return w>=VB0.w-1&&h>=VB0.h-1?null:{x:x,y:y,w:w,h:h};}
 // масштаб вокруг точки (px, py) в координатах плана
-function vbZoom(k,px,py){var v=st.vb||VB0;if(px==null){px=v.x+v.w/2;py=v.y+v.h/2;}
-  var w=v.w/k,h=v.h/k;st.vb=vbClamp({x:px-(px-v.x)/k,y:py-(py-v.y)/k,w:w,h:h});}
+function vbZoom(k,px,py){var v=curVb();if(px==null){px=v.x+v.w/2;py=v.y+v.h/2;}
+  st.vb=vbClamp({x:px-(px-v.x)/k,y:py-(py-v.y)/k,w:v.w/k,h:v.h/k});}
+// экранная точка → координаты плана (с учётом полей при «вписать»)
+function scrMap(v,r){var s=Math.max(v.w/r.width,v.h/r.height);return {s:s,ox:(r.width-v.w/s)/2,oy:(r.height-v.h/s)/2};}
+// во весь экран: окно схемы — по размеру экрана, по центру — выбранная зона
+function fullFit(root){var sv=root.querySelector('.smap-box.full .smap-svg');if(!sv)return;
+  var r=sv.getBoundingClientRect();if(!r.width||!r.height)return;st.asp=r.height/r.width;
+  var z=zone(curZ()),m=vbMax(),cx=z?z.x:VB0.x+VB0.w/2,cy=z?z.y:VB0.y+VB0.h/2;
+  st.vb=vbClamp({x:cx-m.w/2,y:cy-m.h/2,w:m.w,h:m.h})||vbDef();sv.setAttribute('viewBox',vbStr());}
 // o: {lang, rooms:[ещё кабинеты], here:[{k:'now'|'next'|'pm', room, label}]}
 function html(o){
   o=o||{};LANG=T[o.lang]?o.lang:'he';addCss();load();
@@ -296,9 +354,10 @@ function html(o){
   if(here.length){h+='<div class="smap-here">';
     here.forEach(function(x){h+='<button class="'+(selR===x.room?'on':'')+'" data-mact="r" data-r="'+esc(x.room)+'"><span class="k">'+esc(tx(x.k)||x.k)+'</span><span class="v"><bdi>'+esc(x.label||'')+'</bdi>'+(x.label?' · ':'')+'<bdi>'+esc(x.room)+'</bdi></span></button>';});
     h+='</div>';}
-  h+='<div class="smap-geo"><button class="smap-me'+(st.watch!=null?' on':'')+'" data-mact="geo" aria-pressed="'+(st.watch!=null)+'">📍 '+esc(tx(st.watch!=null?'geoOff':'geoBtn'))+'</button>'+
-    '<div class="smap-gline" id="smap-gline" role="status">'+geoLine(selZ)+'</div></div>';
-  h+='<div class="smap-box">'+svg(selZ,selR?selZ:null)+zoomBtns()+'</div>';
+  var gl='<div class="smap-gline" id="smap-gline" role="status">'+geoLine(selZ)+'</div>';
+  h+='<div class="smap-geo"><button class="smap-me'+(st.watch!=null?' on':'')+'" data-mact="geo" aria-pressed="'+(st.watch!=null)+'">📍 '+esc(tx(st.watch!=null?'geoOff':'geoBtn'))+'</button>'+(st.full?'':gl)+'</div>';
+  h+='<div class="smap-box'+(st.full?' full':'')+'"'+(st.full?' role="dialog" aria-modal="true" aria-label="'+esc(tx('mapL'))+'"':'')+'>'+
+    (st.full?'<button class="smap-x" data-mact="full" aria-label="'+esc(tx('fullX'))+'">✕</button>'+gl:'')+svg(selZ,selR?selZ:null)+zoomBtns()+'</div>';
   if(st.watch!=null)h+='<p class="smap-priv">'+esc(tx('geoPriv'))+(isIOS()?'<br>'+esc(tx('geoIos')):'')+'</p>';
   setTimeout(geoAuto,0);
   if(!sel)h+='<p class="smap-tip">'+esc(tx('tap'))+'</p>';
@@ -327,8 +386,9 @@ function bind(root,cb){
   var act=function(el,e){
     var a=el.getAttribute('data-mact');
     if(e){e.stopPropagation();if(a!=='go')e.preventDefault();}
-    if(a==='go'){st.sel={r:el.getAttribute('data-r')};st.q='';if(CB.open)CB.open();return;}
-    if(a==='zin'||a==='zout'||a==='zreset'){if(a==='zreset')st.vb=null;else vbZoom(a==='zin'?1.6:1/1.6);if(CB.render)CB.render();return;}
+    if(a==='go'){st.sel={r:el.getAttribute('data-r')};st.q='';st.full=false;st.vb=null;st.asp=null;if(CB.open)CB.open();return;}
+    if(a==='full'){st.full=!st.full;st.vb=null;st.asp=null;if(CB.render)CB.render();if(st.full)fullFit(root);return;}
+    if(a==='zin'||a==='zout'||a==='zreset'){if(a==='zreset'){st.vb=null;if(st.full){if(CB.render)CB.render();fullFit(root);return;}}else vbZoom(a==='zin'?1.6:1/1.6);if(CB.render)CB.render();return;}
     if(a==='geo'){if(st.watch!=null)geoStop();else geoStart();}
     else if(a==='z'){var k=el.getAttribute('data-z');st.sel=st.sel&&st.sel.z===k?null:{z:k};}
     else if(a==='r'){st.sel={r:el.getAttribute('data-r')};st.q='';}
@@ -337,19 +397,19 @@ function bind(root,cb){
   };
   // жесты на схеме: два пальца — зум, один палец в увеличенной схеме — сдвиг; после жеста нажатие не считается
   var ptr={},g0=null,moved=false,changed=false;
-  var gStart=function(sv){var v=st.vb||VB0,P={};for(var k in ptr)P[k]={x:ptr[k].x,y:ptr[k].y};g0={sv:sv,vb:{x:v.x,y:v.y,w:v.w,h:v.h},p:P,r:sv.getBoundingClientRect()};};
-  var gApply=function(){var sv=g0.sv;sv.setAttribute('viewBox',vbStr());sv.classList.toggle('zm',!!st.vb);changed=true;};
+  var gStart=function(sv){var v=curVb(),P={};for(var k in ptr)P[k]={x:ptr[k].x,y:ptr[k].y};g0={sv:sv,vb:{x:v.x,y:v.y,w:v.w,h:v.h},p:P,r:sv.getBoundingClientRect()};};
+  var gApply=function(){var sv=g0.sv;sv.setAttribute('viewBox',vbStr());sv.classList.toggle('zm',zoomed()||!!st.full);changed=true;};
   root.addEventListener('pointerdown',function(e){var sv=e.target.closest&&e.target.closest('.smap-svg');if(!sv)return;
     if(!Object.keys(ptr).length)moved=false;ptr[e.pointerId]={x:e.clientX,y:e.clientY};gStart(sv);});
   window.addEventListener('pointermove',function(e){if(!ptr[e.pointerId]||!g0)return;ptr[e.pointerId]={x:e.clientX,y:e.clientY};
-    var ids=Object.keys(ptr),r=g0.r,s0=g0.vb.w/r.width;
+    var ids=Object.keys(ptr),r=g0.r,M=scrMap(g0.vb,r),s0=M.s;
     if(ids.length===1){var a=ptr[ids[0]],a0=g0.p[ids[0]];if(!a0)return;var dx=a.x-a0.x,dy=a.y-a0.y;
-      if(Math.abs(dx)+Math.abs(dy)>6)moved=true;if(!st.vb||!moved)return;
+      if(Math.abs(dx)+Math.abs(dy)>6)moved=true;if(!(zoomed()||st.full)||!moved)return;
       st.vb=vbClamp({x:g0.vb.x-dx*s0,y:g0.vb.y-dy*s0,w:g0.vb.w,h:g0.vb.h});gApply();}
     else if(ids.length>=2){var p=ptr[ids[0]],q=ptr[ids[1]],p0=g0.p[ids[0]],q0=g0.p[ids[1]];if(!p0||!q0)return;
       var d0=Math.hypot(p0.x-q0.x,p0.y-q0.y)||1,d=Math.hypot(p.x-q.x,p.y-q.y)||1,k=d/d0;moved=true;
-      var mx0=g0.vb.x+((p0.x+q0.x)/2-r.left)*s0,my0=g0.vb.y+((p0.y+q0.y)/2-r.top)*s0,w=g0.vb.w/k,s1=w/r.width;
-      st.vb=vbClamp({x:mx0-((p.x+q.x)/2-r.left)*s1,y:my0-((p.y+q.y)/2-r.top)*s1,w:w,h:w*VB0.h/VB0.w});gApply();}
+      var mx0=g0.vb.x+((p0.x+q0.x)/2-r.left-M.ox)*s0,my0=g0.vb.y+((p0.y+q0.y)/2-r.top-M.oy)*s0,w=g0.vb.w/k,h=g0.vb.h/k,M1=scrMap({w:w,h:h},r);
+      st.vb=vbClamp({x:mx0-((p.x+q.x)/2-r.left-M1.ox)*M1.s,y:my0-((p.y+q.y)/2-r.top-M1.oy)*M1.s,w:w,h:h});gApply();}
   });
   var gEnd=function(e){if(!ptr[e.pointerId])return;delete ptr[e.pointerId];
     if(Object.keys(ptr).length){if(g0)gStart(g0.sv);return;}
@@ -357,8 +417,10 @@ function bind(root,cb){
   window.addEventListener('pointerup',gEnd);window.addEventListener('pointercancel',gEnd);
   // компьютер: колёсико с Ctrl (и щипок на тачпаде) — зум вокруг курсора
   root.addEventListener('wheel',function(e){var sv=e.target.closest&&e.target.closest('.smap-svg');if(!sv||!e.ctrlKey)return;e.preventDefault();
-    var r=sv.getBoundingClientRect(),v=st.vb||VB0;vbZoom(e.deltaY<0?1.15:1/1.15,v.x+(e.clientX-r.left)*v.w/r.width,v.y+(e.clientY-r.top)*v.h/r.height);
-    sv.setAttribute('viewBox',vbStr());sv.classList.toggle('zm',!!st.vb);clearTimeout(bind.wt);bind.wt=setTimeout(function(){if(CB.render)CB.render();},300);},{passive:false});
+    var r=sv.getBoundingClientRect(),v=curVb(),M=scrMap(v,r);vbZoom(e.deltaY<0?1.15:1/1.15,v.x+(e.clientX-r.left-M.ox)*M.s,v.y+(e.clientY-r.top-M.oy)*M.s);
+    sv.setAttribute('viewBox',vbStr());sv.classList.toggle('zm',zoomed()||!!st.full);clearTimeout(bind.wt);bind.wt=setTimeout(function(){if(CB.render)CB.render();},300);},{passive:false});
+  window.addEventListener('resize',function(){if(st.full){var v=curVb(),c={x:v.x+v.w/2,y:v.y+v.h/2},sv=root.querySelector('.smap-box.full .smap-svg');if(!sv)return;var r=sv.getBoundingClientRect();if(!r.width)return;st.asp=r.height/r.width;var w=v.w,h=w*st.asp;st.vb=vbClamp({x:c.x-w/2,y:c.y-h/2,w:w,h:h});sv.setAttribute('viewBox',vbStr());}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&st.full){st.full=false;st.vb=null;st.asp=null;if(CB.render)CB.render();}});
   // фаза захвата: нажатие на кабинет внутри карточки урока не доходит до обработчика самой карточки
   root.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('[data-mact]');if(!el||!root.contains(el))return;
     if(moved&&el.closest('.smap-svg')){moved=false;e.stopPropagation();e.preventDefault();return;}act(el,e);},true);
@@ -368,7 +430,7 @@ function bind(root,cb){
     var res=document.getElementById('mapres'),nm=document.getElementById('mapnm');if(res)res.hidden=!q;if(nm)nm.hidden=!(q&&!n);});
 }
 // открыть карту с выбранным кабинетом (или без выбора)
-function show(room){st.sel=room?{r:String(room)}:null;st.q='';st.vb=null;}
+function show(room){st.sel=room?{r:String(room)}:null;st.q='';st.vb=null;st.full=false;st.asp=null;}
 // атрибуты для кабинета в карточке урока: нажатие открывает карту
 function attr(room){return room?' data-mact="go" data-r="'+esc(room)+'" role="button" tabindex="0"':'';}
 window.SkedyMap={html:html,bind:bind,show:show,attr:attr,zoneOf:function(r){var z=zoneOf(r);return z?z.k:null;},prefetch:load};
