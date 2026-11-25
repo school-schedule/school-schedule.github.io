@@ -81,19 +81,19 @@ var T={
    clear:'ניקוי',other:'אחר',rooms:'כיתות',noRooms:'אין כאן כיתות מהמערכת',mapL:'מפת בית הספר',inset:'מבנה נפרד',
    geoBtn:'איפה אני? מסלול',geoOff:'הסתרת המיקום',geoWait:'מחפשים את המיקום…',geoDenied:'אין גישה למיקום. אפשר לאשר בהגדרות הטלפון.',geoErr:'לא הצלחנו לקבל מיקום',geoNo:'הטלפון לא תומך במיקום',
    geoFar:'מחוץ לשטח בית הספר · עוד כ־{d}',geoRoute:'{t} דק׳ הליכה · {d}',geoPick:'בחרו כיתה או אזור — ונראה את הדרך',geoInacc:'ה־GPS לא מדויק (±{d})',geoNoRoute:'לאזור הזה אין מסלול על המפה',
-   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה'},
+   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',geoIos:'כדי שהאייפון לא ישאל כל פעם: הגדרות ← Safari ← מיקום ← „אפשר“.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה'},
  en:{search:'Search a room, lab…',now:'Now',next:'Next lesson',pm:'Parents’ meeting',notOn:'Not on the map yet',
    notOnR:'This room’s location isn’t on the map yet',noMatch:'Nothing found',tap:'Tap an area to see its rooms',
    clear:'Clear',other:'Other',rooms:'Rooms',noRooms:'No timetable rooms here',mapL:'School map',inset:'Separate building',
    geoBtn:'Where am I? Route',geoOff:'Hide my location',geoWait:'Finding your location…',geoDenied:'No access to location. You can allow it in the phone settings.',geoErr:'Couldn’t get your location',geoNo:'This phone can’t share its location',
    geoFar:'Outside the school · about {d} away',geoRoute:'{t} min walk · {d}',geoPick:'Pick a room or area to see the way',geoInacc:'GPS is inaccurate (±{d})',geoNoRoute:'No route to this area on the map',
-   geoPriv:'Your location stays on your phone and is never sent anywhere.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map'},
+   geoPriv:'Your location stays on your phone and is never sent anywhere.',geoIos:'So your iPhone doesn’t ask every time: Settings → Safari → Location → Allow.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map'},
  ru:{search:'Поиск кабинета, лаборатории…',now:'Сейчас',next:'Следующий урок',pm:'Родительское собрание',notOn:'Ещё не на карте',
    notOnR:'Где этот кабинет, на карте пока нет',noMatch:'Ничего не найдено',tap:'Нажми на зону — покажу её кабинеты',
    clear:'Очистить',other:'Другое',rooms:'Кабинеты',noRooms:'Здесь нет кабинетов из расписания',mapL:'Карта школы',inset:'Отдельное здание',
    geoBtn:'Где я? Маршрут',geoOff:'Скрыть моё место',geoWait:'Ищу, где ты…',geoDenied:'Нет доступа к геопозиции. Её можно разрешить в настройках телефона.',geoErr:'Не удалось узнать, где ты',geoNo:'Телефон не умеет сообщать геопозицию',
    geoFar:'Ты не в школе · до неё примерно {d}',geoRoute:'{t} мин пешком · {d}',geoPick:'Выбери кабинет или зону — покажу дорогу',geoInacc:'GPS неточный (±{d})',geoNoRoute:'До этой зоны маршрута на карте нет',
-   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта'}
+   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',geoIos:'Чтобы iPhone не спрашивал каждый раз: Настройки → Safari → Геопозиция → «Разрешить».',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта'}
 };
 var st={sel:null,q:'',rooms:null,busy:false,geo:null,watch:null},CB={},LANG='he';
 function tx(k){return (T[LANG]||T.he)[k]||T.he[k]||k;}
@@ -212,19 +212,31 @@ function geoLine(selZ){
 function curZ(){var s=st.sel;return s&&s.r?(zoneOf(s.r)||{}).k:s&&s.z?s.z:null;}
 // перерисовать только слой геопозиции и строку под кнопкой (без render(): не сбивает поиск и прокрутку)
 function geoPaint(){
-  if(CB.shown&&!CB.shown()){geoStop();return;}
+  if(CB.shown&&!CB.shown()){geoStop(false,true);return;}
   var l=document.getElementById('smap-geo'),t=document.getElementById('smap-gline'),z=curZ();
   if(l)l.innerHTML=geoSvg(z);if(t)t.innerHTML=geoLine(z);
 }
-// геопозиция — только по нажатию кнопки, только в телефоне: никуда не отправляется
+// «Где я» включали — запоминаем (только в телефоне), чтобы потом не нажимать и не спрашивать снова
+var GEO_KEY='skedyMap.geo';
+function geoWant(v){try{if(v==null)return localStorage.getItem(GEO_KEY)==='1';localStorage.setItem(GEO_KEY,v?'1':'0');}catch(e){}return false;}
+// при открытии карты: включали раньше и разрешение уже дано — включаем сами, без запроса;
+// если браузер ещё спросил бы (или не умеет сказать) — ждём нажатия кнопки
+function geoAuto(){
+  if(st.watch!=null||(st.geo&&st.geo.err)||!geoWant()||!navigator.geolocation||!navigator.permissions||!navigator.permissions.query)return;
+  try{navigator.permissions.query({name:'geolocation'}).then(function(r){
+    if(r&&r.state==='granted'&&st.watch==null&&(!CB.shown||CB.shown())){geoStart();if(CB.render)CB.render();}}).catch(function(){});}catch(e){}
+}
+function isIOS(){var u=navigator.userAgent||'';return /iphone|ipad|ipod/i.test(u)||(/macintosh/i.test(u)&&navigator.maxTouchPoints>1);}
+// геопозиция — только по нажатию кнопки (или сама, если уже разрешена), только в телефоне: никуда не отправляется
 function geoStart(){
   if(!navigator.geolocation){st.geo={err:'geoNo'};return;}
   st.geo=null;
-  try{st.watch=navigator.geolocation.watchPosition(function(p){st.geo={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};geoPaint();},
+  try{st.watch=navigator.geolocation.watchPosition(function(p){st.geo={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};if(!geoWant())geoWant(true);geoPaint();},
     function(e){st.geo={err:e&&e.code===1?'geoDenied':'geoErr'};if(e&&e.code===1)geoStop(true);geoPaint();},
     {enableHighAccuracy:true,maximumAge:5000,timeout:20000});}catch(e){st.geo={err:'geoErr'};}
 }
-function geoStop(keep){if(st.watch!=null){try{navigator.geolocation.clearWatch(st.watch);}catch(e){}}st.watch=null;if(!keep)st.geo=null;}
+// keep — оставить ошибку на экране; away — ушли с карты (выбор «включено» помним)
+function geoStop(keep,away){if(st.watch!=null){try{navigator.geolocation.clearWatch(st.watch);}catch(e){}}st.watch=null;if(!keep)st.geo=null;if(!keep&&!away)geoWant(false);}
 // здания вне зон (по спутнику; серые, без подписи): между ברוש и גפן, между двором 9 и двором 11, на севере у края
 var EXTRA=['522,574 648,577 646,656 520,654','832,616 920,618 918,700 832,700','295,8 487,8 487,42 295,42'];
 var VB0={x:110,y:0,w:940,h:880};
@@ -287,7 +299,8 @@ function html(o){
   h+='<div class="smap-geo"><button class="smap-me'+(st.watch!=null?' on':'')+'" data-mact="geo" aria-pressed="'+(st.watch!=null)+'">📍 '+esc(tx(st.watch!=null?'geoOff':'geoBtn'))+'</button>'+
     '<div class="smap-gline" id="smap-gline" role="status">'+geoLine(selZ)+'</div></div>';
   h+='<div class="smap-box">'+svg(selZ,selR?selZ:null)+zoomBtns()+'</div>';
-  if(st.watch!=null)h+='<p class="smap-priv">'+esc(tx('geoPriv'))+'</p>';
+  if(st.watch!=null)h+='<p class="smap-priv">'+esc(tx('geoPriv'))+(isIOS()?'<br>'+esc(tx('geoIos')):'')+'</p>';
+  setTimeout(geoAuto,0);
   if(!sel)h+='<p class="smap-tip">'+esc(tx('tap'))+'</p>';
   if(selR){var z=zoneOf(selR);
     h+='<div class="smap-info"><h3><span class="r"><bdi>'+esc(selR)+'</bdi></span></h3>';
