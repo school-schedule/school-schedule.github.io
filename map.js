@@ -7,7 +7,7 @@
 var BASE=(function(){try{var s=document.currentScript&&document.currentScript.src;return s?s.replace(/map\.js(\?.*)?$/,''):'/';}catch(e){return '/';}})();
 // k — ключ, n — номер на плане школы, lb — подпись на схеме, nm — название, sub — пояснение, pre — с чего начинается название кабинета
 var Z=[
- {k:'shaked',go:'s',kind:'mix',bld:['580,8 868,20 872,95 950,108 950,158 583,155'],ic:'📚',n:'3',pre:['שקד'],lb:{he:'שקד',en:'Shaked',ru:'Шакед'},x:740,y:105,
+ {k:'shaked',go:'s',kind:'mix',bld:['580,8 868,20 872,95 950,108 950,158 583,155'],ic:'📚',n:'3',pre:['שקד'],lb:{he:'שקד',en:'Shaked',ru:'Шакед'},x:720,y:56,
   pts:'580,8 868,20 872,95 950,108 948,245 900,238 900,193 565,170'},
  {k:'sport',go:'spd',kind:'bld',ic:'🏀',n:'7',pre:['אולם ספורט','חנ"ג','מגרש'],lb:{he:'ספורט',en:'Sports',ru:'Спорт'},x:262,y:300,
   sub:{he:'אולם ספורט ומגרשים',en:'Gym and sports fields',ru:'Спортзал и площадки'},
@@ -100,7 +100,20 @@ function tx(k){return (T[LANG]||T.he)[k]||T.he[k]||k;}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function L(o){return o?(o[LANG]||o.he):'';}
 function zone(k){for(var i=0;i<Z.length;i++)if(Z[i].k===k)return Z[i];return null;}
-function zoneOf(r){r=String(r||'').trim();for(var i=0;i<Z.length;i++)for(var j=0;j<Z[i].pre.length;j++)if(r.indexOf(Z[i].pre[j])===0)return Z[i];return null;}
+// где именно кабинет внутри корпуса (по видео автора, 11.2026: коридор שקד от стоянки к шоссе —
+// кабинеты руководства, ח5 = שקד 3, ח9 = שקד 2, ח10 = שקד 1); остальные — только корпус
+var SPOTS={'שקד 1':[928,132],'שקד 2':[850,124],'שקד 3':[735,124]};
+// кабинеты руководства (только должности, без имён): '@ключ' — как кабинет в поиске и выборе
+var PLACES=[
+ {k:'@mgr',z:'shaked',xy:[594,124],t:{he:'מנהל/ת חטיבת הביניים',en:'Middle school principal',ru:'Директор средней школы (חטיבת הביניים)'}},
+ {k:'@dep',z:'shaked',xy:[616,124],t:{he:'סגנ/ית מנהל/ת חטיבת הביניים',en:'Deputy principal, middle school',ru:'Заместитель директора средней школы'}},
+ {k:'@cns8',z:'shaked',xy:[660,124],t:{he:'יועצת חינוכית שכבה ח׳',en:'School counselor, grade 8 (ח׳)',ru:'Школьный консультант (יועצת), параллель ח׳'}},
+ {k:'@sped',z:'shaked',xy:[686,124],t:{he:'רכזת ויועצת חינוך מיוחד',en:'Special education coordinator',ru:'Координатор специального образования'}},
+ {k:'@gr8',z:'shaked',xy:[768,124],t:{he:'מנהל/ת שכבה ח׳',en:'Grade 8 (ח׳) coordinator',ru:'Руководитель параллели ח׳'}}];
+function placeOf(r){for(var i=0;i<PLACES.length;i++)if(PLACES[i].k===r)return PLACES[i];return null;}
+function spotOf(r){var p=placeOf(r);if(p)return p.xy;return SPOTS[String(r||'').trim().split(/\s+/).slice(0,2).join(' ')]||null;}  // «שקד 1 ח10 שמע» → «שקד 1»
+function rName(r){var p=placeOf(r);return p?L(p.t):r;}
+function zoneOf(r){var pl=placeOf(r);if(pl)return zone(pl.z);r=String(r||'').trim();for(var i=0;i<Z.length;i++)for(var j=0;j<Z[i].pre.length;j++)if(r.indexOf(Z[i].pre[j])===0)return Z[i];return null;}
 function offOf(r){r=String(r||'').trim();for(var i=0;i<OFF.length;i++)if(r.indexOf(OFF[i][0])===0)return OFF[i];return null;}
 function norm(s){return String(s||'').toLowerCase().replace(/["'׳״\-–—.,]/g,'').replace(/\s+/g,' ').trim();}
 // «גפן 23 יא5» → «23 יא5» (корпус и так виден)
@@ -157,6 +170,7 @@ var css=
 '.smap-svg .park{fill:#4a4b4d}'+
 '.smap-svg .walk{fill:none;stroke:#8a877f;stroke-width:12;stroke-linecap:round;opacity:.7;pointer-events:none}'+
 '.smap-svg .trees{pointer-events:none}'+
+'.smap-svg .spots{pointer-events:none}.smap-svg .spots circle{fill:#171717;stroke:#f0f0f0;stroke-width:2.5}.smap-svg .spots circle.pl{fill:#f0f0f0;stroke:#171717}.smap-svg text.sn{font-size:14px;stroke:none;fill:#f0f0f0}'+
 '.smap-svg .gate{pointer-events:none}.smap-svg .gate line{stroke:#C6FF00;stroke-width:4;stroke-dasharray:4 6;stroke-linecap:round}.smap-svg .gate circle{fill:#171717;stroke:#C6FF00;stroke-width:4}'+
 '.smap-svg text.gi{font-size:22px;stroke:none}.smap-svg text.gt{fill:#C6FF00;font-size:18px;stroke-width:5px}'+
 '.smap-svg .path{fill:none;stroke:#c9bd9f;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.38;pointer-events:none}'+
@@ -207,7 +221,7 @@ function geoState(selZ){
   var dx=Math.max(110-p.x,0,p.x-1050),dy=Math.max(0-p.y,0,p.y-880);if(dx||dy){r.far=Math.sqrt(dx*dx+dy*dy)*MPX;}
   // не в школе — маршрут от ближайшего входа
   var gt=GATES.slice().sort(function(a,b){return dist([p.x,p.y],NODE[a.n])-dist([p.x,p.y],NODE[b.n]);})[0],z=zone(selZ),from=r.far!=null?NODE[gt.n]:[p.x,p.y];
-  if(z&&z.go)r.rt=route(from,z.go);else if(z)r.noRt=true;
+  if(z&&z.go){r.rt=route(from,z.go);var sp=st.sel&&st.sel.r?spotOf(st.sel.r):null;if(r.rt&&sp){var lst=r.rt.pts[r.rt.pts.length-1];r.rt.pts.push(sp);r.rt.m+=dist(lst,sp)*MPX;}}else if(z)r.noRt=true;
   return r;
 }
 function geoSvg(selZ){
@@ -327,8 +341,11 @@ function svg(selZ,pinZ){
     h+='<text class="n'+on+'" x="'+z.x+'" y="'+(z.y+30)+'">'+esc(z.inset?tx('inset'):'⁦'+z.n+'⁩')+'</text>';});
   // входы: значки «🚪» (n — узел дорожек, x/y — где значок)
   GATES.forEach(function(g){var n=NODE[g.n];h+='<g class="gate"><line x1="'+n[0]+'" y1="'+n[1]+'" x2="'+g.x+'" y2="'+g.y+'"/><circle cx="'+g.x+'" cy="'+g.y+'" r="21"/><text class="gi" x="'+g.x+'" y="'+(g.y+1)+'">🚪</text><text class="gt" x="'+g.x+'" y="'+(g.y+38)+'">'+esc(tx('gate'))+'</text></g>';});
-  var pz=zone(pinZ);
-  if(pz)h+='<circle class="ring" cx="'+pz.x+'" cy="'+(pz.y-70)+'" r="16"/><path class="pin" d="M'+pz.x+' '+(pz.y-42)+'c-10-14-20-22-20-34a20 20 0 0 1 40 0c0 12-10 20-20 34z"/><circle cx="'+pz.x+'" cy="'+(pz.y-76)+'" r="7" fill="#171717" style="pointer-events:none"/>';
+  // точки известных кабинетов внутри корпусов: номер класса или «•» у кабинета руководства
+  h+='<g class="spots">';for(var sk in SPOTS){var q=SPOTS[sk];h+='<circle cx="'+q[0]+'" cy="'+q[1]+'" r="12"/><text class="sn" x="'+q[0]+'" y="'+(q[1]+1)+'">'+esc(sk.split(' ')[1])+'</text>';}
+  PLACES.forEach(function(pl){h+='<circle class="pl" cx="'+pl.xy[0]+'" cy="'+pl.xy[1]+'" r="7"/>';});h+='</g>';
+  var pz=zone(pinZ),ps=st.sel&&st.sel.r?spotOf(st.sel.r):null,px=ps?ps[0]:pz&&pz.x,py=ps?ps[1]:pz&&pz.y-42;
+  if(pz)h+='<circle class="ring" cx="'+px+'" cy="'+(py-28)+'" r="16"/><path class="pin" d="M'+px+' '+py+'c-10-14-20-22-20-34a20 20 0 0 1 40 0c0 12-10 20-20 34z"/><circle cx="'+px+'" cy="'+(py-34)+'" r="7" fill="#171717" style="pointer-events:none"/>';
   return h+'<g id="smap-geo" style="pointer-events:none">'+geoSvg(selZ)+'</g></svg>';
 }
 // зум: кнопки «+ − ⟲ ⛶» и два пальца; viewBox хранится в st.vb и переживает перерисовку
@@ -361,6 +378,8 @@ function html(o){
   var qn=norm(st.q),shown=0;
   rooms.forEach(function(r){var z=zoneOf(r),f=offOf(r),ok=!!qn&&norm(r).indexOf(qn)>=0&&shown<12;if(ok)shown++;
     h+='<button class="smap-row" data-mact="r" data-r="'+esc(r)+'" data-key="'+esc(norm(r))+'"'+(ok?'':' hidden')+'><bdi>'+esc(r)+'</bdi><span class="zl">'+esc(z?L(z.nm)||L(z.lb):f?tx('notOn'):'')+'</span></button>';});
+  PLACES.forEach(function(pl){var key=norm(pl.t.he+' '+pl.t.en+' '+pl.t.ru),ok=!!qn&&key.indexOf(qn)>=0&&shown<12;if(ok)shown++;
+    h+='<button class="smap-row" data-mact="r" data-r="'+esc(pl.k)+'" data-key="'+esc(key)+'"'+(ok?'':' hidden')+'><bdi>'+esc(L(pl.t))+'</bdi><span class="zl">'+esc(L(zone(pl.z).lb))+'</span></button>';});
   h+='</div><div class="smap-nm" id="mapnm"'+(qn&&!shown?'':' hidden')+'>'+esc(tx('noMatch'))+'</div>';
   if(here.length){h+='<div class="smap-here">';
     here.forEach(function(x){h+='<button class="'+(selR===x.room?'on':'')+'" data-mact="r" data-r="'+esc(x.room)+'"><span class="k">'+esc(tx(x.k)||x.k)+'</span><span class="v"><bdi>'+esc(x.label||'')+'</bdi>'+(x.label?' · ':'')+'<bdi>'+esc(x.room)+'</bdi></span></button>';});
@@ -373,12 +392,13 @@ function html(o){
   setTimeout(geoAuto,0);
   if(!sel)h+='<p class="smap-tip">'+esc(tx('tap'))+'</p>';
   if(selR){var z=zoneOf(selR);
-    h+='<div class="smap-info"><h3><span class="r"><bdi>'+esc(selR)+'</bdi></span></h3>';
+    h+='<div class="smap-info"><h3><span class="r"><bdi>'+esc(rName(selR))+'</bdi></span></h3>';
     h+=z?'<p>'+esc((L(z.nm)||L(z.lb))+(z.sub?' — '+L(z.sub):''))+'</p>':'<p>'+esc(tx('notOnR'))+'</p>';
     h+='</div>';}
   else if(selZ){var zz=zone(selZ),zr=rooms.filter(function(r){var q=zoneOf(r);return q&&q.k===selZ;});
     h+='<div class="smap-info"><h3>'+esc(L(zz.nm)||L(zz.lb))+'</h3>'+(zz.sub?'<p>'+esc(L(zz.sub))+'</p>':'');
-    if(zr.length){h+='<div class="smap-chips">';zr.forEach(function(r){h+='<button class="smap-chip" data-mact="r" data-r="'+esc(r)+'"><bdi>'+esc(short(r,zz))+'</bdi></button>';});h+='</div>';}
+    var zp=PLACES.filter(function(pl){return pl.z===selZ;});
+    if(zr.length||zp.length){h+='<div class="smap-chips">';zr.forEach(function(r){h+='<button class="smap-chip" data-mact="r" data-r="'+esc(r)+'"><bdi>'+esc(short(r,zz))+'</bdi></button>';});zp.forEach(function(pl){h+='<button class="smap-chip" data-mact="r" data-r="'+esc(pl.k)+'"><bdi>'+esc(L(pl.t))+'</bdi></button>';});h+='</div>';}
     else if(zz.pre.length&&st.rooms)h+='<p>'+esc(tx('noRooms'))+'</p>';
     h+='</div>';}
   // корпуса, которых ещё нет на схеме
