@@ -7,7 +7,7 @@
 var BASE=(function(){try{var s=document.currentScript&&document.currentScript.src;return s?s.replace(/map\.js(\?.*)?$/,''):'/';}catch(e){return '/';}})();
 // k — ключ, n — номер на плане школы, lb — подпись на схеме, nm — название, sub — пояснение, pre — с чего начинается название кабинета
 var Z=[
- {k:'shaked',go:'s',kind:'mix',bld:['580,8 868,20 872,95 950,108 950,158 583,155'],ic:'📚',n:'3',pre:['שקד'],lb:{he:'שקד',en:'Shaked',ru:'Шакед'},x:820,y:92,
+ {k:'shaked',go:'s',kind:'mix',bld:['580,8 868,20 872,95 950,108 950,158 583,155'],n:'3',pre:['שקד'],lb:{he:'שקד',en:'Shaked',ru:'Шакед'},x:820,y:70,
   pts:'580,8 868,20 872,95 950,108 948,245 900,238 900,193 565,170'},
  {k:'sport',go:'spd',kind:'bld',ic:'🏀',n:'7',pre:['אולם ספורט','חנ"ג','מגרש'],lb:{he:'ספורט',en:'Sports',ru:'Спорт'},x:262,y:300,
   sub:{he:'אולם ספורט ומגרשים',en:'Gym and sports fields',ru:'Спортзал и площадки'},
@@ -105,16 +105,16 @@ function zone(k){for(var i=0;i<Z.length;i++)if(Z[i].k===k)return Z[i];return nul
 // южное крыло обратно (ח10 = שקד 1 рядом с холлом). Ещё ближе к дороге — второй коридор первого этажа (видео 4 и 5):
 // от холла ח7 = שקד 6, ח1 = שקד 5, у синего стула «קבוצות לימוד», ח3 = שקד 9, ח4 = שקד 10, дальше ח6 = שקד 8, ח2 = שקד 7, у выхода ח8 = שקד 4.
 // Где שקד 12/13 (הקבצה) — неизвестно, они только в корпусе
-var SPOTS={'שקד 1':[652,138],'שקד 2':[905,132],'שקד 3':[736,64],
+var SPOTS={'שקד 1':[640,140],'שקד 2':[905,134],'שקד 3':[736,116],
   'שקד 6':[620,26],'שקד 5':[652,26],'שקד 9':[712,27],'שקד 10':[736,27],'שקד 8':[770,28],'שקד 7':[796,29],'שקד 4':[852,31]};
 // кабинеты руководства (только должности, без имён): '@ключ' — как кабинет в поиске и выборе
 var PLACES=[
- {k:'@mgr',z:'shaked',xy:[606,64],t:{he:'מנהל/ת חטיבת הביניים',en:'Middle school principal',ru:'Директор средней школы (חטיבת הביניים)'}},
- {k:'@dep',z:'shaked',xy:[628,64],t:{he:'סגנ/ית מנהל/ת חטיבת הביניים',en:'Deputy principal, middle school',ru:'Заместитель директора средней школы'}},
- {k:'@cns8',z:'shaked',xy:[664,64],t:{he:'יועצת חינוכית שכבה ח׳',en:'School counselor, grade 8 (ח׳)',ru:'Школьный консультант (יועצת), параллель ח׳'}},
- {k:'@sped',z:'shaked',xy:[690,64],t:{he:'רכזת ויועצת חינוך מיוחד',en:'Special education coordinator',ru:'Координатор специального образования'}},
+ {k:'@mgr',z:'shaked',xy:[606,116],t:{he:'מנהל/ת חטיבת הביניים',en:'Middle school principal',ru:'Директор средней школы (חטיבת הביניים)'}},
+ {k:'@dep',z:'shaked',xy:[628,116],t:{he:'סגנ/ית מנהל/ת חטיבת הביניים',en:'Deputy principal, middle school',ru:'Заместитель директора средней школы'}},
+ {k:'@cns8',z:'shaked',xy:[664,116],t:{he:'יועצת חינוכית שכבה ח׳',en:'School counselor, grade 8 (ח׳)',ru:'Школьный консультант (יועצת), параллель ח׳'}},
+ {k:'@sped',z:'shaked',xy:[690,116],t:{he:'רכזת ויועצת חינוך מיוחד',en:'Special education coordinator',ru:'Координатор специального образования'}},
  {k:'@grp',z:'shaked',xy:[684,27],t:{he:'קבוצות לימוד',en:'Study groups room',ru:'Кабинет учебных групп (קבוצות לימוד)'}},
- {k:'@gr8',z:'shaked',xy:[770,64],t:{he:'מנהל/ת שכבה ח׳',en:'Grade 8 (ח׳) coordinator',ru:'Руководитель параллели ח׳'}}];
+ {k:'@gr8',z:'shaked',xy:[770,116],t:{he:'מנהל/ת שכבה ח׳',en:'Grade 8 (ח׳) coordinator',ru:'Руководитель параллели ח׳'}}];
 function placeOf(r){for(var i=0;i<PLACES.length;i++)if(PLACES[i].k===r)return PLACES[i];return null;}
 function spotOf(r){var p=placeOf(r);if(p)return p.xy;return SPOTS[String(r||'').trim().split(/\s+/).slice(0,2).join(' ')]||null;}  // «שקד 1 ח10 שמע» → «שקד 1»
 function rName(r){var p=placeOf(r);return p?L(p.t):r;}
