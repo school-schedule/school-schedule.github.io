@@ -40,7 +40,7 @@ import { DurableObject } from "cloudflare:workers";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type,X-Editor-Code",
+  "Access-Control-Allow-Headers": "Content-Type,X-Editor-Code,X-Pm-Key,X-T-Name,X-T-Key",
 };
 
 function json(obj, status = 200) {
@@ -116,6 +116,12 @@ export default {
         return new Response(s, { headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
       }
       if (path === "/ttch" && req.method === "POST") return await saveTTCh(req, env, ctx);
+      // запись родителей на личные встречи (Skedy Parents → Skedy Admin / Skedy Teachers)
+      if (path === "/pmb" || path.startsWith("/pmb/")) return await pmbRoute(req, env, path);
+      // запрос родителя на разговор с учителем (уходит классному руководителю) и личные ссылки учителей
+      if (path === "/preq" || path.startsWith("/preq/") || path === "/tkey") return await preqRoute(req, env, ctx, path);
+      // разрешения родителей (экскурсии и т. п.): ответ родителя, списки — админу и классному руководителю
+      if (path === "/apr" || path.startsWith("/apr/")) return await aprRoute(req, env, path);
       // сообщения всем учителям (Skedy Admin → Skedy Teachers): читать — всем, отправить/удалить — по коду
       if (path === "/tmsg" && req.method === "GET") return json((await env.DB.get("tmsg", "json")) || { msgs: [] });
       // помощник Skedy Admin: текст админа → предложенные изменения (их применяет и сохраняет сам админ)
@@ -490,10 +496,22 @@ function validPm(pm) {
   return pm.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && isDate(o.date) && typeof o.from === "string" && HM.test(o.from) &&
     (o.to == null || o.to === "" || (typeof o.to === "string" && HM.test(o.to) && o.to > o.from)) && str(o.title, 100) && str(o.t, 100) && str(o.room, 100) && str(o.note, 200) &&
     Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12) &&
+    Array.isArray(o.c) && o.c.length <= 100 && o.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)) &&
+    // slot — личные встречи: минут на встречу, нужны учитель и время до
+    (o.slot == null || (Number.isInteger(o.slot) && o.slot >= 5 && o.slot <= 60 && !!o.t && !!o.to)));
+}
+// разрешения родителей (אישור הורים): {id, date, title, g:[параллели], c:[классы], due?: «ответить до», note?}
+function validAp(ap) {
+  if (!Array.isArray(ap) || ap.length > 300) return false;
+  const str = (x, n) => x == null || (typeof x === "string" && x.length <= n);
+  return ap.every((o) => o && typeof o.id === "string" && o.id && o.id.length <= 40 && isDate(o.date) && typeof o.title === "string" && o.title.trim() && o.title.length <= 100 &&
+    (o.due == null || o.due === "" || (isDate(o.due) && o.due <= o.date)) && str(o.note, 200) &&
+    Array.isArray(o.g) && o.g.length <= 6 && o.g.every((g) => Number.isInteger(g) && g >= 7 && g <= 12) &&
     Array.isArray(o.c) && o.c.length <= 100 && o.c.every((k) => typeof k === "string" && /^\d{1,2}-\d{1,2}$/.test(k)));
 }
+function apSig(o) { return [o.date, o.title, o.g.join(","), o.c.join(","), o.due || "", o.note || ""].join("|"); }
 function pmSig(o) {
-  return [o.date, o.from, o.to || "", o.title || "", o.g.join(","), o.c.join(","), o.t || "", o.room || "", o.note || ""].join("|");
+  return [o.date, o.from, o.to || "", o.title || "", o.g.join(","), o.c.join(","), o.t || "", o.room || "", o.note || "", o.slot || ""].join("|");
 }
 function chSig(c) {
   return [c.date, c.p, c.s, c.t || "", c.c.join(","), c.type, c.room || "", c.note || "", c.sub || ""].join("|");
@@ -505,7 +523,7 @@ async function saveTTCh(req, env, ctx) {
   if (text.length > TT_MAX_BYTES) return json({ error: "too_big" }, 413);
   let body;
   try { body = JSON.parse(text); } catch (e) { return json({ error: "bad_data" }, 400); }
-  if (!body || !validCh(body.ch) || (body.off != null && !validOff(body.off)) || (body.pm != null && !validPm(body.pm))) return json({ error: "bad_data" }, 400);
+  if (!body || !validCh(body.ch) || (body.off != null && !validOff(body.off)) || (body.pm != null && !validPm(body.pm)) || (body.ap != null && !validAp(body.ap))) return json({ error: "bad_data" }, 400);
   const prevRaw = await env.DB.get("ttch");
   const prev = prevRaw ? JSON.parse(prevRaw) : { updatedAt: null, ch: [] };
   if ((body.base || null) !== (prev.updatedAt || null)) return json({ error: "conflict", updatedAt: prev.updatedAt }, 409);
@@ -523,9 +541,16 @@ async function saveTTCh(req, env, ctx) {
   const pm = (body.pm != null ? body.pm : prev.pm || []).filter((o) => o.date >= oldest).map((o) => {
     const x = { id: o.id, date: o.date, from: o.from, g: o.g, c: o.c };
     for (const f of ["to", "title", "t", "room", "note"]) if (o[f]) x[f] = String(o[f]).replace(/\s+/g, " ").trim();
+    if (o.slot) x.slot = o.slot;
     return x;
   });
-  const out = { updatedAt: new Date().toISOString(), ch, off, pm };
+  const ap = (body.ap != null ? body.ap : prev.ap || []).filter((o) => o.date >= oldest).map((o) => {
+    const x = { id: o.id, date: o.date, title: String(o.title).replace(/\s+/g, " ").trim(), g: o.g, c: o.c };
+    if (o.due) x.due = o.due;
+    if (o.note) x.note = String(o.note).replace(/\s+/g, " ").trim();
+    return x;
+  });
+  const out = { updatedAt: new Date().toISOString(), ch, off, pm, ap };
   await env.DB.put("ttch", JSON.stringify(out));
   const old = new Map(prev.ch.map((c) => [c.id, chSig(c)]));
   const fresh = ch.filter((c) => c.date >= today && (c.t || c.sub) && old.get(c.id) !== chSig(c));
@@ -538,6 +563,10 @@ async function saveTTCh(req, env, ctx) {
   const oldPm = new Map((prev.pm || []).map((o) => [o.id, pmSig(o)]));
   const freshPm = pm.filter((o) => o.date >= today && oldPm.get(o.id) !== pmSig(o));
   if (freshPm.length) ctx.waitUntil(pmNotify(env, freshPm));
+  // новое или изменённое разрешение — push родителям этих классов
+  const oldAp = new Map((prev.ap || []).map((o) => [o.id, apSig(o)]));
+  const freshAp = ap.filter((o) => o.date >= today && oldAp.get(o.id) !== apSig(o));
+  if (freshAp.length) ctx.waitUntil(pmNotify(env, freshAp.map((o) => ({ ...o, from: "", ap: true }))));
   return json({ ok: true, updatedAt: out.updatedAt, changes: fresh.length });
 }
 // Урок י׳, который есть в Skedy (тот же день недели, номер урока и учитель), — уведомление как у изменений Skedy:
@@ -562,6 +591,244 @@ async function ttchNotify(env, fresh, gone = []) {
   for (const c of gone) ds.push(tt(c, "subOff", c.sub, c.t));
   if (ds.length) await notifyAll(env, ds);
 }
+// ---------------- запись на личные встречи ----------------
+// У собрания в ttch.pm есть slot (минут на встречу): время from–to режется на встречи. Родитель в Skedy Parents
+// выбирает свободное время и пишет своё имя и имя ребёнка (на иврите) — это личные данные: хранятся в Stats
+// (таблица pmb, SQLite — одно время нельзя занять дважды) и стираются на следующий день после собрания.
+// Свободные времена видит каждый, имена — только по коду редактора или ключу учителя этого собрания
+// (KV "pmkeys" = {id собрания: sha256 ключа}; ключ выдаёт Skedy Admin).
+const HE_NAME = /^[\u05D0-\u05EA][\u05D0-\u05EA '"׳״-]{0,39}$/;
+const PMB_MAX = 30, PMB_WINDOW_SEC = 3600, PMB_PER_DEVICE = 4;
+function pmSlots(o) {
+  if (!o || !o.slot || !o.to) return [];
+  const m = (x) => +x.slice(0, 2) * 60 + +x.slice(3), hm = (x) => String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
+  const out = [];
+  for (let x = m(o.from); x + o.slot <= m(o.to) && out.length < 200; x += o.slot) out.push(hm(x));
+  return out;
+}
+function pmForClass(o, key) {
+  const g = +key.split("-")[0];
+  return (!o.g.length && !o.c.length) || o.g.includes(g) || o.c.includes(key);
+}
+async function pmMeeting(env, mid) {
+  const t = await env.DB.get("ttch", "json");
+  return (t && (t.pm || []).find((o) => o.id === mid)) || null;
+}
+// кто может видеть имена: редактор (X-Editor-Code) или учитель с ключом этого собрания (X-Pm-Key)
+async function pmbCanSee(req, env, mid) {
+  // личная ссылка учителя (X-T-Name + X-T-Key) — записи его собственных собраний
+  if (req.headers.get("X-T-Key")) {
+    const tn = await teacherAuth(req, env), o = tn && (await pmMeeting(env, mid));
+    return !!o && normName(o.t) === tn;
+  }
+  const k = req.headers.get("X-Pm-Key");
+  if (k) {
+    let lim;
+    try { lim = await limiter(env, "pmkey", req).hit(60, 3600); } catch (e) { return false; }
+    if (!lim.ok) return false;
+    const keys = (await env.DB.get("pmkeys", "json")) || {};
+    return !!keys[mid] && safeEqual(await sha256(k), keys[mid]);
+  }
+  if (!req.headers.get("X-Editor-Code")) return false;
+  return (await checkCode(req, env, req.headers.get("X-Editor-Code"))).status === 200;
+}
+async function pmbRoute(req, env, path) {
+  if (!env.STATS) return json({ error: "no_stats_binding" }, 500);
+  const db = statsObj(env), today = israelDate(0);
+  // свободные времена собрания (без имён)
+  if (req.method === "GET" && /^\/pmb\/[\w-]{1,40}$/.test(path)) {
+    const mid = path.slice(5), o = await pmMeeting(env, mid);
+    if (!o || !o.slot) return json({ error: "not_found" }, 404);
+    return json({ slots: pmSlots(o), taken: await db.pmbTaken(mid, today) });
+  }
+  // записи с именами — учителю (ключ) и редактору
+  if (req.method === "GET" && /^\/pmb\/list\/[\w-]{1,40}$/.test(path)) {
+    const mid = path.slice(10);
+    if (!(await pmbCanSee(req, env, mid))) return json({ error: "forbidden" }, 403);
+    const o = await pmMeeting(env, mid);
+    return json({ slots: pmSlots(o), b: await db.pmbList(mid, today) });
+  }
+  if (req.method !== "POST") return json({ error: "not_found" }, 404);
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.mid !== "string" || !/^[\w-]{1,40}$/.test(b.mid)) return json({ error: "bad_data" }, 400);
+  // ключ учителя для собрания (новый ключ заменяет старый)
+  if (path === "/pmb/key") {
+    const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+    if (auth.status !== 200) return json(auth.body, auth.status);
+    const key = b64u(crypto.getRandomValues(new Uint8Array(12)));
+    const keys = (await env.DB.get("pmkeys", "json")) || {};
+    keys[b.mid] = await sha256(key);
+    const live = new Set((((await env.DB.get("ttch", "json")) || {}).pm || []).map((o) => o.id));
+    for (const k of Object.keys(keys)) if (!live.has(k) && k !== b.mid) delete keys[k]; // ключи удалённых собраний
+    await env.DB.put("pmkeys", JSON.stringify(keys));
+    return json({ key });
+  }
+  // отменить: своё время (по секрету устройства) или любое — редактор
+  if (path === "/pmb/cancel") {
+    if (typeof b.at !== "string" || !HM.test(b.at)) return json({ error: "bad_data" }, 400);
+    if (req.headers.get("X-Editor-Code")) {
+      const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+      if (auth.status !== 200) return json(auth.body, auth.status);
+      return json({ ok: await db.pmbCancel(b.mid, b.at, null) });
+    }
+    if (typeof b.tok !== "string" || !/^[0-9a-f]{32}$/.test(b.tok)) return json({ error: "bad_data" }, 400);
+    return json({ ok: await db.pmbCancel(b.mid, b.at, await sha256(b.tok)) });
+  }
+  if (path !== "/pmb") return json({ error: "not_found" }, 404);
+  let lim;
+  try { lim = await limiter(env, "pmb", req).hit(PMB_MAX, PMB_WINDOW_SEC); } catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const clean = (x) => (typeof x === "string" ? x.replace(/\s+/g, " ").trim() : "");
+  const p = clean(b.p), k = clean(b.k);
+  if (!HE_NAME.test(p) || !HE_NAME.test(k)) return json({ error: "bad_name" }, 400);
+  if (typeof b.c !== "string" || !/^\d{1,2}-\d{1,2}$/.test(b.c) || typeof b.at !== "string" || !HM.test(b.at) ||
+    typeof b.tok !== "string" || !/^[0-9a-f]{32}$/.test(b.tok)) return json({ error: "bad_data" }, 400);
+  const o = await pmMeeting(env, b.mid);
+  if (!o || !o.slot || o.date < today || !pmSlots(o).includes(b.at) || !pmForClass(o, b.c)) return json({ error: "not_found" }, 404);
+  const r = await db.pmbBook(b.mid, b.at, o.date, p, k, b.c, await sha256(b.tok), today);
+  return r.ok ? json({ ok: true }) : json({ error: r.error }, 409);
+}
+// ---------------- личные ссылки учителей и запросы родителей на разговор ----------------
+// Личная ссылка учителя: Skedy Admin (POST /tkey {t}, код редактора) выдаёт ключ, в KV "tkeys" = {имя (normName): sha256 ключа}.
+// Skedy Teachers шлёт X-T-Name (encodeURIComponent) и X-T-Key. По ней учитель видит записи своих личных встреч
+// и запросы на разговор для классов, где он классный руководитель.
+async function teacherAuth(req, env) {
+  let name = req.headers.get("X-T-Name") || "", key = req.headers.get("X-T-Key") || "";
+  try { name = decodeURIComponent(name); } catch (e) { return null; }
+  name = normName(name);
+  if (!name || !key || key.length > 60) return null;
+  let lim;
+  try { lim = await limiter(env, "tkey", req).hit(120, 3600); } catch (e) { return null; }
+  if (!lim.ok) return null;
+  const keys = (await env.DB.get("tkeys", "json")) || {};
+  return keys[name] && safeEqual(await sha256(key), keys[name]) ? name : null;
+}
+// классные руководители по расписанию Skedy Admin (KV "tt"): ручные роли (ro, k "hr") главнее,
+// иначе учитель урока «חינוך» класса — как roAll в /admin/. Возвращает {класс «10-2»: [имена normName]}.
+const RO_HR = /^(חינוך|חינוך וחברה|שעת חינוך|שעת מחנך|מחנך|מחנכת)$/;
+function homerooms(tt) {
+  const out = {};
+  if (!tt) return out;
+  for (const o of tt.ro || []) if (o.k === "hr") for (const c of o.c || []) (out[c] = out[c] || []).push(normName(o.t));
+  const man = new Set(Object.keys(out));
+  for (const x of tt.l || []) {
+    const sn = String(tt.s[x[2]] || "").trim(), tn = normName(tt.t[x[4]] || "");
+    if (!tn || !RO_HR.test(sn) || x[5].length !== 1 || man.has(x[5][0])) continue;
+    const a = out[x[5][0]] = out[x[5][0]] || [];
+    if (!a.includes(tn)) a.push(tn);
+  }
+  return out;
+}
+const PREQ_MAX = 10, PREQ_WINDOW_SEC = 3600;
+async function preqRoute(req, env, ctx, path) {
+  if (!env.STATS) return json({ error: "no_stats_binding" }, 500);
+  const db = statsObj(env), today = israelDate(0);
+  const editor = async () => !!req.headers.get("X-Editor-Code") && (await checkCode(req, env, req.headers.get("X-Editor-Code"))).status === 200;
+  // запросы: классному руководителю — его классов, редактору — все
+  if (path === "/preq/list" && req.method === "GET") {
+    if (req.headers.get("X-T-Key")) {
+      const tn = await teacherAuth(req, env);
+      if (!tn) return json({ error: "forbidden" }, 403);
+      const hr = homerooms(await env.DB.get("tt", "json"));
+      const mine = Object.keys(hr).filter((c) => hr[c].includes(tn));
+      return json({ classes: mine, r: mine.length ? await db.preqList(mine, today) : [] });
+    }
+    if (!(await editor())) return json({ error: "forbidden" }, 403);
+    const hr = homerooms(await env.DB.get("tt", "json"));
+    return json({ r: (await db.preqList(null, today)).map((x) => ({ ...x, hr: hr[x.c] || [] })) });
+  }
+  if (req.method !== "POST") return json({ error: "not_found" }, 404);
+  const b = await req.json().catch(() => null);
+  if (!b) return json({ error: "bad_data" }, 400);
+  // новая личная ссылка учителя (старая перестаёт работать)
+  if (path === "/tkey") {
+    const auth = await checkCode(req, env, req.headers.get("X-Editor-Code"));
+    if (auth.status !== 200) return json(auth.body, auth.status);
+    const t = normName(b.t);
+    if (!t || t.length > 200) return json({ error: "bad_data" }, 400);
+    const key = b64u(crypto.getRandomValues(new Uint8Array(12)));
+    const keys = (await env.DB.get("tkeys", "json")) || {};
+    keys[t] = await sha256(key);
+    await env.DB.put("tkeys", JSON.stringify(keys));
+    return json({ key });
+  }
+  const tokOk = typeof b.tok === "string" && /^[0-9a-f]{32}$/.test(b.tok);
+  // свои запросы родителя (по секрету устройства) — статус
+  if (path === "/preq/mine") {
+    if (!tokOk) return json({ error: "bad_data" }, 400);
+    return json({ r: await db.preqMine(await sha256(b.tok), today) });
+  }
+  if (path === "/preq/cancel") {
+    if (!tokOk || !Number.isInteger(b.id)) return json({ error: "bad_data" }, 400);
+    return json({ ok: await db.preqDel(b.id, await sha256(b.tok), null) });
+  }
+  // классный руководитель (или редактор): «обработано» / вернуть / удалить
+  if (path === "/preq/set") {
+    if (!Number.isInteger(b.id) || !["new", "done", "del"].includes(b.st)) return json({ error: "bad_data" }, 400);
+    let classes = null;
+    if (req.headers.get("X-T-Key")) {
+      const tn = await teacherAuth(req, env);
+      if (!tn) return json({ error: "forbidden" }, 403);
+      const hr = homerooms(await env.DB.get("tt", "json"));
+      classes = Object.keys(hr).filter((c) => hr[c].includes(tn));
+    } else if (!(await editor())) return json({ error: "forbidden" }, 403);
+    return json({ ok: b.st === "del" ? await db.preqDel(b.id, null, classes) : await db.preqSet(b.id, b.st, classes) });
+  }
+  if (path !== "/preq") return json({ error: "not_found" }, 404);
+  let lim;
+  try { lim = await limiter(env, "preq", req).hit(PREQ_MAX, PREQ_WINDOW_SEC); } catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const clean = (x) => (typeof x === "string" ? x.replace(/\s+/g, " ").trim() : "");
+  const pn = clean(b.p), kn = clean(b.k), t = clean(b.t), topic = clean(b.topic).slice(0, 150);
+  if (!HE_NAME.test(pn) || !HE_NAME.test(kn)) return json({ error: "bad_name" }, 400);
+  if (!tokOk || !t || t.length > 200 || typeof b.c !== "string" || !/^\d{1,2}-\d{1,2}$/.test(b.c) || !isDate(b.date) ||
+    b.date < today || b.date > israelDate(45) || !Number.isInteger(b.per) || b.per < 0 || b.per > 15) return json({ error: "bad_data" }, 400);
+  const r = await db.preqAdd({ c: b.c, t, date: b.date, per: b.per, pn, kn, topic, tok: await sha256(b.tok), at: new Date().toISOString() }, today);
+  if (r.error) return json(r, 409);
+  // push классному руководителю (подписка Skedy Teachers на его имя)
+  const hr = homerooms(await env.DB.get("tt", "json"))[b.c] || [];
+  if (hr.length) {
+    const cls = clsLabel([b.c]);
+    ctx.waitUntil(notifyAll(env, hr.map((h) => ({ k: b.date + "|00|pr", date: b.date, type: "pr", period: b.per, aud: { type: "pr" }, t: h, cids: [],
+      name: { he: t, en: t, ru: t }, room: "", note: topic, who: kn + " · " + cls }))));
+  }
+  return json({ ok: true, id: r.id, hr: hr.length > 0 });
+}
+// ---------------- разрешения родителей (ttch.ap) ----------------
+// Ответ: POST /apr {aid, ans: yes|no, p, k, c, tok} — имена на иврите, класс должен подходить, «ответить до» не прошло.
+// Хранится в Stats (таблица apr, один ответ на ребёнка с устройства — можно поменять), стирается на следующий день после события.
+// GET /apr/list — с именами: редактору все, классному руководителю (личная ссылка) — его классы.
+async function aprRoute(req, env, path) {
+  if (!env.STATS) return json({ error: "no_stats_binding" }, 500);
+  const db = statsObj(env), today = israelDate(0);
+  if (path === "/apr/list" && req.method === "GET") {
+    let classes = null;
+    if (req.headers.get("X-T-Key")) {
+      const tn = await teacherAuth(req, env);
+      if (!tn) return json({ error: "forbidden" }, 403);
+      const hr = homerooms(await env.DB.get("tt", "json"));
+      classes = Object.keys(hr).filter((c) => hr[c].includes(tn));
+    } else if (!req.headers.get("X-Editor-Code") || (await checkCode(req, env, req.headers.get("X-Editor-Code"))).status !== 200) return json({ error: "forbidden" }, 403);
+    return json({ classes, r: await db.aprList(classes, today) });
+  }
+  if (req.method !== "POST") return json({ error: "not_found" }, 404);
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.tok !== "string" || !/^[0-9a-f]{32}$/.test(b.tok)) return json({ error: "bad_data" }, 400);
+  if (path === "/apr/mine") return json({ r: await db.aprMine(await sha256(b.tok), today) });
+  if (path !== "/apr") return json({ error: "not_found" }, 404);
+  let lim;
+  try { lim = await limiter(env, "apr", req).hit(PMB_MAX, PMB_WINDOW_SEC); } catch (e) { return json({ error: "try_later" }, 503); }
+  if (!lim.ok) return json({ error: "too_many", retryAfter: lim.retryAfter }, 429);
+  const clean = (x) => (typeof x === "string" ? x.replace(/\s+/g, " ").trim() : "");
+  const pn = clean(b.p), kn = clean(b.k);
+  if (!HE_NAME.test(pn) || !HE_NAME.test(kn)) return json({ error: "bad_name" }, 400);
+  if (typeof b.aid !== "string" || !/^[\w-]{1,40}$/.test(b.aid) || !["yes", "no"].includes(b.ans) || typeof b.c !== "string" || !/^\d{1,2}-\d{1,2}$/.test(b.c)) return json({ error: "bad_data" }, 400);
+  const t = await env.DB.get("ttch", "json"), o = t && (t.ap || []).find((x) => x.id === b.aid);
+  if (!o || o.date < today || !pmForClass(o, b.c)) return json({ error: "not_found" }, 404);
+  if (o.due && o.due < today) return json({ error: "late" }, 409);
+  if (!(await db.aprSet(b.aid, await sha256(b.tok), kn, pn, b.c, b.ans, o.date, new Date().toISOString(), today))) return json({ error: "too_many" }, 429);
+  return json({ ok: true });
+}
 // собрание → классы Skedy (id), к которым оно относится: уведомление только родителям детей из них
 const LETTER_GRADE = { "ז": 7, "ח": 8, "ט": 9, "י": 10, "יא": 11, "י״א": 11, "יב": 12, "י״ב": 12 };
 async function pmNotify(env, list) {
@@ -575,6 +842,8 @@ async function pmNotify(env, list) {
       return (!o.g.length && !o.c.length) || o.g.includes(g) || o.c.includes(g + "-" + cl.num);
     }).map((cl) => cl.id);
     const ttl = o.title || "";
+    // разрешение: только родителям, тип "ap", «ответить до» — в note
+    if (o.ap) { if (cids.length) ds.push({ k: o.date + "|00|ap", date: o.date, type: "ap", period: 0, aud: { type: "pm" }, cids, time: "", name: { he: ttl, en: ttl, ru: ttl }, room: "", note: "", who: "", due: o.due || "" }); continue; }
     const base = { k: o.date + "|00|" + o.from, date: o.date, type: "pm", period: 0, aud: { type: "pm" }, time: o.from + (o.to ? "–" + o.to : ""),
       name: { he: ttl, en: ttl, ru: ttl }, room: o.room || "", note: o.note || "" };
     // родителям детей из этих классов (пока только י׳ — классы Skedy)
@@ -1118,6 +1387,98 @@ export class Stats extends DurableObject {
     }
     return { error: "busy" };
   }
+  // запись на личные встречи: mid — собрание, at — «18:20», d — дата собрания, p/k — имена родителя и ребёнка,
+  // c — класс «10-2», tok — sha256 секрета устройства (отменить может только тот, кто записался)
+  // запросы родителей на разговор: c — класс, t — учитель, date/per — день и урок (0 — после уроков),
+  // pn/kn — имена родителя и ребёнка, topic — тема, tok — sha256 секрета устройства, st — new|done
+  // ответы на разрешения: aid — разрешение, tok — sha256 секрета устройства, kn/pn — имена, c — класс, ans — yes|no, d — дата события
+  aprInit() {
+    if (this.aprReady) return;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS apr (aid TEXT NOT NULL, tok TEXT NOT NULL, kn TEXT NOT NULL, pn TEXT NOT NULL, c TEXT NOT NULL, ans TEXT NOT NULL, d TEXT NOT NULL, at TEXT NOT NULL, PRIMARY KEY (aid, tok, kn)) WITHOUT ROWID");
+    this.aprReady = true;
+  }
+  aprPrune(today) { this.aprInit(); this.sql.exec("DELETE FROM apr WHERE d < ?", today); }
+  aprSet(aid, tok, kn, pn, c, ans, d, at, today) {
+    this.aprPrune(today);
+    if (this.sql.exec("SELECT COUNT(*) AS n FROM apr WHERE tok = ?", tok).one().n >= 40) return false;
+    this.sql.exec("INSERT INTO apr (aid, tok, kn, pn, c, ans, d, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (aid, tok, kn) DO UPDATE SET ans = excluded.ans, pn = excluded.pn, c = excluded.c, at = excluded.at", aid, tok, kn, pn, c, ans, d, at);
+    return true;
+  }
+  aprMine(tok, today) { this.aprPrune(today); return this.sql.exec("SELECT aid, kn, ans FROM apr WHERE tok = ?", tok).toArray(); }
+  aprList(classes, today) {
+    this.aprPrune(today);
+    const rows = this.sql.exec("SELECT aid, kn, pn, c, ans, at FROM apr ORDER BY c, kn").toArray();
+    return classes ? rows.filter((r) => classes.includes(r.c)) : rows;
+  }
+  preqInit() {
+    if (this.preqReady) return;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS preq (id INTEGER PRIMARY KEY AUTOINCREMENT, c TEXT NOT NULL, t TEXT NOT NULL, date TEXT NOT NULL, per INTEGER NOT NULL, pn TEXT NOT NULL, kn TEXT NOT NULL, topic TEXT NOT NULL, tok TEXT NOT NULL, at TEXT NOT NULL, st TEXT NOT NULL DEFAULT 'new')");
+    this.preqReady = true;
+  }
+  // на следующий день после выбранного дня запрос стирается
+  preqPrune(today) { this.preqInit(); this.sql.exec("DELETE FROM preq WHERE date < ?", today); }
+  preqAdd(x, today) {
+    this.preqPrune(today);
+    if (this.sql.exec("SELECT COUNT(*) AS n FROM preq WHERE tok = ?", x.tok).one().n >= 10) return { error: "too_many" };
+    if (this.sql.exec("SELECT 1 FROM preq WHERE tok = ? AND t = ? AND date = ? AND kn = ?", x.tok, x.t, x.date, x.kn).toArray().length) return { error: "dup" };
+    this.sql.exec("INSERT INTO preq (c, t, date, per, pn, kn, topic, tok, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", x.c, x.t, x.date, x.per, x.pn, x.kn, x.topic, x.tok, x.at);
+    return { id: this.sql.exec("SELECT last_insert_rowid() AS id").one().id };
+  }
+  preqList(classes, today) {
+    this.preqPrune(today);
+    const rows = this.sql.exec("SELECT id, c, t, date, per, pn, kn, topic, at, st FROM preq ORDER BY date, per, id").toArray();
+    return classes ? rows.filter((r) => classes.includes(r.c)) : rows;
+  }
+  preqMine(tok, today) {
+    this.preqPrune(today);
+    return this.sql.exec("SELECT id, t, date, per, kn, st FROM preq WHERE tok = ? ORDER BY date, per", tok).toArray();
+  }
+  preqSet(id, st, classes) {
+    this.preqInit();
+    const r = this.sql.exec("SELECT c FROM preq WHERE id = ?", id).toArray()[0];
+    if (!r || (classes && !classes.includes(r.c))) return false;
+    this.sql.exec("UPDATE preq SET st = ? WHERE id = ?", st, id);
+    return true;
+  }
+  preqDel(id, tok, classes) {
+    this.preqInit();
+    const r = this.sql.exec("SELECT c, tok FROM preq WHERE id = ?", id).toArray()[0];
+    if (!r || (tok && r.tok !== tok) || (classes && !classes.includes(r.c))) return false;
+    this.sql.exec("DELETE FROM preq WHERE id = ?", id);
+    return true;
+  }
+  pmbInit() {
+    if (this.pmbReady) return;
+    this.sql.exec("CREATE TABLE IF NOT EXISTS pmb (mid TEXT NOT NULL, at TEXT NOT NULL, d TEXT NOT NULL, p TEXT NOT NULL, k TEXT NOT NULL, c TEXT NOT NULL, tok TEXT NOT NULL, PRIMARY KEY (mid, at)) WITHOUT ROWID");
+    this.pmbReady = true;
+  }
+  // на следующий день после собрания записи стираются
+  pmbPrune(today) {
+    this.pmbInit();
+    this.sql.exec("DELETE FROM pmb WHERE d < ?", today);
+  }
+  pmbTaken(mid, today) {
+    this.pmbPrune(today);
+    return this.sql.exec("SELECT at FROM pmb WHERE mid = ? ORDER BY at", mid).toArray().map((r) => r.at);
+  }
+  pmbList(mid, today) {
+    this.pmbPrune(today);
+    return this.sql.exec("SELECT at, p, k, c FROM pmb WHERE mid = ? ORDER BY at", mid).toArray();
+  }
+  pmbBook(mid, at, d, p, k, c, tok, today) {
+    this.pmbPrune(today);
+    if (this.sql.exec("SELECT 1 FROM pmb WHERE mid = ? AND tok = ? AND k = ?", mid, tok, k).toArray().length) return { error: "dup" };
+    if (this.sql.exec("SELECT COUNT(*) AS n FROM pmb WHERE mid = ? AND tok = ?", mid, tok).one().n >= PMB_PER_DEVICE) return { error: "too_many" };
+    if (this.sql.exec("SELECT 1 FROM pmb WHERE mid = ? AND at = ?", mid, at).toArray().length) return { error: "taken" };
+    this.sql.exec("INSERT INTO pmb (mid, at, d, p, k, c, tok) VALUES (?, ?, ?, ?, ?, ?, ?)", mid, at, d, p, k, c, tok);
+    return { ok: true };
+  }
+  pmbCancel(mid, at, tok) {
+    this.pmbInit();
+    if (tok) this.sql.exec("DELETE FROM pmb WHERE mid = ? AND at = ? AND tok = ?", mid, at, tok);
+    else this.sql.exec("DELETE FROM pmb WHERE mid = ? AND at = ?", mid, at);
+    return true;
+  }
   palGet(code) {
     const r = this.sql.exec("SELECT cls, grp FROM pals WHERE code = ?", code).toArray()[0];
     return r ? { classId: r.cls, groups: r.grp ? r.grp.split(",") : [] } : null;
@@ -1277,9 +1638,9 @@ async function* allSubs(env) {
 /* ---------------- уведомления ---------------- */
 
 const T = {
-  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", pm: "אסיפת הורים", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
-  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", pm: "Parent meeting", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
-  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", pm: "Родительское собрание", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
+  he: { cancel: "השיעור בוטל", room: "חדר חדש", test: "מבחן", exam: "בחינה", period: "שיעור", periods: "שיעורים", today: "היום", tomorrow: "מחר", sub: "החלפה", subMe: "אתם מחליפים את", subOff: "ההחלפה בוטלה", pm: "אסיפת הורים", pr: "בקשה לשיחה", after: "אחרי השיעורים", ap: "נדרש אישור הורים", until: "עד", many: (n) => n + " שינויים במערכת", one: "שינוי במערכת", dir: "rtl" },
+  en: { cancel: "Lesson cancelled", room: "New room", test: "Test", exam: "Exam", period: "Period", periods: "Periods", today: "Today", tomorrow: "Tomorrow", sub: "Substitute", subMe: "You are covering for", subOff: "Cover cancelled", pm: "Parent meeting", pr: "Request for a talk", after: "after lessons", ap: "Parent permission needed", until: "by", many: (n) => n + " schedule changes", one: "Schedule change", dir: "ltr" },
+  ru: { cancel: "Урок отменён", room: "Новый кабинет", test: "Контрольная", exam: "Экзамен", period: "Урок", periods: "Уроки", today: "Сегодня", tomorrow: "Завтра", sub: "Замена", subMe: "Вы заменяете", subOff: "Замена отменена", pm: "Родительское собрание", pr: "Просьба о разговоре", after: "после уроков", ap: "Нужно разрешение родителей", until: "до", many: (n) => "Изменений в расписании: " + n, one: "Изменение в расписании", dir: "ltr" },
 };
 const DAYS = {
   he: ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"],
@@ -1321,6 +1682,9 @@ function describe(st, c) {
 function line(d, lang) {
   const L = T[lang];
   // родительское собрание: «Завтра, 18:00–20:00, Родительское собрание · учитель · кабинет»
+  // запрос родителя на разговор: «Завтра, урок 4, הורה של מיכל · י׳2 → כהן (тема)»
+  if (d.type === "pr") return dayWord(d.date, lang) + ", " + (d.period ? L.period + " " + d.period : L.after) + ", " + d.who + " → " + d.name[lang] + (d.note ? " (" + d.note + ")" : "");
+  if (d.type === "ap") return dayWord(d.date, lang) + ", " + d.name[lang] + (d.due ? " · " + L.until + " " + d.due.slice(8) + "." + d.due.slice(5, 7) : "");
   if (d.type === "pm") return dayWord(d.date, lang) + ", " + d.time + ", " + (d.name[lang] || L.pm) +
     (d.who ? " · " + d.who : "") + (d.room ? " · " + d.room : "") + (d.note ? " (" + d.note + ")" : "");
   let what = d.type === "cancel" ? L.cancel : d.type === "room" ? L.room + ": " + d.room : d.type === "test" ? L.test :
@@ -1349,6 +1713,7 @@ function concerns(d, rec) {
   if (rec.t) return !!d.t && d.t === normName(rec.t); // учитель: изменения в его уроках
   if (d.aud.type === "tt") return false; // изменения из Skedy Admin (/ttch) — только учителям
   if (d.aud.type === "pm") return !!rec.k && rec.k.some((k) => d.cids.includes(k.c)); // собрание — только родителям
+  if (d.aud.type === "pr") return false; // запрос на разговор — только классному руководителю (rec.t выше)
   if (rec.k) return rec.k.some((k) => concernsKid(d, k)); // родитель: урок хотя бы одного ребёнка
   if (d.aud.type === "class") return d.aud.id === rec.c;
   return rec.g.includes(d.aud.id);
@@ -1386,7 +1751,7 @@ async function planPushes(env, ds) {
       key,
       s: rec.s,
       p: {
-        title: mine.every((d) => d.type === "pm") ? L.pm : mine.length === 1 ? L.one : L.many(mine.length),
+        title: mine.every((d) => d.type === "ap") ? L.ap : mine.every((d) => d.type === "pm") ? L.pm : mine.every((d) => d.type === "pr") ? L.pr : mine.length === 1 ? L.one : L.many(mine.length),
         body: mine.slice(0, 4).map((d) => kidsLabel(d, rec) + line(d, rec.l)).join("\n"),
         tag: "chg-" + mine[0].date,
         dir: L.dir,
