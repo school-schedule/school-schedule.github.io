@@ -1111,7 +1111,8 @@ async function ping(req, env) {
   const dev = b && b.id;
   if (typeof dev !== "string" || !/^[0-9a-f]{32}$/.test(dev)) return json({ error: "bad_id" }, 400);
   const cls = b.classId ? String(b.classId) : "";
-  if (cls && !/^c\d{1,2}$/.test(cls)) return json({ error: "bad_class" }, 400);
+  // @t — устройство Skedy Teachers, @p — Skedy Parents (без имён, просто отдельная строка в статистике)
+  if (cls && !/^(c\d{1,2}|@t|@p)$/.test(cls)) return json({ error: "bad_class" }, 400);
   // день считает сервер (по времени Израиля), дате с телефона не доверяем
   await statsObj(env).ping(israelDate(0), dev, cls, cleanGroups(b.groups));
   return json({ ok: true });
