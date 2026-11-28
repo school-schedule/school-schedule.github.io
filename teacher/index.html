@@ -321,7 +321,11 @@ function upcomingTests(){var d=todayISO(),end=addDays(d,21),out=[];
 /* ---------- data from server ---------- */
 // light — только изменения (данные Skedy, /ttch, /tmsg): так раз в 5 минут, пока приложение на экране.
 // Расписание школы (/tt, ~сотни КБ) и файлы — при запуске и не чаще раза в 30 минут (бережём бесплатные лимиты Cloudflare).
-function load(light){
+// анонимный счётчик: раз в день случайный номер устройства и «@t» (без имён) — POST /hi, только с нашего сайта
+function pingStats(){try{if(!API||location.hostname!=='school-schedule.github.io')return;var day=todayISO();if(localStorage.getItem('skedyT.ping')===day)return;
+  var id=localStorage.getItem('skedyT.device');if(!/^[0-9a-f]{32}$/.test(id||'')){var a=new Uint8Array(16);crypto.getRandomValues(a);id=Array.prototype.map.call(a,function(x){return ('0'+x.toString(16)).slice(-2);}).join('');localStorage.setItem('skedyT.device',id);}
+  fetch(API+'/hi',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,classId:'@t'})}).then(function(r){if(r.ok)localStorage.setItem('skedyT.ping',day);}).catch(function(){});}catch(e){}}
+function load(light){if(!light)pingStats();
   if(!API){ui.failed=!STATE;render();return;}
   if(light&&Date.now()-(load.full||0)>18e5)light=false;
   if(!light)load.full=Date.now();
