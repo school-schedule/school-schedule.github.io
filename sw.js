@@ -3,7 +3,7 @@
 // открывается мгновенно даже на плохом Wi-Fi, а новая версия сайта видна со следующего открытия.
 // JSON-файлы (teacher/*.json): сначала из сети, без сети или если сеть молчит 4 с — из кэша.
 // Расписание само приложение хранит в localStorage, запросы к серверу (Worker) сюда не попадают.
-var CACHE = 'app-v11';
+var CACHE = 'app-v12';
 var SHELL = ['./', 'index.html', 'config.js', 'map.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png',
   'teacher/', 'teacher/index.html', 'teacher/manifest.webmanifest', 'teacher/icon-192.png', 'teacher/icon-512.png', 'teacher/apple-touch-icon.png', 'teacher/rooms.json', 'teacher/teachers.json', 'teacher/subjects.json',
   'parents/', 'parents/index.html', 'parents/manifest.webmanifest', 'parents/icon-192.png', 'parents/icon-512.png', 'parents/apple-touch-icon.png']; // teacher/ — Skedy для учителей, parents/ — для родителей
