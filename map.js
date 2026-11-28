@@ -89,19 +89,19 @@ var T={
    clear:'ניקוי',other:'אחר',rooms:'כיתות',noRooms:'אין כאן כיתות מהמערכת',mapL:'מפת בית הספר',inset:'מבנה נפרד',
    geoBtn:'איפה אני? מסלול',geoOff:'הסתרת המיקום',geoWait:'מחפשים את המיקום…',geoDenied:'אין גישה למיקום. אפשר לאשר בהגדרות הטלפון.',geoErr:'לא הצלחנו לקבל מיקום',geoNo:'הטלפון לא תומך במיקום',
    geoFar:'מחוץ לשטח בית הספר · עוד כ־{d}',geoRoute:'{t} דק׳ הליכה · {d}',geoPick:'בחרו כיתה או אזור — ונראה את הדרך',geoInacc:'ה־GPS לא מדויק (±{d})',geoNoRoute:'לאזור הזה אין מסלול על המפה',
-   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',gate:'כניסה',flGround:'קומת קרקע',flUp:'קומה עליונה',geoFromGate:'מהכניסה: {t} דק׳ הליכה · {d}',geoIos:'כדי שהאייפון לא ישאל כל פעם: הגדרות ← Safari ← מיקום ← „אפשר“.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה',full:'מסך מלא',fullX:'סגירת מסך מלא'},
+   geoPriv:'המיקום נשאר בטלפון ולא נשלח לשום מקום.',gate:'כניסה',flGround:'קומת קרקע',flUp:'קומה עליונה',flDown:'קומה ‎-1 (מרתף)',geoFromGate:'מהכניסה: {t} דק׳ הליכה · {d}',geoIos:'כדי שהאייפון לא ישאל כל פעם: הגדרות ← Safari ← מיקום ← „אפשר“.',m:'מ׳',km:'ק״מ',zin:'הגדלה',zout:'הקטנה',zreset:'כל המפה',full:'מסך מלא',fullX:'סגירת מסך מלא'},
  en:{search:'Search a room, lab…',now:'Now',next:'Next lesson',pm:'Parents’ meeting',notOn:'Not on the map yet',
    notOnR:'This room’s location isn’t on the map yet',noMatch:'Nothing found',tap:'Tap an area to see its rooms',
    clear:'Clear',other:'Other',rooms:'Rooms',noRooms:'No timetable rooms here',mapL:'School map',inset:'Separate building',
    geoBtn:'Where am I? Route',geoOff:'Hide my location',geoWait:'Finding your location…',geoDenied:'No access to location. You can allow it in the phone settings.',geoErr:'Couldn’t get your location',geoNo:'This phone can’t share its location',
    geoFar:'Outside the school · about {d} away',geoRoute:'{t} min walk · {d}',geoPick:'Pick a room or area to see the way',geoInacc:'GPS is inaccurate (±{d})',geoNoRoute:'No route to this area on the map',
-   geoPriv:'Your location stays on your phone and is never sent anywhere.',gate:'Entrance',flGround:'ground floor',flUp:'upper floor',geoFromGate:'From the entrance: {t} min walk · {d}',geoIos:'So your iPhone doesn’t ask every time: Settings → Safari → Location → Allow.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map',full:'Full screen',fullX:'Close full screen'},
+   geoPriv:'Your location stays on your phone and is never sent anywhere.',gate:'Entrance',flGround:'ground floor',flUp:'upper floor',flDown:'floor −1 (basement)',geoFromGate:'From the entrance: {t} min walk · {d}',geoIos:'So your iPhone doesn’t ask every time: Settings → Safari → Location → Allow.',m:'m',km:'km',zin:'Zoom in',zout:'Zoom out',zreset:'Whole map',full:'Full screen',fullX:'Close full screen'},
  ru:{search:'Поиск кабинета, лаборатории…',now:'Сейчас',next:'Следующий урок',pm:'Родительское собрание',notOn:'Ещё не на карте',
    notOnR:'Где этот кабинет, на карте пока нет',noMatch:'Ничего не найдено',tap:'Нажми на зону — покажу её кабинеты',
    clear:'Очистить',other:'Другое',rooms:'Кабинеты',noRooms:'Здесь нет кабинетов из расписания',mapL:'Карта школы',inset:'Отдельное здание',
    geoBtn:'Где я? Маршрут',geoOff:'Скрыть моё место',geoWait:'Ищу, где ты…',geoDenied:'Нет доступа к геопозиции. Её можно разрешить в настройках телефона.',geoErr:'Не удалось узнать, где ты',geoNo:'Телефон не умеет сообщать геопозицию',
    geoFar:'Ты не в школе · до неё примерно {d}',geoRoute:'{t} мин пешком · {d}',geoPick:'Выбери кабинет или зону — покажу дорогу',geoInacc:'GPS неточный (±{d})',geoNoRoute:'До этой зоны маршрута на карте нет',
-   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',gate:'Вход',flGround:'первый этаж',flUp:'второй этаж',geoFromGate:'От входа: {t} мин пешком · {d}',geoIos:'Чтобы iPhone не спрашивал каждый раз: Настройки → Safari → Геопозиция → «Разрешить».',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта',full:'Во весь экран',fullX:'Закрыть весь экран'}
+   geoPriv:'Геопозиция остаётся в телефоне и никуда не отправляется.',gate:'Вход',flGround:'первый этаж',flUp:'второй этаж',flDown:'−1 этаж (подвал)',geoFromGate:'От входа: {t} мин пешком · {d}',geoIos:'Чтобы iPhone не спрашивал каждый раз: Настройки → Safari → Геопозиция → «Разрешить».',m:'м',km:'км',zin:'Крупнее',zout:'Мельче',zreset:'Вся карта',full:'Во весь экран',fullX:'Закрыть весь экран'}
 };
 var st={sel:null,q:'',rooms:null,busy:false,geo:null,watch:null},CB={},LANG='he';
 function tx(k){return (T[LANG]||T.he)[k]||T.he[k]||k;}
@@ -125,6 +125,8 @@ var SPOTS={'שקד 1':[890,140],'שקד 2':[742,130],'שקד 3':[794,116],
   // 4 (י4); северная (к רימון/שקד) — 6 (י6), 7 (י10), 8 (מעבדה); второй этаж (видео 10): лаборатории биологии 10, 11,
   // צוות מדעים, אודיטוריום קטן, лаборатория физики 13, в конце 15 (הקבצה)
   'אלון 1':[664,552],'אלון 2':[696,555],'אלון 3':[728,558],'אלון 4':[760,561],'אלון 6':[700,462],'אלון 7':[740,463],'אלון 8':[780,464],'אלון 10':[650,505],'אלון 11':[676,507],'אלון 13':[800,512],'אלון 15':[826,514],
+  // ארז (видео 11): −1 этаж, вход по лестнице вниз со двора — מחשבים 1 и 2
+  'ארז 1':[944,300],'ארז 2':[974,300],
   'רימון 1':[620,270],'רימון 2':[620,320],'רימון 3':[620,370],'רימון 4':[620,420],
   'רימון 5':[588,420],'רימון 6':[588,370],'רימון 7':[588,320],'רימון 8':[588,270],
   'שקד 6':[828,34],'שקד 5':[796,33],'שקד 9':[736,32],'שקד 10':[712,32],'שקד 8':[678,31],'שקד 7':[652,30],'שקד 4':[598,30]};
@@ -136,8 +138,8 @@ var PLACES=[
  {k:'@sped',z:'shaked',xy:[840,116],t:{he:'רכזת ויועצת חינוך מיוחד',en:'Special education coordinator',ru:'Координатор специального образования'}},
  {k:'@grp',z:'shaked',xy:[764,32],t:{he:'קבוצות לימוד',en:'Study groups room',ru:'Кабинет учебных групп (קבוצות לימוד)'}},
  {k:'@gr8',z:'shaked',xy:[760,116],t:{he:'מנהל/ת שכבה ח׳',en:'Grade 8 (ח׳) coordinator',ru:'Руководитель параллели ח׳'}}];
-// этаж кабинета, если он не на первом: 1 — верхний этаж (кружок пунктиром, в карточке — «верхний этаж»), 0 — первый
-var FLOOR={'אלון 10':1,'אלון 11':1,'אלון 13':1,'אלון 15':1,'ברוש 1':0,'ברוש 2':0,'ברוש 3':1,'ברוש 4':1,'רימון 1':0,'רימון 2':0,'רימון 3':0,'רימון 4':0,'רימון 5':1,'רימון 6':1,'רימון 7':1,'רימון 8':1};
+// этаж кабинета, если он не на первом: 1 — верхний этаж (кружок пунктиром), -1 — подвал (кружок точками), 0 — первый
+var FLOOR={'ארז 1':-1,'ארז 2':-1,'אלון 10':1,'אלון 11':1,'אלון 13':1,'אלון 15':1,'ברוש 1':0,'ברוש 2':0,'ברוש 3':1,'ברוש 4':1,'רימון 1':0,'רימון 2':0,'רימון 3':0,'רימון 4':0,'רימון 5':1,'רימון 6':1,'רימון 7':1,'רימון 8':1};
 function floorOf(r){var k=String(r||'').trim().split(/\s+/).slice(0,2).join(' ');return k in FLOOR?FLOOR[k]:null;}
 function placeOf(r){for(var i=0;i<PLACES.length;i++)if(PLACES[i].k===r)return PLACES[i];return null;}
 function spotOf(r){var p=placeOf(r);if(p)return p.xy;return SPOTS[String(r||'').trim().split(/\s+/).slice(0,2).join(' ')]||null;}  // «שקד 1 ח10 שמע» → «שקד 1»
@@ -199,7 +201,7 @@ var css=
 '.smap-svg .park{fill:#4a4b4d}'+
 '.smap-svg .walk{fill:none;stroke:#8a877f;stroke-width:12;stroke-linecap:round;opacity:.7;pointer-events:none}'+
 '.smap-svg .trees{pointer-events:none}'+
-'.smap-svg .spots circle.up{stroke-dasharray:4 3;fill:#2a2a2a}.smap-svg .spots{pointer-events:none}.smap-svg .spots circle{fill:#171717;stroke:#f0f0f0;stroke-width:2.5}.smap-svg .spots circle.pl{fill:#f0f0f0;stroke:#171717}.smap-svg text.sn{font-size:14px;stroke:none;fill:#f0f0f0}'+
+'.smap-svg .spots circle.up{stroke-dasharray:4 3;fill:#2a2a2a}.smap-svg .spots circle.dn{stroke-dasharray:1.5 3;stroke-linecap:round;fill:#0e0e0e}.smap-svg .spots{pointer-events:none}.smap-svg .spots circle{fill:#171717;stroke:#f0f0f0;stroke-width:2.5}.smap-svg .spots circle.pl{fill:#f0f0f0;stroke:#171717}.smap-svg text.sn{font-size:14px;stroke:none;fill:#f0f0f0}'+
 '.smap-svg .gate{pointer-events:none}.smap-svg .gate line{stroke:#C6FF00;stroke-width:4;stroke-dasharray:4 6;stroke-linecap:round}.smap-svg .gate circle{fill:#171717;stroke:#C6FF00;stroke-width:4}'+
 '.smap-svg text.gi{font-size:22px;stroke:none}.smap-svg text.gt{fill:#C6FF00;font-size:18px;stroke-width:5px}'+
 '.smap-svg .path{fill:none;stroke:#c9bd9f;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.38;pointer-events:none}'+
@@ -373,7 +375,7 @@ function svg(selZ,pinZ){
   GATES.forEach(function(g){var n=NODE[g.n];h+='<g class="gate"><line x1="'+n[0]+'" y1="'+n[1]+'" x2="'+g.x+'" y2="'+g.y+'"/><circle cx="'+g.x+'" cy="'+g.y+'" r="21"/><text class="gi" x="'+g.x+'" y="'+(g.y+1)+'">🚪</text><text class="gt" x="'+g.x+'" y="'+(g.y+38)+'">'+esc(tx('gate'))+'</text></g>';});
   // точки известных кабинетов внутри корпусов: номер класса или «•» у кабинета руководства
   // номера кабинетов видны только у выбранного корпуса
-  h+='<g class="spots">';for(var sk in SPOTS){var q=SPOTS[sk],sz=zoneOf(sk);if(!sz||sz.k!==selZ)continue;h+='<circle'+(FLOOR[sk]===1?' class="up"':'')+' cx="'+q[0]+'" cy="'+q[1]+'" r="12"/><text class="sn" x="'+q[0]+'" y="'+(q[1]+1)+'">'+esc(sk.split(' ')[1])+'</text>';}
+  h+='<g class="spots">';for(var sk in SPOTS){var q=SPOTS[sk],sz=zoneOf(sk);if(!sz||sz.k!==selZ)continue;h+='<circle'+(FLOOR[sk]===1?' class="up"':FLOOR[sk]===-1?' class="dn"':'')+' cx="'+q[0]+'" cy="'+q[1]+'" r="12"/><text class="sn" x="'+q[0]+'" y="'+(q[1]+1)+'">'+esc(sk.split(' ')[1])+'</text>';}
   PLACES.forEach(function(pl){if(pl.z!==selZ)return;h+='<circle class="pl" cx="'+pl.xy[0]+'" cy="'+pl.xy[1]+'" r="7"/>';});h+='</g>';
   var pz=zone(pinZ),ps=st.sel&&st.sel.r?spotOf(st.sel.r):null,px=ps?ps[0]:pz&&pz.x,py=ps?ps[1]:pz&&pz.y-42;
   // у верхнего края карты булавка перевёрнута (головкой вниз), иначе обрезается
@@ -426,7 +428,7 @@ function html(o){
   if(!sel)h+='<p class="smap-tip">'+esc(tx('tap'))+'</p>';
   if(selR){var z=zoneOf(selR);
     h+='<div class="smap-info"><h3><span class="r"><bdi>'+esc(rName(selR))+'</bdi></span></h3>';
-    var fl=floorOf(selR);h+=z?'<p>'+esc((L(z.nm)||L(z.lb))+(fl!=null?' · '+tx(fl?'flUp':'flGround'):'')+(z.sub?' — '+L(z.sub):''))+'</p>':'<p>'+esc(tx('notOnR'))+'</p>';
+    var fl=floorOf(selR);h+=z?'<p>'+esc((L(z.nm)||L(z.lb))+(fl!=null?' · '+tx(fl<0?'flDown':fl?'flUp':'flGround'):'')+(z.sub?' — '+L(z.sub):''))+'</p>':'<p>'+esc(tx('notOnR'))+'</p>';
     h+='</div>';}
   else if(selZ){var zz=zone(selZ),zr=rooms.filter(function(r){var q=zoneOf(r);return q&&q.k===selZ;});
     h+='<div class="smap-info"><h3>'+esc(L(zz.nm)||L(zz.lb))+'</h3>'+(zz.sub?'<p>'+esc(L(zz.sub))+'</p>':'');
